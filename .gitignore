@@ -1,0 +1,7 @@
+node_modules/
+release/
+android/
+dist/
+*.log
+game/dist/
+game/vendor/three.global.js

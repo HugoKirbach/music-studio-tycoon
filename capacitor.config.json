@@ -1,0 +1,9 @@
+{
+  "appId": "fr.premiermix.game",
+  "appName": "Premier Mix",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#e6edf1",
+    "allowMixedContent": false
+  }
+}

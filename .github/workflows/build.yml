@@ -1,0 +1,85 @@
+# Compile automatiquement l'application Windows (.exe) et Android (.apk) à chaque envoi sur la branche main,
+# puis publie les fichiers dans l'onglet « Releases » du dépôt.
+name: Compiler les applications
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    name: Windows (.exe)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Installer les outils
+        run: npm install --no-audit --no-fund
+      - name: Fabriquer l'installateur et la version portable
+        run: npx electron-builder --win nsis portable --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PremierMix-Windows
+          path: release/*.exe
+          if-no-files-found: error
+
+  android:
+    name: Android (.apk)
+    runs-on: ubuntu-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - name: Installer les outils
+        run: npm install --no-audit --no-fund
+      - name: Créer le projet Android
+        run: |
+          npx cap add android
+          npx capacitor-assets generate --android
+          npx cap sync android
+      - name: Compiler l'APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+      - name: Renommer l'APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk PremierMix.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PremierMix-Android
+          path: PremierMix.apk
+          if-no-files-found: error
+
+  release:
+    name: Publier
+    needs: [windows, android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Créer la version
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Premier Mix 1.0.${{ github.run_number }}
+          body: |
+            - **Windows** : `PremierMix-Installation-*.exe` (installe le jeu) ou `PremierMix-Portable-*.exe` (se lance directement, sans installation).
+            - **Android** : `PremierMix.apk` (autorise l'installation d'applications inconnues pour ton navigateur ou ton gestionnaire de fichiers).
+          files: out/*
+          make_latest: true
