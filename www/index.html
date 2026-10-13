@@ -14,7 +14,7 @@
   --hud: rgba(255, 255, 255, 0.88); --shadow: 0 6px 18px rgba(29, 36, 51, 0.12); --shadow-s: 0 2px 6px rgba(29, 36, 51, 0.1);
   --f-title: 'Baloo 2', 'Nunito', ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --f-body: 'Nunito', ui-rounded, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --r: 14px; --tabs-h: 64px;
+  --r: 14px; --tabs-h: 64px; --panel-w: 420px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -42,7 +42,9 @@ output { font-variant-numeric: tabular-nums; }
 :focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 
 /* ---------- Mise en page ---------- */
-.game { display: grid; grid-template-columns: minmax(0, 1fr) clamp(380px, 33vw, 470px); grid-template-rows: minmax(0, 1fr); height: 100vh; height: 100dvh; }
+.game { display: grid; grid-template-columns: minmax(0, 1fr) var(--panel-w); grid-template-rows: minmax(0, 1fr); height: 100vh; height: 100dvh; }
+.game.collapsed { grid-template-columns: minmax(0, 1fr) 0; }
+.game.collapsed > .panel { display: none; }
 .game > .stage { grid-area: 1 / 1; }
 .game > .panel { grid-area: 1 / 2; }
 .stage { position: relative; overflow: hidden; background: var(--stage); min-height: 0; }
@@ -51,7 +53,17 @@ output { font-variant-numeric: tabular-nums; }
 .scene-overlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .stage-fallback { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--ink-soft); }
 .panel { display: flex; flex-direction: column; min-height: 0; background: var(--panel); border-left: 1px solid var(--line); box-shadow: -8px 0 24px rgba(0, 0, 0, 0.06); }
-.panes { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 16px 16px 28px; }
+.panes { flex: 1; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 16px 16px 28px; }
+.panes .list > *, .actions > *, .m-acts > *, .foot-actions > *, .team-sum > *, .tro-grid > *, .seg > *, .stats > * { min-width: 0; }
+.btn .t b, .btn .t small, .pad b, .pad small { overflow-wrap: break-word; }
+.actions:has(> [data-do="auto"][hidden]) > [data-do="up"] { grid-column: 1 / -1; }
+.actions .btn .t b { font-size: 15px; }
+.sheet-grip { display: none; }
+/* Bouton pour replier le menu (PC) */
+.menu-toggle { position: absolute; z-index: 6; right: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border: 0; border-radius: 12px 0 0 12px; background: var(--hud); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: var(--shadow); color: var(--ink); font: 800 11px var(--f-body); letter-spacing: 0.04em; }
+.menu-toggle svg { width: 20px; height: 20px; transition: transform 0.2s; }
+.menu-toggle span { writing-mode: vertical-rl; transform: rotate(180deg); }
+.game.collapsed .menu-toggle svg { transform: rotate(180deg); }
 .pane { display: none; }
 .game[data-view="prod"] #prod, .game[data-view="shop"] #shop, .game[data-view="team"] #team, .game[data-view="trophies"] #trophies, .game[data-view="account"] #account { display: block; }
 .pane > h2 { font-size: 24px; margin: 2px 0 12px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
@@ -260,13 +272,13 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .pane p { line-height: 1.45; }
 
 /* Bandeau compte, invitation, toasts */
-.banner { position: absolute; z-index: 8; left: 50%; top: 92px; transform: translateX(-50%); width: min(520px, calc(100% - 24px)); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; border-radius: var(--r); background: var(--card); box-shadow: var(--shadow); border: 2px solid var(--blue); }
+.banner { position: absolute; z-index: 8; left: 50%; top: calc(var(--hud-h, 92px) + 8px); transform: translateX(-50%); width: min(520px, calc(100% - 24px)); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; border-radius: var(--r); background: var(--card); box-shadow: var(--shadow); border: 2px solid var(--blue); }
 .banner p { grid-column: 1 / -1; margin: 0; font-size: 14px; font-weight: 600; }
-#toasts { position: absolute; z-index: 9; left: 50%; bottom: 16px; transform: translateX(-50%); display: grid; gap: 6px; justify-items: center; width: min(520px, calc(100% - 24px)); pointer-events: none; }
+#toasts { position: absolute; z-index: 9; left: 50%; bottom: calc(var(--sheet-h, 0px) + 16px); transform: translateX(-50%); display: grid; gap: 6px; justify-items: center; width: min(520px, calc(100% - 24px)); pointer-events: none; }
 .toast { padding: 9px 14px; border-radius: 12px; background: var(--ink); color: var(--bg); font-weight: 700; font-size: 14px; box-shadow: var(--shadow); animation: toastIn 0.25s ease-out; text-align: center; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } }
 .invite { position: absolute; z-index: 7; display: flex; align-items: stretch; border-radius: var(--r); background: var(--card); box-shadow: var(--shadow), 0 0 0 3px var(--accent); overflow: hidden; animation: bob 1.6s ease-in-out infinite; }
-.invite.pos-0 { left: 16px; bottom: 70px; } .invite.pos-1 { right: 16px; bottom: 70px; } .invite.pos-2 { left: 16px; top: 140px; } .invite.pos-3 { right: 16px; top: 140px; }
+.invite.pos-0 { left: 16px; bottom: calc(var(--sheet-h, 0px) + 70px); } .invite.pos-1 { right: 48px; bottom: calc(var(--sheet-h, 0px) + 70px); } .invite.pos-2 { left: 16px; top: calc(var(--hud-h, 130px) + 16px); } .invite.pos-3 { right: 48px; top: calc(var(--hud-h, 130px) + 16px); }
 @keyframes bob { 50% { transform: translateY(-4px); } }
 .inv-open { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 0; background: none; text-align: left; }
 .inv-text { display: flex; flex-direction: column; }
@@ -301,20 +313,20 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 @keyframes rwIn { to { opacity: 1; } }
 #evLater { justify-self: start; }
 
-/* ---------- Mobile ---------- */
-@media (max-width: 899px) {
-  .game { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
-  .stage { flex: 0 0 auto; height: 36vh; height: 36dvh; min-height: 210px; order: 1; }
-  .hud { position: static; order: 0; padding: 8px 16px 6px; gap: 6px; background: var(--panel); border-bottom: 1px solid var(--line); }
-  .hud .hcard, .hud .pill, .hud .ibtn { box-shadow: none; background: var(--panel-2); -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* ---------- Écrans étroits : la 3D occupe tout l'écran, le menu est un volet repliable ---------- */
+@media (max-width: 999px) {
+  :root { --tabs-h: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  .game, .game.collapsed { display: block; position: relative; height: 100vh; height: 100dvh; overflow: hidden; }
+  .stage { position: absolute; left: 0; right: 0; top: 0; bottom: var(--tabs-h); }
+  .hud { position: absolute; z-index: 6; top: 0; left: 0; right: 0; margin: 0; padding: 8px 10px 0; gap: 6px; }
   .brand { display: none; }
   .place { flex: 1 1 140px; min-width: 0; padding: 6px 10px; }
   .ctrls { margin-left: 0; }
   .pill { padding: 6px 9px; }
   .pill #pillText { max-width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .stats { width: 100%; display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 6px; }
-  .stat { min-width: 0; padding: 5px 8px; }
-  .stat.money { min-width: 0; }
+  .stats { width: 100%; display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .stat { min-width: 0; padding: 5px 8px; overflow: hidden; }
+  .stat .lbl { letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .stat.money .val { font-size: 19px; }
   .stat.team-stat { display: none; }
   .lbl { font-size: 10px; }
@@ -324,20 +336,24 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   .place-name small { display: none; }
   .place-name span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .boost { font-size: 10.5px; padding: 0 5px 3px; }
-  .panel { order: 2; flex: 1; border-left: 0; box-shadow: none; display: flex; flex-direction: column; }
-  .tabs { order: 2; border-bottom: 0; border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .menu-toggle { display: none; }
+  .panel, .game.collapsed > .panel { display: contents; }
+  .tabs { position: absolute; z-index: 12; left: 0; right: 0; bottom: 0; height: var(--tabs-h); border-bottom: 0; border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); }
   .tabs button { font-size: 11px; min-height: 50px; }
-  .panes { order: 1; padding: 14px 16px 20px; }
-  .banner { top: 8px; }
-  .invite.pos-0, .invite.pos-1 { bottom: 12px; } .invite.pos-2, .invite.pos-3 { top: 12px; }
+  .game.collapsed .tabs button[aria-selected="true"] { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+  .panes { position: absolute; z-index: 11; left: 0; right: 0; bottom: var(--tabs-h); height: min(54vh, 560px); height: min(54dvh, 560px); padding: 0 16px 20px; background: var(--panel); border-radius: 18px 18px 0 0; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2); transition: transform 0.28s ease, visibility 0s linear 0s; }
+  .game.collapsed .panes { transform: translateY(calc(100% + var(--tabs-h))); visibility: hidden; transition: transform 0.28s ease, visibility 0s linear 0.28s; }
+  .sheet-grip { position: sticky; top: 0; z-index: 2; display: flex; justify-content: center; align-items: center; gap: 8px; width: calc(100% + 32px); margin: 0 -16px 6px; padding: 10px 0 8px; border: 0; background: var(--panel); color: var(--ink-soft); font: 800 12px var(--f-body); }
+  .sheet-grip i { width: 44px; height: 5px; border-radius: 5px; background: var(--line); }
+  .banner { top: calc(var(--hud-h, 120px) + 6px); }
+  .invite.pos-0, .invite.pos-1 { bottom: calc(var(--sheet-h, 0px) + 12px); } .invite.pos-2, .invite.pos-3 { top: calc(var(--hud-h, 120px) + 10px); }
   .invite.pos-0, .invite.pos-2 { left: 10px; } .invite.pos-1, .invite.pos-3 { right: 10px; }
-  #toasts { bottom: 8px; gap: 4px; }
+  #toasts { bottom: calc(var(--sheet-h, 0px) + 8px); gap: 4px; }
   .toast { font-size: 12.5px; padding: 6px 10px; border-radius: 10px; }
   .toast:not(:last-child) { display: none; }
-  .vol-panel { position: fixed; top: auto; left: 16px; right: 16px; width: auto; }
+  .vol-panel { position: fixed; top: auto; bottom: calc(var(--tabs-h) + 10px); left: 16px; right: 16px; width: auto; }
   .sheet { align-self: end; border-radius: 18px 18px 0 0; }
   .scrim { padding: 0; place-items: end stretch; }
-  .tro-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 380px) {
   .stats { grid-template-columns: 1.4fr 1fr 1fr; }
@@ -358,6 +374,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   <div class="stage" id="stage">
     <div class="stage-fallback" id="stageFallback" hidden><p>La vue 3D n’est pas disponible sur cet appareil. Le jeu fonctionne normalement avec les panneaux.</p></div>
     <div class="pick-tip" id="pickTip" hidden></div>
+    <button class="menu-toggle" id="menuToggle" type="button" aria-controls="panel" aria-expanded="true" title="Replier le menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="menuToggleText">Masquer</span></button>
     <div class="banner" id="cloudBanner" hidden>
       <p id="cloudMsg"></p>
       <button class="btn sm primary" id="cloudLoad" type="button">Charger cette partie</button>
@@ -415,6 +432,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
       <button type="button" id="tabMore" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Réglages</button>
     </nav>
     <div class="panes" id="panes">
+      <button class="sheet-grip" id="sheetGrip" type="button" aria-controls="panes" aria-expanded="true"><i aria-hidden="true"></i><span>Réduire</span></button>
       <section class="pane" id="prod" aria-labelledby="prodTitle">
         <h2 id="prodTitle">Productions</h2>
         <p class="hint" id="hint">Astuce : clique sur Lancer, puis clique encore pendant la production pour l’accélérer.</p>
@@ -1621,6 +1639,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   var itemNodes = {}, staffNodes = {}, deskNodes = [], player = null, anims = [], blinkers = [], spinners = [];
   var view = null, pickFn = null;
   var cam = { yaw: 0.72, pitch: 0.62, zoom: 1, fit: 12, target: null, yawBase: 0.72 };
+  var ins = { t: 0, b: 0 }; // zones de l'écran couvertes par l'interface (px), pour cadrer la pièce dans la partie visible
 
   // ---------- Outils de construction ----------
   var MATS = {}, GEOS = {};
@@ -2313,10 +2332,12 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     cam.target.set(-W * 0.04, H * 0.22, D * 0.02);
     var pts = [];
     [-W / 2, W / 2].forEach(function (x) { [-D / 2, D / 2].forEach(function (z) { [0, H].forEach(function (y) { pts.push(new V3(x, y, z)); }); }); });
-    var lo = 3, hi = 80, v = new V3();
+    var lo = 3, hi = 80, v = new V3(), hh = Math.max(1, host.clientHeight);
+    var yTop = 0.95 - 2 * ins.t / hh, yBot = -0.97 + 2 * ins.b / hh;
+    if (yTop - yBot < 0.5) { var mid0 = (yTop + yBot) / 2; yTop = mid0 + 0.25; yBot = mid0 - 0.25; }
     for (var it = 0; it < 22; it++) {
       var mid = (lo + hi) / 2; placeCam(mid, cam.yawBase, cam.pitch); camera.updateMatrixWorld();
-      var ok = pts.every(function (p) { v.copy(p).project(camera); return Math.abs(v.x) < 0.97 && v.y < 0.95 && v.y > -0.97; });
+      var ok = pts.every(function (p) { v.copy(p).project(camera); return Math.abs(v.x) < 0.97 && v.y < yTop && v.y > yBot; });
       if (ok) hi = mid; else lo = mid;
     }
     cam.fit = hi;
@@ -2326,6 +2347,11 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     camera.lookAt(cam.target);
   }
   function applyCam() { placeCam(cam.fit * cam.zoom, cam.yaw, cam.pitch); }
+  // Décale l'image pour centrer la pièce entre le haut et le bas couverts par l'interface.
+  function applyOffset() {
+    var w = Math.max(1, host.clientWidth), h = Math.max(1, host.clientHeight), d = Math.round((ins.b - ins.t) / 2);
+    if (d) camera.setViewOffset(w, h, 0, d, w, h); else camera.clearViewOffset();
+  }
 
   // ---------- Lumières et thème ----------
   function lights() {
@@ -2568,7 +2594,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (!S3.ok) return;
     var w = Math.max(1, host.clientWidth), h = Math.max(1, host.clientHeight);
     R.setSize(w, h, false);
-    camera.aspect = w / h; camera.updateProjectionMatrix();
+    camera.aspect = w / h; camera.updateProjectionMatrix(); applyOffset();
     cam.pitch = Math.max(0.35, Math.min(1.05, cam.pitch));
     if (cur.def) { fitCamera(); applyCam(); }
   };
@@ -2588,6 +2614,14 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   };
   S3.setTheme = function (d) { var was = dark; dark = !!d; if (!S3.ok) return; applyTheme(); if (was !== dark && cur.placeKey) { var k = cur.placeKey, t = cur.tier; cur.placeKey = null; S3.update(Object.assign({}, view || {}, { place: k, tier: t })); } };
   S3.onPick = function (fn) { pickFn = fn; };
+  S3.setInsets = function (t, b) {
+    t = Math.max(0, Math.round(t || 0)); b = Math.max(0, Math.round(b || 0));
+    if (t === ins.t && b === ins.b) return;
+    ins.t = t; ins.b = b;
+    if (!S3.ok) return;
+    applyOffset();
+    if (cur.def) { fitCamera(); applyCam(); }
+  };
   S3.PLACES = PLACES;
   S3._person = person; // tests
   S3.screenOf = function (kind, id) {
@@ -2960,6 +2994,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var m = G.findMember(S, u.id);
       if (!m) return;
       showTip(m.name, G.ROLE_BY[m.role].name + ' · niveau ' + m.lvl + ' · moral ' + Math.round(m.morale) + ' %', x, y);
+      if (!menuOpen) setMenu(true);
       if (bind.view) bind.view('team');
       team.focus = m.id; team.key = '';
       renderTeam(true);
@@ -3011,6 +3046,38 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       try { localStorage.setItem(TKEY, themeMode); } catch (x) { /* stockage indisponible */ }
       applyTheme();
     });
+  }
+  // ---------- Menu repliable ----------
+  var MENUKEY = 'premier-mix:menu', menuOpen = true;
+  var narrowMq = window.matchMedia ? window.matchMedia('(max-width: 999px)') : null;
+  function narrow() { return !!(narrowMq && narrowMq.matches); }
+  function updateInsets() {
+    var app = $('app'), st = $('stage').getBoundingClientRect(), hud = $('hud').getBoundingClientRect();
+    var hudH = Math.max(0, hud.bottom - st.top);
+    var sheetH = narrow() && menuOpen ? $('panes').offsetHeight : 0;
+    app.style.setProperty('--hud-h', Math.round(hudH) + 'px');
+    app.style.setProperty('--sheet-h', Math.round(sheetH) + 'px');
+    if (scene3d) S3.setInsets(hudH + 6, sheetH);
+  }
+  function setMenu(open, save) {
+    menuOpen = !!open;
+    $('app').classList.toggle('collapsed', !menuOpen);
+    $('menuToggle').setAttribute('aria-expanded', menuOpen ? 'true' : 'false');
+    $('menuToggle').title = menuOpen ? 'Replier le menu pour ne garder que le studio' : 'Afficher le menu';
+    setText($('menuToggleText'), menuOpen ? 'Masquer' : 'Menu');
+    $('sheetGrip').setAttribute('aria-expanded', menuOpen ? 'true' : 'false');
+    if (save !== false) { try { localStorage.setItem(MENUKEY, menuOpen ? '1' : '0'); } catch (e) { /* stockage indisponible */ } }
+    updateInsets();
+    if (scene3d) S3.resize();
+    setTimeout(updateInsets, 320);
+  }
+  function initMenu() {
+    try { menuOpen = localStorage.getItem(MENUKEY) !== '0'; } catch (e) { menuOpen = true; }
+    $('menuToggle').addEventListener('click', function () { setMenu(!menuOpen); });
+    $('sheetGrip').addEventListener('click', function () { setMenu(false); });
+    try { new ResizeObserver(function () { updateInsets(); }).observe($('hud')); new ResizeObserver(function () { updateInsets(); }).observe($('panes')); } catch (e) { window.addEventListener('resize', updateInsets); }
+    if (narrowMq && narrowMq.addEventListener) narrowMq.addEventListener('change', function () { setMenu(menuOpen, false); });
+    setMenu(menuOpen, false);
   }
   function initScene() {
     if (!S3 || !window.THREE) { $('stageFallback').hidden = false; return; }
@@ -3490,11 +3557,18 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     $('tourBtn').addEventListener('click', askTour);
     $('tourNo').addEventListener('click', function () { tour.open = false; renderTour(); $('tourBtn').focus(); });
     $('tourGo').addEventListener('click', startTour);
-    $('tabProd').addEventListener('click', function () { view('prod'); });
-    $('tabShop').addEventListener('click', function () { view('shop'); });
-    $('tabTro').addEventListener('click', function () { view('trophies'); });
-    $('tabTeam').addEventListener('click', function () { view('team'); });
-    $('tabMore').addEventListener('click', function () { view('account'); });
+    // Un onglet rouvre le menu ; sur écran étroit, toucher l'onglet déjà ouvert replie le volet.
+    function tab(v) {
+      if (narrow() && menuOpen && $('app').getAttribute('data-view') === v) { setMenu(false); return; }
+      if (!menuOpen) setMenu(true);
+      view(v);
+    }
+    bind.tab = tab;
+    $('tabProd').addEventListener('click', function () { tab('prod'); });
+    $('tabShop').addEventListener('click', function () { tab('shop'); });
+    $('tabTro').addEventListener('click', function () { tab('trophies'); });
+    $('tabTeam').addEventListener('click', function () { tab('team'); });
+    $('tabMore').addEventListener('click', function () { tab('account'); });
     $('goal').addEventListener('click', function () { view('trophies'); });
 
     // Équipe
@@ -3609,7 +3683,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     $('evClose').addEventListener('click', closeEvent);
     $('scrim').addEventListener('click', function (e) { if (e.target === $('scrim')) closeEvent(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && ev.open) closeEvent(); });
-    $('accountPill').addEventListener('click', function () { view('account'); });
+    $('accountPill').addEventListener('click', function () { if (!menuOpen) setMenu(true); view('account'); });
 
     document.addEventListener('visibilitychange', function () { if (document.hidden) { saveLocal(); if (cloud.dirty) saveCloud(true); } });
     window.addEventListener('pagehide', function () { saveLocal(); });
@@ -3670,6 +3744,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     initTheme();
     buildActs(); buildShop(); buildTrophies(); bind();
     initScene();
+    initMenu();
     render(); renderScene(true);
     if (off) { off.trophies = G.trophyCount(S) - tc0; showOffline(off); }
     try {

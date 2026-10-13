@@ -12,6 +12,7 @@
   var itemNodes = {}, staffNodes = {}, deskNodes = [], player = null, anims = [], blinkers = [], spinners = [];
   var view = null, pickFn = null;
   var cam = { yaw: 0.72, pitch: 0.62, zoom: 1, fit: 12, target: null, yawBase: 0.72 };
+  var ins = { t: 0, b: 0 }; // zones de l'écran couvertes par l'interface (px), pour cadrer la pièce dans la partie visible
 
   // ---------- Outils de construction ----------
   var MATS = {}, GEOS = {};
@@ -704,10 +705,12 @@
     cam.target.set(-W * 0.04, H * 0.22, D * 0.02);
     var pts = [];
     [-W / 2, W / 2].forEach(function (x) { [-D / 2, D / 2].forEach(function (z) { [0, H].forEach(function (y) { pts.push(new V3(x, y, z)); }); }); });
-    var lo = 3, hi = 80, v = new V3();
+    var lo = 3, hi = 80, v = new V3(), hh = Math.max(1, host.clientHeight);
+    var yTop = 0.95 - 2 * ins.t / hh, yBot = -0.97 + 2 * ins.b / hh;
+    if (yTop - yBot < 0.5) { var mid0 = (yTop + yBot) / 2; yTop = mid0 + 0.25; yBot = mid0 - 0.25; }
     for (var it = 0; it < 22; it++) {
       var mid = (lo + hi) / 2; placeCam(mid, cam.yawBase, cam.pitch); camera.updateMatrixWorld();
-      var ok = pts.every(function (p) { v.copy(p).project(camera); return Math.abs(v.x) < 0.97 && v.y < 0.95 && v.y > -0.97; });
+      var ok = pts.every(function (p) { v.copy(p).project(camera); return Math.abs(v.x) < 0.97 && v.y < yTop && v.y > yBot; });
       if (ok) hi = mid; else lo = mid;
     }
     cam.fit = hi;
@@ -717,6 +720,11 @@
     camera.lookAt(cam.target);
   }
   function applyCam() { placeCam(cam.fit * cam.zoom, cam.yaw, cam.pitch); }
+  // Décale l'image pour centrer la pièce entre le haut et le bas couverts par l'interface.
+  function applyOffset() {
+    var w = Math.max(1, host.clientWidth), h = Math.max(1, host.clientHeight), d = Math.round((ins.b - ins.t) / 2);
+    if (d) camera.setViewOffset(w, h, 0, d, w, h); else camera.clearViewOffset();
+  }
 
   // ---------- Lumières et thème ----------
   function lights() {
@@ -959,7 +967,7 @@
     if (!S3.ok) return;
     var w = Math.max(1, host.clientWidth), h = Math.max(1, host.clientHeight);
     R.setSize(w, h, false);
-    camera.aspect = w / h; camera.updateProjectionMatrix();
+    camera.aspect = w / h; camera.updateProjectionMatrix(); applyOffset();
     cam.pitch = Math.max(0.35, Math.min(1.05, cam.pitch));
     if (cur.def) { fitCamera(); applyCam(); }
   };
@@ -979,6 +987,14 @@
   };
   S3.setTheme = function (d) { var was = dark; dark = !!d; if (!S3.ok) return; applyTheme(); if (was !== dark && cur.placeKey) { var k = cur.placeKey, t = cur.tier; cur.placeKey = null; S3.update(Object.assign({}, view || {}, { place: k, tier: t })); } };
   S3.onPick = function (fn) { pickFn = fn; };
+  S3.setInsets = function (t, b) {
+    t = Math.max(0, Math.round(t || 0)); b = Math.max(0, Math.round(b || 0));
+    if (t === ins.t && b === ins.b) return;
+    ins.t = t; ins.b = b;
+    if (!S3.ok) return;
+    applyOffset();
+    if (cur.def) { fitCamera(); applyCam(); }
+  };
   S3.PLACES = PLACES;
   S3._person = person; // tests
   S3.screenOf = function (kind, id) {

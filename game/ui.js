@@ -354,6 +354,7 @@
       var m = G.findMember(S, u.id);
       if (!m) return;
       showTip(m.name, G.ROLE_BY[m.role].name + ' · niveau ' + m.lvl + ' · moral ' + Math.round(m.morale) + ' %', x, y);
+      if (!menuOpen) setMenu(true);
       if (bind.view) bind.view('team');
       team.focus = m.id; team.key = '';
       renderTeam(true);
@@ -405,6 +406,38 @@
       try { localStorage.setItem(TKEY, themeMode); } catch (x) { /* stockage indisponible */ }
       applyTheme();
     });
+  }
+  // ---------- Menu repliable ----------
+  var MENUKEY = 'premier-mix:menu', menuOpen = true;
+  var narrowMq = window.matchMedia ? window.matchMedia('(max-width: 999px)') : null;
+  function narrow() { return !!(narrowMq && narrowMq.matches); }
+  function updateInsets() {
+    var app = $('app'), st = $('stage').getBoundingClientRect(), hud = $('hud').getBoundingClientRect();
+    var hudH = Math.max(0, hud.bottom - st.top);
+    var sheetH = narrow() && menuOpen ? $('panes').offsetHeight : 0;
+    app.style.setProperty('--hud-h', Math.round(hudH) + 'px');
+    app.style.setProperty('--sheet-h', Math.round(sheetH) + 'px');
+    if (scene3d) S3.setInsets(hudH + 6, sheetH);
+  }
+  function setMenu(open, save) {
+    menuOpen = !!open;
+    $('app').classList.toggle('collapsed', !menuOpen);
+    $('menuToggle').setAttribute('aria-expanded', menuOpen ? 'true' : 'false');
+    $('menuToggle').title = menuOpen ? 'Replier le menu pour ne garder que le studio' : 'Afficher le menu';
+    setText($('menuToggleText'), menuOpen ? 'Masquer' : 'Menu');
+    $('sheetGrip').setAttribute('aria-expanded', menuOpen ? 'true' : 'false');
+    if (save !== false) { try { localStorage.setItem(MENUKEY, menuOpen ? '1' : '0'); } catch (e) { /* stockage indisponible */ } }
+    updateInsets();
+    if (scene3d) S3.resize();
+    setTimeout(updateInsets, 320);
+  }
+  function initMenu() {
+    try { menuOpen = localStorage.getItem(MENUKEY) !== '0'; } catch (e) { menuOpen = true; }
+    $('menuToggle').addEventListener('click', function () { setMenu(!menuOpen); });
+    $('sheetGrip').addEventListener('click', function () { setMenu(false); });
+    try { new ResizeObserver(function () { updateInsets(); }).observe($('hud')); new ResizeObserver(function () { updateInsets(); }).observe($('panes')); } catch (e) { window.addEventListener('resize', updateInsets); }
+    if (narrowMq && narrowMq.addEventListener) narrowMq.addEventListener('change', function () { setMenu(menuOpen, false); });
+    setMenu(menuOpen, false);
   }
   function initScene() {
     if (!S3 || !window.THREE) { $('stageFallback').hidden = false; return; }
@@ -884,11 +917,18 @@
     $('tourBtn').addEventListener('click', askTour);
     $('tourNo').addEventListener('click', function () { tour.open = false; renderTour(); $('tourBtn').focus(); });
     $('tourGo').addEventListener('click', startTour);
-    $('tabProd').addEventListener('click', function () { view('prod'); });
-    $('tabShop').addEventListener('click', function () { view('shop'); });
-    $('tabTro').addEventListener('click', function () { view('trophies'); });
-    $('tabTeam').addEventListener('click', function () { view('team'); });
-    $('tabMore').addEventListener('click', function () { view('account'); });
+    // Un onglet rouvre le menu ; sur écran étroit, toucher l'onglet déjà ouvert replie le volet.
+    function tab(v) {
+      if (narrow() && menuOpen && $('app').getAttribute('data-view') === v) { setMenu(false); return; }
+      if (!menuOpen) setMenu(true);
+      view(v);
+    }
+    bind.tab = tab;
+    $('tabProd').addEventListener('click', function () { tab('prod'); });
+    $('tabShop').addEventListener('click', function () { tab('shop'); });
+    $('tabTro').addEventListener('click', function () { tab('trophies'); });
+    $('tabTeam').addEventListener('click', function () { tab('team'); });
+    $('tabMore').addEventListener('click', function () { tab('account'); });
     $('goal').addEventListener('click', function () { view('trophies'); });
 
     // Équipe
@@ -1003,7 +1043,7 @@
     $('evClose').addEventListener('click', closeEvent);
     $('scrim').addEventListener('click', function (e) { if (e.target === $('scrim')) closeEvent(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && ev.open) closeEvent(); });
-    $('accountPill').addEventListener('click', function () { view('account'); });
+    $('accountPill').addEventListener('click', function () { if (!menuOpen) setMenu(true); view('account'); });
 
     document.addEventListener('visibilitychange', function () { if (document.hidden) { saveLocal(); if (cloud.dirty) saveCloud(true); } });
     window.addEventListener('pagehide', function () { saveLocal(); });
@@ -1064,6 +1104,7 @@
     initTheme();
     buildActs(); buildShop(); buildTrophies(); bind();
     initScene();
+    initMenu();
     render(); renderScene(true);
     if (off) { off.trophies = G.trophyCount(S) - tc0; showOffline(off); }
     try {
