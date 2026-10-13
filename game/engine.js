@@ -13,7 +13,7 @@
   var ACTS = D.ACTS, ITEMS = D.ITEMS, TIERS = D.TIERS, EVENTS = D.EVENTS, TROPHIES = D.TROPHIES, T = D.TUNING;
   ROY = T.roy; OFFLINE_CAP = T.offlineCap; OFFLINE_EFF = T.offlineEff; TAP = T.tap;
 
-  var ROLES = D.ROLES || [], NAMES = D.NAMES || [];
+  var ROLES = D.ROLES || [], NAMES = D.NAMES || [], CLIENTS = D.CLIENTS || {}, CHART = D.CHART || { words: ['Titre'], tails: [''], artists: ['Artiste'] };
   var ACT_BY = {}, ITEM_BY = {}, EVENT_BY = {}, TROPHY_BY = {}, ROLE_BY = {};
   ROLES.forEach(function (r) { ROLE_BY[r.id] = r; });
   var rand = Math.random;
@@ -31,12 +31,14 @@
   function newState(now) {
     now = now || Date.now();
     var acts = {};
-    ACTS.forEach(function (a) { acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: 0 }; });
+    ACTS.forEach(function (a) { acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: 0, hold: false, mix: null }; });
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false },
-      team: newTeam() };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts() };
   }
+  function newOrders() { return { offers: [], active: [], cd: T.orderFirst, rep: 0, done: 0, failed: 0, nextId: 1 }; }
+  function newCharts() { return { week: 1, left: T.weekLen, rivals: [], mine: [], free: 0, best: 0, num1: 0, releases: 0, nextId: 1 }; }
   function newTeam() { return { staff: [], pool: [], poolCd: 0, alumni: [], nextId: 1, hired: 0 }; }
 
   function num(x, d) { return typeof x === 'number' && isFinite(x) ? x : d; }
@@ -62,8 +64,9 @@
     ACTS.forEach(function (a) {
       var s = o.acts && o.acts[a.id];
       if (!s) return;
+      var mx = s.mix && typeof s.mix === 'object' ? { m: Math.max(1, Math.min(1 + T.mixMax, num(s.mix.m, 1))), q: Math.max(1, Math.min(5, Math.floor(num(s.mix.q, 1)))), x: Math.max(0, Math.min(T.mixXp, num(s.mix.x, 0))) } : null;
       S.acts[a.id] = { lvl: Math.max(0, Math.floor(num(s.lvl, 0))), auto: !!s.auto, prog: Math.max(0, num(s.prog, 0)),
-        run: !!s.run, done: Math.max(0, num(s.done, 0)) };
+        run: !!s.run, done: Math.max(0, num(s.done, 0)), hold: false, mix: mx };
     });
     if (o.tracks && typeof o.tracks === 'object') {
       ACTS.forEach(function (a) { S.tracks[a.id] = Math.max(0, num(o.tracks[a.id], 0)); });
@@ -81,6 +84,13 @@
       if (p && EVENT_BY[p.id] && num(p.left, 0) > 0) S.ev.pending = { id: p.id, left: Math.min(num(p.left, 0), T.eventWindow) };
     }
     if (o.team && typeof o.team === 'object') hydrateTeam(S, o.team);
+    S.mixes = Math.max(0, Math.floor(num(o.mixes, 0)));
+    S.perfect = Math.max(0, Math.floor(num(o.perfect, 0)));
+    (Array.isArray(o.masters) ? o.masters : []).forEach(function (m) {
+      if (m && ACT_BY[m.act] && S.masters.length < T.mastersMax) S.masters.push({ id: Math.max(1, Math.floor(num(m.id, 1))), act: m.act, q: Math.max(1, Math.min(5, Math.floor(num(m.q, 1)))) });
+    });
+    if (o.orders && typeof o.orders === 'object') hydrateOrders(S, o.orders);
+    if (o.charts && typeof o.charts === 'object') hydrateCharts(S, o.charts);
     return S;
   }
 
@@ -104,6 +114,41 @@
     x.train = Math.max(0, num(m.train, 0));
     x.low = !!m.low;
     return x;
+  }
+  function cleanOrder(x) {
+    if (!x || typeof x !== 'object' || !ACT_BY[x.act]) return null;
+    var n = Math.max(1, Math.min(200, Math.floor(num(x.n, 1))));
+    return { id: Math.max(1, Math.floor(num(x.id, 1))), act: x.act, n: n, q: Math.max(1, Math.min(5, Math.floor(num(x.q, 1)))),
+      got: Math.max(0, Math.min(n, Math.floor(num(x.got, 0)))), time: Math.max(1, num(x.time, 60)), left: Math.max(0, num(x.left, 60)),
+      life: Math.max(0, num(x.life, T.orderOfferLife)), reward: Math.max(0, num(x.reward, 0)), xp: Math.max(0, num(x.xp, 0)),
+      client: String(x.client || 'Client').slice(0, 30), kind: String(x.kind || '').slice(0, 30) };
+  }
+  function hydrateOrders(S, o) {
+    var r = S.orders;
+    r.cd = Math.max(0, num(o.cd, T.orderFirst)); r.rep = Math.max(0, Math.min(T.repMax, num(o.rep, 0)));
+    r.done = Math.max(0, Math.floor(num(o.done, 0))); r.failed = Math.max(0, Math.floor(num(o.failed, 0)));
+    (Array.isArray(o.offers) ? o.offers : []).forEach(function (x) { var c = cleanOrder(x); if (c && r.offers.length < T.orderMaxOffers) r.offers.push(c); });
+    (Array.isArray(o.active) ? o.active : []).forEach(function (x) { var c = cleanOrder(x); if (c && r.active.length < T.orderMaxActive) r.active.push(c); });
+    var mx = 0; r.offers.concat(r.active).forEach(function (x) { mx = Math.max(mx, x.id); });
+    r.nextId = Math.max(mx + 1, Math.floor(num(o.nextId, 1)));
+  }
+  function hydrateCharts(S, o) {
+    var c = S.charts;
+    c.week = Math.max(1, Math.floor(num(o.week, 1))); c.left = Math.max(0, Math.min(T.weekLen, num(o.left, T.weekLen)));
+    c.free = Math.max(0, Math.floor(num(o.free, 0))); c.best = Math.max(0, Math.min(T.chartSize, Math.floor(num(o.best, 0))));
+    c.num1 = Math.max(0, Math.floor(num(o.num1, 0))); c.releases = Math.max(0, Math.floor(num(o.releases, 0)));
+    (Array.isArray(o.rivals) ? o.rivals : []).forEach(function (r) {
+      if (r && c.rivals.length < T.chartSize) c.rivals.push({ t: String(r.t || 'Titre').slice(0, 40), a: String(r.a || 'Artiste').slice(0, 30), f: Math.max(0.1, Math.min(3, num(r.f, 1))), p: Math.max(0, Math.floor(num(r.p, 0))) });
+    });
+    var mx = 0;
+    (Array.isArray(o.mine) ? o.mine : []).forEach(function (m) {
+      if (!m || !ACT_BY[m.act] || c.mine.length >= 12) return;
+      var e = { id: Math.max(1, Math.floor(num(m.id, 1))), t: String(m.t || 'Titre').slice(0, 40), act: m.act, q: Math.max(1, Math.min(5, Math.floor(num(m.q, 1)))),
+        s: Math.max(0, num(m.s, 0)), weeks: Math.max(0, Math.floor(num(m.weeks, 0))), pos: Math.max(0, Math.floor(num(m.pos, 0))), p: Math.max(0, Math.floor(num(m.p, 0))),
+        best: Math.max(0, Math.floor(num(m.best, 0))), promo: !!m.promo, earned: Math.max(0, num(m.earned, 0)) };
+      mx = Math.max(mx, e.id); c.mine.push(e);
+    });
+    c.nextId = Math.max(mx + 1, Math.floor(num(o.nextId, 1)));
   }
   function hydrateTeam(S, t) {
     var tm = S.team, used = {}, maxId = 0;
@@ -219,12 +264,14 @@
   }
 
   function complete(S, act, n) {
-    var p = payout(S, act) * n;
+    var a = S.acts[act.id], unit = payout(S, act), p = unit * n, x = xpGain(S, act) * n, mixed = a.mix;
+    if (mixed) { a.mix = null; p += unit * (mixed.m - 1); x += xpGain(S, act) * mixed.x; }
     S.money += p; S.lifetime += p;
     S.tracks[act.id] = (S.tracks[act.id] || 0) + n;
-    S.acts[act.id].done += n;
-    addXp(S, xpGain(S, act) * n);
-    if (hooks.complete) hooks.complete(act, n, p);
+    a.done += n;
+    addXp(S, x);
+    orderProgress(S, act.id, n, baseQuality(S, act.id), mixed ? mixed.q : null);
+    if (hooks.complete) hooks.complete(act, n, p, mixed);
   }
 
   function startAct(S, id) {
@@ -291,7 +338,7 @@
     for (var i = 0; i < ACTS.length; i++) {
       var act = ACTS[i], a = S.acts[act.id];
       if (a.auto && !a.run && isUnlocked(S, act)) { a.run = true; a.prog = 0; }
-      if (!a.run) continue;
+      if (!a.run || a.hold) continue; // en cours de mixage: la production attend
       var d = duration(S, act), t = dt, remain = d - a.prog;
       if (t < remain) { a.prog += t; continue; }
       t -= remain;
@@ -495,6 +542,205 @@
     }
   }
 
+
+  // ---------- Qualité et mixage ----------
+  // Qualité (1 à 5 étoiles) d'une production sans mixage: le lieu et le membre de l'équipe affecté comptent.
+  function baseQuality(S, actId) {
+    var q = 1 + Math.floor(tierIndex(S) / 2), fx = staffFx(S, actId);
+    if (fx.m) q += fx.m.stars >= 4 ? 2 : 1;
+    return Math.min(5, q);
+  }
+  function canMix(S, id) {
+    var act = ACT_BY[id], a = act && S.acts[id];
+    return !!a && isUnlocked(S, act) && a.run && !a.mix && !a.hold;
+  }
+  function startMix(S, id) { if (!canMix(S, id)) return false; S.acts[id].hold = true; return true; }
+  function cancelMix(S, id) { if (S.acts[id]) S.acts[id].hold = false; }
+  function mixStars(score) { return Math.max(1, Math.min(5, 1 + Math.round(score * 4))); }
+  // score de 0 à 1. Le bonus s'applique à la prochaine production terminée; le titre mixé peut sortir dans le Top 50.
+  function finishMix(S, id, score) {
+    var a = S.acts[id];
+    if (!a || !a.hold) return null;
+    score = Math.max(0, Math.min(1, +score || 0));
+    var q = mixStars(score);
+    a.hold = false;
+    a.mix = { m: 1 + T.mixMax * score, q: q, x: T.mixXp * score };
+    S.mixes = (S.mixes || 0) + 1;
+    if (q === 5) S.perfect = (S.perfect || 0) + 1;
+    var ch = S.charts;
+    S.masters.push({ id: ch.nextId++, act: id, q: q });
+    while (S.masters.length > T.mastersMax) S.masters.shift();
+    if (hooks.mix) hooks.mix(ACT_BY[id], q, score);
+    return a.mix;
+  }
+
+  // ---------- Commandes clients ----------
+  function ordersOpen(S) { return S.level >= T.orderLevel; }
+  function rawPayout(S, act) { return payout(S, act) / boostMult(S); }
+  function makeOrder(S) {
+    var open = ACTS.filter(function (a) { return isUnlocked(S, a); });
+    if (!open.length) return null;
+    // les productions les plus récentes sont plus demandées
+    var w = open.map(function (a, i) { return Math.pow(i + 1, 1.5); }), tot = w.reduce(function (x, y) { return x + y; }, 0), r = rand() * tot, k = 0;
+    while (k < open.length - 1 && r > w[k]) { r -= w[k]; k++; }
+    var act = open[k], d = duration(S, act);
+    var span = T.orderTimeMin + rand() * (T.orderTimeMax - T.orderTimeMin);
+    var n = Math.max(2, Math.min(40, Math.round(span / d)));
+    var bq = baseQuality(S, act.id), q = Math.max(1, Math.min(5, bq - 1 + Math.floor(rand() * 3)));
+    var cl = CLIENTS[act.id] || ['Client', ['Un client']], names = cl[1];
+    if (q > bq) n = Math.min(n, 1 + Math.floor(rand() * 3)); // chaque unité exigeante demande un mix: peu d'unités
+    var time = Math.round(Math.max(n * d * T.orderDeadlineK + 30, q > bq ? n * (d + 45) + 60 : 0));
+    var o = S.orders;
+    return { id: o.nextId++, act: act.id, n: n, q: q, got: 0, time: time, left: time, life: T.orderOfferLife,
+      reward: rawPayout(S, act) * n * (T.orderRewardBase + T.orderRewardQ * q) * (1 + o.rep / 100), xp: xpGain(S, act) * n * 0.5,
+      client: names[Math.floor(rand() * names.length)], kind: cl[0] };
+  }
+  function acceptOrder(S, id) {
+    var o = S.orders, i = -1;
+    o.offers.forEach(function (x, k) { if (x.id === id) i = k; });
+    if (i < 0 || o.active.length >= T.orderMaxActive) return false;
+    var x = o.offers.splice(i, 1)[0];
+    x.left = x.time; x.got = 0;
+    o.active.push(x);
+    return true;
+  }
+  function declineOrder(S, id) { var o = S.orders, n = o.offers.length; o.offers = o.offers.filter(function (x) { return x.id !== id; }); return o.offers.length < n; }
+  function orderProgress(S, actId, n, qBase, qMix) {
+    var o = S.orders;
+    if (!o || !o.active.length) return;
+    var done = [];
+    o.active.forEach(function (x) {
+      if (x.act !== actId) return;
+      var c = (qMix != null ? (qMix >= x.q ? 1 : 0) + (qBase >= x.q ? n - 1 : 0) : (qBase >= x.q ? n : 0));
+      x.got = Math.min(x.n, x.got + c);
+      if (x.got >= x.n) done.push(x);
+    });
+    done.forEach(function (x) {
+      o.active = o.active.filter(function (y) { return y !== x; });
+      S.money += x.reward; S.lifetime += x.reward;
+      addXp(S, x.xp);
+      o.rep = Math.min(T.repMax, o.rep + T.repWin);
+      o.done++;
+      if (hooks.orderDone) hooks.orderDone(x);
+    });
+  }
+  // Uniquement quand le joueur est présent (comme les sorties de studio): pas de commande ratée pendant l'absence.
+  function tickOrders(S, dt) {
+    if (!ordersOpen(S)) return;
+    var o = S.orders;
+    o.cd -= dt;
+    if (o.cd <= 0) {
+      o.cd = T.orderEvery;
+      if (o.offers.length < T.orderMaxOffers) { var x = makeOrder(S); if (x) { o.offers.push(x); if (hooks.orderNew) hooks.orderNew(x); } }
+    }
+    o.offers = o.offers.filter(function (x) { x.life -= dt; return x.life > 0; });
+    var failed = [];
+    o.active.forEach(function (x) { x.left -= dt; if (x.left <= 0) failed.push(x); });
+    failed.forEach(function (x) {
+      o.active = o.active.filter(function (y) { return y !== x; });
+      o.rep = Math.max(0, o.rep - T.repLose); o.failed++;
+      if (hooks.orderFail) hooks.orderFail(x);
+    });
+  }
+
+  // ---------- Top 50 ----------
+  function chartsOpen(S) { return S.level >= T.chartLevel; }
+  function songTitle() { var w = CHART.words, t = CHART.tails; return w[Math.floor(rand() * w.length)] + ' ' + t[Math.floor(rand() * t.length)]; }
+  function newRival(f) { return { t: songTitle(), a: CHART.artists[Math.floor(rand() * CHART.artists.length)], f: f, p: 0 }; }
+  function potential(S) { return Math.log10(rawPayout(S, bestAct(S)) + 10); }
+  function releaseScore(S, actId, q, promo) {
+    return Math.log10(rawPayout(S, ACT_BY[actId]) + 10) * (0.55 + 0.2 * q) * (promo ? T.promoMult : 1) * (1 + S.orders.rep / 200) * (0.9 + rand() * 0.2);
+  }
+  function initRivals(S) {
+    var c = S.charts; c.rivals = [];
+    for (var i = 0; i < T.chartSize; i++) c.rivals.push(newRival(0.55 + 1.5 * Math.pow(rand(), 1.8)));
+    rankCharts(S, true);
+  }
+  // Classe rivaux et titres du joueur. Renvoie le Top 50 (meilleur en premier).
+  function rankCharts(S, first) {
+    var c = S.charts, P = potential(S), all = [];
+    c.rivals.forEach(function (r) { all.push({ r: r, s: r.f * P }); });
+    c.mine.forEach(function (m) { all.push({ m: m, s: m.s }); });
+    all.sort(function (x, y) { return y.s - x.s; });
+    all.forEach(function (e, i) {
+      var pos = i + 1, o = e.r || e.m;
+      o.p = first ? pos : (o.pos || 0);
+      o.pos = pos;
+      if (e.m) { if (pos <= T.chartSize && (!o.best || pos < o.best)) o.best = pos; }
+    });
+    c.mine.forEach(function (m) { if (m.pos <= T.chartSize && (!c.best || m.pos < c.best)) c.best = m.pos; });
+    return all.slice(0, T.chartSize).map(function (e) { var o = e.r || e.m; return { t: o.t, a: e.r ? o.a : null, mine: !!e.m, id: e.m ? o.id : null, act: e.m ? o.act : null, q: e.m ? o.q : null, pos: o.pos, prev: o.p, weeks: e.m ? o.weeks : null }; });
+  }
+  function chartTop(S) {
+    var c = S.charts, P = potential(S), all = [];
+    c.rivals.forEach(function (r) { all.push({ o: r, s: r.f * P }); });
+    c.mine.forEach(function (m) { all.push({ o: m, s: m.s, mine: true }); });
+    all.sort(function (x, y) { return y.s - x.s; });
+    return all.slice(0, T.chartSize).map(function (e, i) { return { t: e.o.t, a: e.mine ? null : e.o.a, mine: !!e.mine, id: e.mine ? e.o.id : null, act: e.mine ? e.o.act : null, q: e.mine ? e.o.q : null, pos: i + 1, prev: e.o.p || 0, weeks: e.mine ? e.o.weeks : null }; });
+  }
+  function promoCost(S) { return incomeRef(S) * T.promoSec; }
+  function canFreeRelease(S) { return chartsOpen(S) && S.charts.free !== S.charts.week; }
+  // src: identifiant d'un titre mixé, ou 'free' pour un titre du catalogue (une fois par semaine, qualité de base, production choisie).
+  function release(S, src, promo, actId) {
+    if (!chartsOpen(S)) return null;
+    var c = S.charts, act, q;
+    if (!c.rivals.length) initRivals(S);
+    if (src === 'free') {
+      act = actId && ACT_BY[actId] && isUnlocked(S, ACT_BY[actId]) ? actId : bestAct(S).id;
+      if (!canFreeRelease(S)) return null;
+      q = baseQuality(S, act);
+    } else {
+      var m = null;
+      S.masters.forEach(function (x) { if (x.id === src) m = x; });
+      if (!m) return null;
+      act = m.act; q = m.q;
+    }
+    var cost = promo ? promoCost(S) : 0;
+    if (S.money < cost) return null;
+    S.money -= cost;
+    if (src === 'free') c.free = c.week; else S.masters = S.masters.filter(function (x) { return x.id !== src; });
+    var e = { id: c.nextId++, t: songTitle(), act: act, q: q, s: releaseScore(S, act, q, promo), weeks: 0, pos: 0, p: 0, best: 0, promo: !!promo, earned: 0 };
+    c.mine.push(e); c.releases++;
+    rankCharts(S, false);
+    e.p = 0;
+    if (e.pos > T.chartSize) c.mine = c.mine.filter(function (x) { return x !== e; });
+    if (hooks.release) hooks.release(e);
+    return e;
+  }
+  function chartPay(S, pos) { return incomeRef(S) * T.chartPaySec * (T.chartSize + 1 - pos) / T.chartSize; }
+  function weekEnd(S) {
+    var c = S.charts, pay = 0, entries = [];
+    rankCharts(S, false);
+    c.mine.forEach(function (m) {
+      if (m.pos > T.chartSize) return;
+      var g = chartPay(S, m.pos);
+      pay += g; m.earned += g; m.weeks++;
+      entries.push({ t: m.t, pos: m.pos, gain: g });
+      if (m.pos === 1) { c.num1++; S.orders.rep = Math.min(T.repMax, S.orders.rep + 3); }
+    });
+    S.money += pay; S.lifetime += pay;
+    // la semaine suivante: les titres vieillissent, de nouveaux rivaux entrent
+    c.mine.forEach(function (m) { m.s *= T.chartDecay * (0.95 + rand() * 0.1); });
+    c.rivals.forEach(function (r) { r.f *= 0.93 + rand() * 0.12; });
+    c.rivals.sort(function (x, y) { return y.f - x.f; });
+    for (var i = 0; i < 5; i++) c.rivals.splice(Math.floor(rand() * c.rivals.length), 1);
+    while (c.rivals.length < T.chartSize) c.rivals.push(newRival(0.75 + 1.1 * Math.pow(rand(), 1.5)));
+    c.rivals.forEach(function (r) { r.f = Math.max(0.4, Math.min(2.1, r.f)); });
+    c.week++; c.left = T.weekLen;
+    rankCharts(S, false);
+    c.mine = c.mine.filter(function (m) { return m.pos <= T.chartSize; });
+    if (hooks.chartWeek) hooks.chartWeek({ week: c.week - 1, pay: pay, entries: entries });
+    return { pay: pay, entries: entries };
+  }
+  function tickCharts(S, dt) {
+    if (!chartsOpen(S)) return;
+    var c = S.charts;
+    if (!c.rivals.length) initRivals(S);
+    c.left -= dt;
+    if (c.left <= 0) weekEnd(S);
+  }
+  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); }
+
   // ---------- Tournée mondiale (prestige) ----------
   // Points de renommée au total pour un cumul de gains donné.
   function fameAt(n) { return Math.pow(n, 1 / T.fameExp) * T.fameBase; } // cumul de gains qui donne n points
@@ -526,6 +772,7 @@
     var tm = S.team || newTeam(), al = tm.staff.map(function (m) { return { id: m.id, name: m.name, role: m.role, stars: m.stars, lvl: m.lvl, xp: 0, salary: m.salary, look: m.look }; });
     tm.alumni = al.concat(tm.alumni.filter(function (a) { return !al.some(function (b) { return b.id === a.id; }); })).slice(0, 16);
     tm.staff = []; tm.pool = []; tm.poolCd = 0; S.team = tm;
+    S.masters = []; S.orders.offers = []; S.orders.active = []; S.orders.cd = T.orderFirst; // la réputation et le Top 50 restent
     S.fame = (S.fame || 0) + n; S.tours = (S.tours || 0) + 1;
     S.savedAt = now; S.epoch = now;
     touch(S);
@@ -554,6 +801,11 @@
       case 'fame': n = S.fame || 0; break;
       case 'tours': n = S.tours || 0; break;
       case 'staff': n = S.team ? S.team.staff.length : 0; break;
+      case 'mixes': n = S.mixes || 0; break;
+      case 'perfect': n = S.perfect || 0; break;
+      case 'orders': n = S.orders ? S.orders.done : 0; break;
+      case 'rep': n = S.orders ? S.orders.rep : 0; break;
+      case 'chartBest': n = S.charts && S.charts.best ? T.chartSize + 1 - S.charts.best : 0; break;
       case 'staffLvl': (S.team ? S.team.staff : []).forEach(function (m) { n = Math.max(n, m.lvl); }); break;
       case 'outings': Object.keys(S.ev.seen || {}).forEach(function (id) { n += S.ev.seen[id] || 0; }); break;
     }
@@ -698,7 +950,11 @@
     ROLES: ROLES, ROLE_BY: ROLE_BY, teamOpen: teamOpen, teamCap: teamCap, staffXpNeed: staffXpNeed, roleFits: roleFits, staffFx: staffFx, memberFx: memberFx,
     incomeRef: incomeRef, payroll: payroll, refreshPool: refreshPool, poolRefreshCost: poolRefreshCost, buyRefresh: buyRefresh, signCost: signCost,
     hire: hire, fire: fire, assign: assign, trainCost: trainCost, train: train, bonusCost: bonusCost, giveBonus: giveBonus, sendRest: sendRest,
-    findMember: findMember, working: working, setRandom: function (f) { rand = f || Math.random; }
+    findMember: findMember, working: working, setRandom: function (f) { rand = f || Math.random; },
+    baseQuality: baseQuality, canMix: canMix, startMix: startMix, cancelMix: cancelMix, finishMix: finishMix, mixStars: mixStars,
+    ordersOpen: ordersOpen, makeOrder: makeOrder, acceptOrder: acceptOrder, declineOrder: declineOrder, tickOrders: tickOrders,
+    chartsOpen: chartsOpen, chartTop: chartTop, rankCharts: rankCharts, release: release, canFreeRelease: canFreeRelease, promoCost: promoCost,
+    chartPay: chartPay, weekEnd: weekEnd, tickCharts: tickCharts, tickLive: tickLive, potential: potential
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;

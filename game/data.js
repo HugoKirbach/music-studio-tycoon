@@ -49,7 +49,17 @@
     bonusMorale: 35,
     restTime: 90,       // durée des vacances (s)
     leaveAfter: 120,    // secondes à moral nul avant de démissionner
-    staffSpeedStar: 0.04, staffSpeedLvl: 0.03, staffGainStar: 0.08, staffGainLvl: 0.06, offRole: 0.5
+    staffSpeedStar: 0.04, staffSpeedLvl: 0.03, staffGainStar: 0.08, staffGainLvl: 0.06, offRole: 0.5,
+    // Mini-jeu de mixage
+    mixMax: 1,          // un mix parfait double les gains de la production mixée
+    mixXp: 0.5,         // et ajoute jusqu'à 50 % d'expertise
+    mastersMax: 5,      // titres mixés prêts à sortir
+    // Commandes clients
+    orderLevel: 2, orderEvery: 150, orderFirst: 40, orderOfferLife: 300, orderMaxOffers: 3, orderMaxActive: 2,
+    orderTimeMin: 60, orderTimeMax: 150, orderDeadlineK: 2.5, orderRewardBase: 1.5, orderRewardQ: 0.5,
+    repWin: 4, repLose: 6, repMax: 100,
+    // Top 50
+    chartLevel: 4, weekLen: 180, chartSize: 50, chartPaySec: 90, promoSec: 120, promoMult: 1.4, chartDecay: 0.85
   };
 
   // dur: secondes, pay: euros, xp: points d'expertise
@@ -321,8 +331,30 @@
     { id: 'recrue', name: 'Première recrue', desc: 'Recrute un premier membre dans ton équipe.', m: 'staff', n: 1 },
     { id: 'equipe', name: 'Une vraie équipe', desc: 'Fais travailler cinq personnes en même temps.', m: 'staff', n: 5 },
     { id: 'talent', name: 'Talent maison', desc: 'Fais monter un membre de l’équipe au niveau 5.', m: 'staffLvl', n: 5 },
-    { id: 'pilier', name: 'Pilier du studio', desc: 'Fais monter un membre de l’équipe au niveau 10.', m: 'staffLvl', n: 10 }
+    { id: 'pilier', name: 'Pilier du studio', desc: 'Fais monter un membre de l’équipe au niveau 10.', m: 'staffLvl', n: 10 },
+    { id: 'premier-mix', name: 'Premier mix', desc: 'Mixe une production toi-même.', m: 'mixes', n: 1 },
+    { id: 'oreille-or', name: 'Oreille d’or', desc: 'Réussis un mix parfait (5 étoiles).', m: 'perfect', n: 1 },
+    { id: 'client', name: 'Premier client', desc: 'Livre une commande à temps.', m: 'orders', n: 1 },
+    { id: 'carnet-commandes', name: 'Carnet de commandes', desc: 'Livre 15 commandes à temps.', m: 'orders', n: 15 },
+    { id: 'reputation', name: 'Réputation en or', desc: 'Atteins 60 points de réputation.', m: 'rep', n: 60 },
+    { id: 'top10', name: 'Top 10', desc: 'Place un titre dans le Top 10.', m: 'chartBest', n: 41 },
+    { id: 'numero-un', name: 'Numéro un', desc: 'Place un titre en tête du Top 50.', m: 'chartBest', n: 50 }
   ];
+
+  // Commandes: clients par type de production
+  var CLIENTS = {
+    beat: ['Rappeur', ['Kaïs', 'Lil Néo', 'Sami B', 'Zoya']], mix: ['Groupe', ['Les Rivages', 'Fuzz Club', 'Velvet Garage']],
+    voix: ['Chanteuse', ['Inès', 'Maëva', 'Lou']], single: ['Artiste indé', ['Noé B.', 'Alma', 'Yaëlle']],
+    ep: ['Groupe', ['Les Satellites', 'Néon Fauve', 'Marée Haute']], album: ['Label indé', ['Disques Volcan', 'Sillon Records', 'Label Orage']],
+    bo: ['Réalisatrice', ['Claire Ozanne', 'Studio Lumen', 'Agence Pixel']], live: ['Festival', ['Les Nuits Chaudes', 'Rock en Ville', 'Fest’Ouest']],
+    mastering: ['Major', ['Universon', 'Sonora Music', 'Warnex']], star: ['Star', ['Maya Lorent', 'Joe Kaz', 'Neïla']], hit: ['Major', ['Universon', 'Sonora Music', 'Warnex']]
+  };
+  // Top 50: titres et artistes des studios rivaux
+  var CHART = {
+    words: ['Nuit', 'Lumière', 'Vertige', 'Saison', 'Écho', 'Mirage', 'Néon', 'Rêve', 'Orage', 'Velours', 'Sirène', 'Satellite', 'Comète', 'Fièvre', 'Marée', 'Minuit', 'Boussole', 'Horizon', 'Papillon', 'Cœur', 'Vague', 'Étoile', 'Ciel', 'Danse'],
+    tails: ['blanche', 'bleue', 'd’été', 'sans fin', 'électrique', 'de verre', 'perdue', 'dorée', 'sauvage', 'en retard', 'de nuit', 'au ralenti', 'XXL', 'pour toujours', 'en feu', 'à deux'],
+    artists: ['Lyna', 'Kéo', 'Les Rivages', 'MC Sora', 'Noé B.', 'Alma', 'DJ Tessa', 'Vito', 'Les Bonnes Ondes', 'Yaëlle', 'Rafa', 'Clémence & Co', 'Zed', 'Oona', 'Big Malo', 'Sacha V.', 'Neïla', 'Les Satellites', 'Joe Kaz', 'Mira', 'Tiago', 'Swann', 'Kalia', 'Nyx', 'Lou Ann', 'Moussa K.', 'Élio', 'Bianca']
+  };
 
   // Équipe: métiers et productions où chacun excelle (ailleurs, il apporte moitié moins).
   var ROLES = [
@@ -338,7 +370,7 @@
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);

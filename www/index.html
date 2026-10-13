@@ -65,14 +65,15 @@ output { font-variant-numeric: tabular-nums; }
 .menu-toggle span { writing-mode: vertical-rl; transform: rotate(180deg); }
 .game.collapsed .menu-toggle svg { transform: rotate(180deg); }
 .pane { display: none; }
-.game[data-view="prod"] #prod, .game[data-view="shop"] #shop, .game[data-view="team"] #team, .game[data-view="trophies"] #trophies, .game[data-view="account"] #account { display: block; }
+.game[data-view="prod"] #prod, .game[data-view="shop"] #shop, .game[data-view="team"] #team, .game[data-view="charts"] #charts, .game[data-view="trophies"] #trophies, .game[data-view="account"] #account { display: block; }
 .pane > h2 { font-size: 24px; margin: 2px 0 12px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .pane > h2 small { font: 700 13px var(--f-body); color: var(--ink-soft); }
 .sec { font-size: 18px; margin: 22px 0 10px; }
 
 /* ---------- Onglets ---------- */
-.tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--panel); }
-.tabs button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 2px 6px; border: 0; border-radius: 12px; background: transparent; color: var(--ink-soft); font: 800 12px var(--f-body); min-height: 52px; }
+.tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; padding: 8px 8px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.tabs button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 1px 6px; border: 0; border-radius: 12px; background: transparent; color: var(--ink-soft); font: 800 11px var(--f-body); min-height: 52px; min-width: 0; }
+.tabs button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tabs button svg { width: 22px; height: 22px; }
 .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-s); }
 .tabs button.has::after { content: ''; position: absolute; top: 5px; right: calc(50% - 20px); width: 9px; height: 9px; border-radius: 50%; background: var(--bad); box-shadow: 0 0 0 2px var(--panel); }
@@ -166,7 +167,7 @@ output { font-variant-numeric: tabular-nums; }
 .meter-info { display: flex; justify-content: space-between; gap: 8px; margin: 5px 0 9px; font-size: 13px; font-weight: 700; color: var(--ink-soft); }
 .meter-info span:first-child { color: var(--good); }
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.actions .pad { grid-column: 1 / -1; }
+.actions > .pad { grid-column: 1 / -1; }
 .foot-line { margin: 8px 0 0; font-size: 12.5px; color: var(--ink-soft); }
 .float { position: absolute; right: 16px; top: 40px; font: 800 18px var(--f-title); color: var(--good); pointer-events: none; animation: floatUp 0.95s ease-out forwards; }
 @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-30px); } }
@@ -254,6 +255,64 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .tro-prog { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
 .tro-prog .meter { height: 6px; }
 
+/* Mixage */
+.go-row { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.mixbtn { flex-direction: column; justify-content: center; gap: 0; min-width: 76px; padding: 4px 10px; text-align: center; background: color-mix(in srgb, var(--purple) 14%, var(--card)); border-color: color-mix(in srgb, var(--purple) 40%, var(--line)); color: var(--purple); }
+.mixbtn svg { width: 22px; height: 22px; }
+.mixbtn small { font-size: 11.5px; font-weight: 800; }
+.qual { color: var(--gold); letter-spacing: 1px; }
+.qual s { color: var(--line); text-decoration: none; }
+.mix-sheet { width: min(520px, 100%); }
+.mixer { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 14px 10px 10px; border-radius: 16px; background: #1d2230; touch-action: manipulation; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.fader { display: grid; justify-items: center; gap: 6px; color: #c9d1e3; font: 800 12px var(--f-body); }
+.track { position: relative; width: 34px; height: 190px; border-radius: 10px; background: #2b3245; box-shadow: inset 0 0 0 2px #39415a; overflow: hidden; }
+.track::before { content: ''; position: absolute; left: 50%; top: 8px; bottom: 8px; width: 4px; margin-left: -2px; border-radius: 4px; background: #11141c; }
+.zone { position: absolute; left: 0; right: 0; background: rgba(60, 196, 131, 0.35); box-shadow: inset 0 0 0 2px rgba(60, 196, 131, 0.8); }
+.knob { position: absolute; left: 3px; right: 3px; height: 16px; margin-bottom: -8px; border-radius: 5px; background: linear-gradient(#f4f6fb, #aab3c7); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
+.fader.cur .track { box-shadow: inset 0 0 0 2px var(--accent), 0 0 14px rgba(255, 138, 61, 0.45); }
+.fader.done .knob { background: linear-gradient(#ffe7a8, #e0b440); }
+.fader.miss .knob { background: linear-gradient(#ffb3a8, #dd4b3f); }
+.fader .acc { min-height: 16px; color: #8fe0b5; }
+.mix-result { display: grid; gap: 6px; justify-items: center; text-align: center; padding: 6px 0; }
+.mix-result .big-stars { font-size: 34px; color: var(--gold); letter-spacing: 3px; }
+.mix-result .big-stars s { color: var(--line); text-decoration: none; }
+.mix-result b { font: 800 20px var(--f-title); }
+/* Commandes */
+.orders-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 18px 0 8px; flex-wrap: wrap; }
+.orders-head h3 { font-size: 18px; }
+.rep-chip { font: 800 12px var(--f-body); padding: 2px 9px; border-radius: 10px; background: color-mix(in srgb, var(--blue) 14%, var(--card)); color: var(--blue); }
+.order { display: grid; gap: 6px; border-left: 4px solid var(--blue); }
+.order.active { border-left-color: var(--accent); }
+.order.urgent { border-left-color: var(--bad); }
+.o-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.o-head b { font: 800 15px var(--f-title); }
+.o-head .p { font: 800 15px var(--f-title); color: var(--good); white-space: nowrap; }
+.o-what { margin: 0; font-size: 13.5px; }
+.o-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); flex-wrap: wrap; }
+.need-mix { font: 800 11px var(--f-body); color: var(--purple); text-transform: uppercase; letter-spacing: 0.05em; }
+.o-btns { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.o-btns .btn { min-height: 40px; }
+/* Top 50 */
+.chart-lock { text-align: center; padding: 22px 14px; }
+.chart-lock b { display: block; font: 800 18px var(--f-title); margin-bottom: 4px; }
+.rel { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.rel p { margin: 0; font-size: 13px; color: var(--ink-soft); }
+.rel b { font: 800 15px var(--f-title); }
+.rel select { width: 100%; min-height: 38px; margin-top: 4px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); font-weight: 700; padding: 4px 8px; }
+.promo { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--panel-2); font-size: 14px; font-weight: 700; cursor: pointer; }
+.promo input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+.promo small { display: block; font-weight: 600; color: var(--ink-soft); }
+.chart { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.chart li { display: grid; grid-template-columns: 34px 40px minmax(0, 1fr) auto; gap: 6px; align-items: center; padding: 6px 8px; border-radius: 10px; background: var(--card); border: 1px solid var(--line); font-size: 13.5px; }
+.chart li.mine { background: color-mix(in srgb, var(--accent) 14%, var(--card)); border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+.chart .pos { font: 800 16px var(--f-title); text-align: center; }
+.chart .mv { font: 800 11px var(--f-body); text-align: center; }
+.mv.up { color: var(--good); } .mv.down { color: var(--bad); } .mv.new { color: var(--blue); }
+.chart .tt { min-width: 0; }
+.chart .tt b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chart .tt span { display: block; font-size: 12px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chart .gain { font: 800 12px var(--f-body); color: var(--good); white-space: nowrap; }
+.chart li.top1 .pos { color: var(--gold); }
 /* Réglages */
 .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--panel-2); border: 1px solid var(--line); }
 .seg button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 6px 4px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-soft); font-weight: 800; font-size: 14px; }
@@ -425,11 +484,12 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 
   <aside class="panel" id="panel">
     <nav class="tabs" id="tabs" aria-label="Sections">
-      <button type="button" id="tabProd" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l11-2v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.8" fill="currentColor"/><circle cx="17.5" cy="16" r="2.8" fill="currentColor"/></svg>Productions</button>
-      <button type="button" id="tabShop" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="8" cy="12.5" r="2" fill="currentColor"/><circle cx="16" cy="12.5" r="2" fill="currentColor"/><path d="M8 7V4h8v3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>Matériel</button>
-      <button type="button" id="tabTeam" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4" fill="currentColor"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" fill="currentColor"/><circle cx="17" cy="9" r="2.6" fill="currentColor" opacity=".7"/><path d="M15.5 14.2c3.3-.4 6 1.6 6 5" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/></svg>Équipe</button>
-      <button type="button" id="tabTro" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 20h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Palmarès</button>
-      <button type="button" id="tabMore" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Réglages</button>
+      <button type="button" id="tabProd" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l11-2v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.8" fill="currentColor"/><circle cx="17.5" cy="16" r="2.8" fill="currentColor"/></svg><span>Prod</span></button>
+      <button type="button" id="tabShop" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="8" cy="12.5" r="2" fill="currentColor"/><circle cx="16" cy="12.5" r="2" fill="currentColor"/><path d="M8 7V4h8v3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg><span>Matériel</span></button>
+      <button type="button" id="tabTeam" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4" fill="currentColor"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" fill="currentColor"/><circle cx="17" cy="9" r="2.6" fill="currentColor" opacity=".7"/><path d="M15.5 14.2c3.3-.4 6 1.6 6 5" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/></svg><span>Équipe</span></button>
+      <button type="button" id="tabCharts" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="12" width="4" height="9" rx="1" fill="currentColor"/><rect x="10" y="6" width="4" height="15" rx="1" fill="currentColor"/><rect x="17" y="9" width="4" height="12" rx="1" fill="currentColor"/><path d="M12 1.5l1.2 2.4 2.6.4-1.9 1.8.5 2.6L12 7.5 9.6 8.7l.5-2.6-1.9-1.8 2.6-.4z" fill="currentColor"/></svg><span>Top 50</span></button>
+      <button type="button" id="tabTro" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 20h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Palmarès</span></button>
+      <button type="button" id="tabMore" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Réglages</span></button>
     </nav>
     <div class="panes" id="panes">
       <button class="sheet-grip" id="sheetGrip" type="button" aria-controls="panes" aria-expanded="true"><i aria-hidden="true"></i><span>Réduire</span></button>
@@ -442,6 +502,12 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <span class="goal-desc" id="goalDesc"></span>
           <span class="meter" aria-hidden="true"><i id="goalFill"></i></span>
         </button>
+        <div id="ordersBox" hidden>
+          <div class="orders-head"><h3>Commandes clients</h3><span class="rep-chip" id="repChip"></span></div>
+          <div class="list" id="orderList"></div>
+          <p class="small-note" id="orderNote"></p>
+        </div>
+        <div class="orders-head"><h3>Tes productions</h3></div>
         <div class="list" id="acts"></div>
       </section>
 
@@ -471,6 +537,22 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <h3 class="sec cand-head"><span>Candidats</span><small class="small-note" id="poolNote"></small></h3>
           <div class="list" id="poolList"></div>
           <button class="btn sm" id="poolRefresh" type="button" style="margin-top:10px;width:100%"><span>Voir d’autres candidats</span><span class="p" id="poolRefreshP"></span></button>
+        </div>
+      </section>
+
+      <section class="pane" id="charts" aria-labelledby="chartTitle">
+        <h2 id="chartTitle">Top 50 <small id="chartWeek"></small></h2>
+        <div class="card chart-lock" id="chartLock"><b>Le Top 50 t’attend</b><span id="chartLockText"></span></div>
+        <div id="chartOpen">
+          <p class="hint">Chaque semaine de jeu (3 minutes), tes titres classés rapportent selon leur place. La qualité compte : mixe toi-même tes productions pour viser le haut du classement.</p>
+          <h3 class="sec">Sortir un titre</h3>
+          <div class="list" id="releaseList"></div>
+          <label class="promo" for="promoChk"><input type="checkbox" id="promoChk"><span>Campagne promo <small id="promoP"></small></span></label>
+          <h3 class="sec">Tes titres classés</h3>
+          <div id="mineNote" class="small-note"></div>
+          <ol class="chart" id="mineList"></ol>
+          <h3 class="sec">Le classement</h3>
+          <ol class="chart" id="chartList"></ol>
         </div>
       </section>
 
@@ -544,6 +626,25 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
       </section>
     </div>
   </aside>
+</div>
+
+<div class="scrim" id="mixScrim" hidden>
+  <div class="sheet mix-sheet" role="dialog" aria-modal="true" aria-labelledby="mixTitle">
+    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Mixage</p>
+    <h2 id="mixTitle"></h2>
+    <div id="mixPlay">
+      <p class="ev-text" id="mixHelp" style="margin-bottom:10px">Arrête chaque fader dans la zone verte : touche la table de mixage, le bouton Stop ou la barre d’espace. Plus tu es précis, plus ce morceau rapporte.</p>
+      <div class="mixer" id="mixer" aria-label="Table de mixage"></div>
+      <button class="pad" id="mixStop" type="button" style="margin-top:12px"><b>Stop</b><small id="mixStep"></small></button>
+      <button class="btn sm" id="mixCancel" type="button" style="margin-top:8px">Abandonner le mix</button>
+    </div>
+    <div class="mix-result" id="mixResult" hidden>
+      <div class="big-stars" id="mixStars"></div>
+      <b id="mixVerdict"></b>
+      <p class="ev-text" id="mixGain"></p>
+      <button class="pad" id="mixClose" type="button" style="margin-top:6px"><b>Retour au studio</b></button>
+    </div>
+  </div>
 </div>
 
 <div class="scrim" id="scrim" hidden>
@@ -624,7 +725,17 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     bonusMorale: 35,
     restTime: 90,       // durée des vacances (s)
     leaveAfter: 120,    // secondes à moral nul avant de démissionner
-    staffSpeedStar: 0.04, staffSpeedLvl: 0.03, staffGainStar: 0.08, staffGainLvl: 0.06, offRole: 0.5
+    staffSpeedStar: 0.04, staffSpeedLvl: 0.03, staffGainStar: 0.08, staffGainLvl: 0.06, offRole: 0.5,
+    // Mini-jeu de mixage
+    mixMax: 1,          // un mix parfait double les gains de la production mixée
+    mixXp: 0.5,         // et ajoute jusqu'à 50 % d'expertise
+    mastersMax: 5,      // titres mixés prêts à sortir
+    // Commandes clients
+    orderLevel: 2, orderEvery: 150, orderFirst: 40, orderOfferLife: 300, orderMaxOffers: 3, orderMaxActive: 2,
+    orderTimeMin: 60, orderTimeMax: 150, orderDeadlineK: 2.5, orderRewardBase: 1.5, orderRewardQ: 0.5,
+    repWin: 4, repLose: 6, repMax: 100,
+    // Top 50
+    chartLevel: 4, weekLen: 180, chartSize: 50, chartPaySec: 90, promoSec: 120, promoMult: 1.4, chartDecay: 0.85
   };
 
   // dur: secondes, pay: euros, xp: points d'expertise
@@ -896,8 +1007,30 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     { id: 'recrue', name: 'Première recrue', desc: 'Recrute un premier membre dans ton équipe.', m: 'staff', n: 1 },
     { id: 'equipe', name: 'Une vraie équipe', desc: 'Fais travailler cinq personnes en même temps.', m: 'staff', n: 5 },
     { id: 'talent', name: 'Talent maison', desc: 'Fais monter un membre de l’équipe au niveau 5.', m: 'staffLvl', n: 5 },
-    { id: 'pilier', name: 'Pilier du studio', desc: 'Fais monter un membre de l’équipe au niveau 10.', m: 'staffLvl', n: 10 }
+    { id: 'pilier', name: 'Pilier du studio', desc: 'Fais monter un membre de l’équipe au niveau 10.', m: 'staffLvl', n: 10 },
+    { id: 'premier-mix', name: 'Premier mix', desc: 'Mixe une production toi-même.', m: 'mixes', n: 1 },
+    { id: 'oreille-or', name: 'Oreille d’or', desc: 'Réussis un mix parfait (5 étoiles).', m: 'perfect', n: 1 },
+    { id: 'client', name: 'Premier client', desc: 'Livre une commande à temps.', m: 'orders', n: 1 },
+    { id: 'carnet-commandes', name: 'Carnet de commandes', desc: 'Livre 15 commandes à temps.', m: 'orders', n: 15 },
+    { id: 'reputation', name: 'Réputation en or', desc: 'Atteins 60 points de réputation.', m: 'rep', n: 60 },
+    { id: 'top10', name: 'Top 10', desc: 'Place un titre dans le Top 10.', m: 'chartBest', n: 41 },
+    { id: 'numero-un', name: 'Numéro un', desc: 'Place un titre en tête du Top 50.', m: 'chartBest', n: 50 }
   ];
+
+  // Commandes: clients par type de production
+  var CLIENTS = {
+    beat: ['Rappeur', ['Kaïs', 'Lil Néo', 'Sami B', 'Zoya']], mix: ['Groupe', ['Les Rivages', 'Fuzz Club', 'Velvet Garage']],
+    voix: ['Chanteuse', ['Inès', 'Maëva', 'Lou']], single: ['Artiste indé', ['Noé B.', 'Alma', 'Yaëlle']],
+    ep: ['Groupe', ['Les Satellites', 'Néon Fauve', 'Marée Haute']], album: ['Label indé', ['Disques Volcan', 'Sillon Records', 'Label Orage']],
+    bo: ['Réalisatrice', ['Claire Ozanne', 'Studio Lumen', 'Agence Pixel']], live: ['Festival', ['Les Nuits Chaudes', 'Rock en Ville', 'Fest’Ouest']],
+    mastering: ['Major', ['Universon', 'Sonora Music', 'Warnex']], star: ['Star', ['Maya Lorent', 'Joe Kaz', 'Neïla']], hit: ['Major', ['Universon', 'Sonora Music', 'Warnex']]
+  };
+  // Top 50: titres et artistes des studios rivaux
+  var CHART = {
+    words: ['Nuit', 'Lumière', 'Vertige', 'Saison', 'Écho', 'Mirage', 'Néon', 'Rêve', 'Orage', 'Velours', 'Sirène', 'Satellite', 'Comète', 'Fièvre', 'Marée', 'Minuit', 'Boussole', 'Horizon', 'Papillon', 'Cœur', 'Vague', 'Étoile', 'Ciel', 'Danse'],
+    tails: ['blanche', 'bleue', 'd’été', 'sans fin', 'électrique', 'de verre', 'perdue', 'dorée', 'sauvage', 'en retard', 'de nuit', 'au ralenti', 'XXL', 'pour toujours', 'en feu', 'à deux'],
+    artists: ['Lyna', 'Kéo', 'Les Rivages', 'MC Sora', 'Noé B.', 'Alma', 'DJ Tessa', 'Vito', 'Les Bonnes Ondes', 'Yaëlle', 'Rafa', 'Clémence & Co', 'Zed', 'Oona', 'Big Malo', 'Sacha V.', 'Neïla', 'Les Satellites', 'Joe Kaz', 'Mira', 'Tiago', 'Swann', 'Kalia', 'Nyx', 'Lou Ann', 'Moussa K.', 'Élio', 'Bianca']
+  };
 
   // Équipe: métiers et productions où chacun excelle (ailleurs, il apporte moitié moins).
   var ROLES = [
@@ -913,7 +1046,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -933,7 +1066,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   var ACTS = D.ACTS, ITEMS = D.ITEMS, TIERS = D.TIERS, EVENTS = D.EVENTS, TROPHIES = D.TROPHIES, T = D.TUNING;
   ROY = T.roy; OFFLINE_CAP = T.offlineCap; OFFLINE_EFF = T.offlineEff; TAP = T.tap;
 
-  var ROLES = D.ROLES || [], NAMES = D.NAMES || [];
+  var ROLES = D.ROLES || [], NAMES = D.NAMES || [], CLIENTS = D.CLIENTS || {}, CHART = D.CHART || { words: ['Titre'], tails: [''], artists: ['Artiste'] };
   var ACT_BY = {}, ITEM_BY = {}, EVENT_BY = {}, TROPHY_BY = {}, ROLE_BY = {};
   ROLES.forEach(function (r) { ROLE_BY[r.id] = r; });
   var rand = Math.random;
@@ -951,12 +1084,14 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function newState(now) {
     now = now || Date.now();
     var acts = {};
-    ACTS.forEach(function (a) { acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: 0 }; });
+    ACTS.forEach(function (a) { acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: 0, hold: false, mix: null }; });
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false },
-      team: newTeam() };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts() };
   }
+  function newOrders() { return { offers: [], active: [], cd: T.orderFirst, rep: 0, done: 0, failed: 0, nextId: 1 }; }
+  function newCharts() { return { week: 1, left: T.weekLen, rivals: [], mine: [], free: 0, best: 0, num1: 0, releases: 0, nextId: 1 }; }
   function newTeam() { return { staff: [], pool: [], poolCd: 0, alumni: [], nextId: 1, hired: 0 }; }
 
   function num(x, d) { return typeof x === 'number' && isFinite(x) ? x : d; }
@@ -982,8 +1117,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     ACTS.forEach(function (a) {
       var s = o.acts && o.acts[a.id];
       if (!s) return;
+      var mx = s.mix && typeof s.mix === 'object' ? { m: Math.max(1, Math.min(1 + T.mixMax, num(s.mix.m, 1))), q: Math.max(1, Math.min(5, Math.floor(num(s.mix.q, 1)))), x: Math.max(0, Math.min(T.mixXp, num(s.mix.x, 0))) } : null;
       S.acts[a.id] = { lvl: Math.max(0, Math.floor(num(s.lvl, 0))), auto: !!s.auto, prog: Math.max(0, num(s.prog, 0)),
-        run: !!s.run, done: Math.max(0, num(s.done, 0)) };
+        run: !!s.run, done: Math.max(0, num(s.done, 0)), hold: false, mix: mx };
     });
     if (o.tracks && typeof o.tracks === 'object') {
       ACTS.forEach(function (a) { S.tracks[a.id] = Math.max(0, num(o.tracks[a.id], 0)); });
@@ -1001,6 +1137,13 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (p && EVENT_BY[p.id] && num(p.left, 0) > 0) S.ev.pending = { id: p.id, left: Math.min(num(p.left, 0), T.eventWindow) };
     }
     if (o.team && typeof o.team === 'object') hydrateTeam(S, o.team);
+    S.mixes = Math.max(0, Math.floor(num(o.mixes, 0)));
+    S.perfect = Math.max(0, Math.floor(num(o.perfect, 0)));
+    (Array.isArray(o.masters) ? o.masters : []).forEach(function (m) {
+      if (m && ACT_BY[m.act] && S.masters.length < T.mastersMax) S.masters.push({ id: Math.max(1, Math.floor(num(m.id, 1))), act: m.act, q: Math.max(1, Math.min(5, Math.floor(num(m.q, 1)))) });
+    });
+    if (o.orders && typeof o.orders === 'object') hydrateOrders(S, o.orders);
+    if (o.charts && typeof o.charts === 'object') hydrateCharts(S, o.charts);
     return S;
   }
 
@@ -1024,6 +1167,41 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     x.train = Math.max(0, num(m.train, 0));
     x.low = !!m.low;
     return x;
+  }
+  function cleanOrder(x) {
+    if (!x || typeof x !== 'object' || !ACT_BY[x.act]) return null;
+    var n = Math.max(1, Math.min(200, Math.floor(num(x.n, 1))));
+    return { id: Math.max(1, Math.floor(num(x.id, 1))), act: x.act, n: n, q: Math.max(1, Math.min(5, Math.floor(num(x.q, 1)))),
+      got: Math.max(0, Math.min(n, Math.floor(num(x.got, 0)))), time: Math.max(1, num(x.time, 60)), left: Math.max(0, num(x.left, 60)),
+      life: Math.max(0, num(x.life, T.orderOfferLife)), reward: Math.max(0, num(x.reward, 0)), xp: Math.max(0, num(x.xp, 0)),
+      client: String(x.client || 'Client').slice(0, 30), kind: String(x.kind || '').slice(0, 30) };
+  }
+  function hydrateOrders(S, o) {
+    var r = S.orders;
+    r.cd = Math.max(0, num(o.cd, T.orderFirst)); r.rep = Math.max(0, Math.min(T.repMax, num(o.rep, 0)));
+    r.done = Math.max(0, Math.floor(num(o.done, 0))); r.failed = Math.max(0, Math.floor(num(o.failed, 0)));
+    (Array.isArray(o.offers) ? o.offers : []).forEach(function (x) { var c = cleanOrder(x); if (c && r.offers.length < T.orderMaxOffers) r.offers.push(c); });
+    (Array.isArray(o.active) ? o.active : []).forEach(function (x) { var c = cleanOrder(x); if (c && r.active.length < T.orderMaxActive) r.active.push(c); });
+    var mx = 0; r.offers.concat(r.active).forEach(function (x) { mx = Math.max(mx, x.id); });
+    r.nextId = Math.max(mx + 1, Math.floor(num(o.nextId, 1)));
+  }
+  function hydrateCharts(S, o) {
+    var c = S.charts;
+    c.week = Math.max(1, Math.floor(num(o.week, 1))); c.left = Math.max(0, Math.min(T.weekLen, num(o.left, T.weekLen)));
+    c.free = Math.max(0, Math.floor(num(o.free, 0))); c.best = Math.max(0, Math.min(T.chartSize, Math.floor(num(o.best, 0))));
+    c.num1 = Math.max(0, Math.floor(num(o.num1, 0))); c.releases = Math.max(0, Math.floor(num(o.releases, 0)));
+    (Array.isArray(o.rivals) ? o.rivals : []).forEach(function (r) {
+      if (r && c.rivals.length < T.chartSize) c.rivals.push({ t: String(r.t || 'Titre').slice(0, 40), a: String(r.a || 'Artiste').slice(0, 30), f: Math.max(0.1, Math.min(3, num(r.f, 1))), p: Math.max(0, Math.floor(num(r.p, 0))) });
+    });
+    var mx = 0;
+    (Array.isArray(o.mine) ? o.mine : []).forEach(function (m) {
+      if (!m || !ACT_BY[m.act] || c.mine.length >= 12) return;
+      var e = { id: Math.max(1, Math.floor(num(m.id, 1))), t: String(m.t || 'Titre').slice(0, 40), act: m.act, q: Math.max(1, Math.min(5, Math.floor(num(m.q, 1)))),
+        s: Math.max(0, num(m.s, 0)), weeks: Math.max(0, Math.floor(num(m.weeks, 0))), pos: Math.max(0, Math.floor(num(m.pos, 0))), p: Math.max(0, Math.floor(num(m.p, 0))),
+        best: Math.max(0, Math.floor(num(m.best, 0))), promo: !!m.promo, earned: Math.max(0, num(m.earned, 0)) };
+      mx = Math.max(mx, e.id); c.mine.push(e);
+    });
+    c.nextId = Math.max(mx + 1, Math.floor(num(o.nextId, 1)));
   }
   function hydrateTeam(S, t) {
     var tm = S.team, used = {}, maxId = 0;
@@ -1139,12 +1317,14 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
 
   function complete(S, act, n) {
-    var p = payout(S, act) * n;
+    var a = S.acts[act.id], unit = payout(S, act), p = unit * n, x = xpGain(S, act) * n, mixed = a.mix;
+    if (mixed) { a.mix = null; p += unit * (mixed.m - 1); x += xpGain(S, act) * mixed.x; }
     S.money += p; S.lifetime += p;
     S.tracks[act.id] = (S.tracks[act.id] || 0) + n;
-    S.acts[act.id].done += n;
-    addXp(S, xpGain(S, act) * n);
-    if (hooks.complete) hooks.complete(act, n, p);
+    a.done += n;
+    addXp(S, x);
+    orderProgress(S, act.id, n, baseQuality(S, act.id), mixed ? mixed.q : null);
+    if (hooks.complete) hooks.complete(act, n, p, mixed);
   }
 
   function startAct(S, id) {
@@ -1211,7 +1391,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     for (var i = 0; i < ACTS.length; i++) {
       var act = ACTS[i], a = S.acts[act.id];
       if (a.auto && !a.run && isUnlocked(S, act)) { a.run = true; a.prog = 0; }
-      if (!a.run) continue;
+      if (!a.run || a.hold) continue; // en cours de mixage: la production attend
       var d = duration(S, act), t = dt, remain = d - a.prog;
       if (t < remain) { a.prog += t; continue; }
       t -= remain;
@@ -1415,6 +1595,205 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     }
   }
 
+
+  // ---------- Qualité et mixage ----------
+  // Qualité (1 à 5 étoiles) d'une production sans mixage: le lieu et le membre de l'équipe affecté comptent.
+  function baseQuality(S, actId) {
+    var q = 1 + Math.floor(tierIndex(S) / 2), fx = staffFx(S, actId);
+    if (fx.m) q += fx.m.stars >= 4 ? 2 : 1;
+    return Math.min(5, q);
+  }
+  function canMix(S, id) {
+    var act = ACT_BY[id], a = act && S.acts[id];
+    return !!a && isUnlocked(S, act) && a.run && !a.mix && !a.hold;
+  }
+  function startMix(S, id) { if (!canMix(S, id)) return false; S.acts[id].hold = true; return true; }
+  function cancelMix(S, id) { if (S.acts[id]) S.acts[id].hold = false; }
+  function mixStars(score) { return Math.max(1, Math.min(5, 1 + Math.round(score * 4))); }
+  // score de 0 à 1. Le bonus s'applique à la prochaine production terminée; le titre mixé peut sortir dans le Top 50.
+  function finishMix(S, id, score) {
+    var a = S.acts[id];
+    if (!a || !a.hold) return null;
+    score = Math.max(0, Math.min(1, +score || 0));
+    var q = mixStars(score);
+    a.hold = false;
+    a.mix = { m: 1 + T.mixMax * score, q: q, x: T.mixXp * score };
+    S.mixes = (S.mixes || 0) + 1;
+    if (q === 5) S.perfect = (S.perfect || 0) + 1;
+    var ch = S.charts;
+    S.masters.push({ id: ch.nextId++, act: id, q: q });
+    while (S.masters.length > T.mastersMax) S.masters.shift();
+    if (hooks.mix) hooks.mix(ACT_BY[id], q, score);
+    return a.mix;
+  }
+
+  // ---------- Commandes clients ----------
+  function ordersOpen(S) { return S.level >= T.orderLevel; }
+  function rawPayout(S, act) { return payout(S, act) / boostMult(S); }
+  function makeOrder(S) {
+    var open = ACTS.filter(function (a) { return isUnlocked(S, a); });
+    if (!open.length) return null;
+    // les productions les plus récentes sont plus demandées
+    var w = open.map(function (a, i) { return Math.pow(i + 1, 1.5); }), tot = w.reduce(function (x, y) { return x + y; }, 0), r = rand() * tot, k = 0;
+    while (k < open.length - 1 && r > w[k]) { r -= w[k]; k++; }
+    var act = open[k], d = duration(S, act);
+    var span = T.orderTimeMin + rand() * (T.orderTimeMax - T.orderTimeMin);
+    var n = Math.max(2, Math.min(40, Math.round(span / d)));
+    var bq = baseQuality(S, act.id), q = Math.max(1, Math.min(5, bq - 1 + Math.floor(rand() * 3)));
+    var cl = CLIENTS[act.id] || ['Client', ['Un client']], names = cl[1];
+    if (q > bq) n = Math.min(n, 1 + Math.floor(rand() * 3)); // chaque unité exigeante demande un mix: peu d'unités
+    var time = Math.round(Math.max(n * d * T.orderDeadlineK + 30, q > bq ? n * (d + 45) + 60 : 0));
+    var o = S.orders;
+    return { id: o.nextId++, act: act.id, n: n, q: q, got: 0, time: time, left: time, life: T.orderOfferLife,
+      reward: rawPayout(S, act) * n * (T.orderRewardBase + T.orderRewardQ * q) * (1 + o.rep / 100), xp: xpGain(S, act) * n * 0.5,
+      client: names[Math.floor(rand() * names.length)], kind: cl[0] };
+  }
+  function acceptOrder(S, id) {
+    var o = S.orders, i = -1;
+    o.offers.forEach(function (x, k) { if (x.id === id) i = k; });
+    if (i < 0 || o.active.length >= T.orderMaxActive) return false;
+    var x = o.offers.splice(i, 1)[0];
+    x.left = x.time; x.got = 0;
+    o.active.push(x);
+    return true;
+  }
+  function declineOrder(S, id) { var o = S.orders, n = o.offers.length; o.offers = o.offers.filter(function (x) { return x.id !== id; }); return o.offers.length < n; }
+  function orderProgress(S, actId, n, qBase, qMix) {
+    var o = S.orders;
+    if (!o || !o.active.length) return;
+    var done = [];
+    o.active.forEach(function (x) {
+      if (x.act !== actId) return;
+      var c = (qMix != null ? (qMix >= x.q ? 1 : 0) + (qBase >= x.q ? n - 1 : 0) : (qBase >= x.q ? n : 0));
+      x.got = Math.min(x.n, x.got + c);
+      if (x.got >= x.n) done.push(x);
+    });
+    done.forEach(function (x) {
+      o.active = o.active.filter(function (y) { return y !== x; });
+      S.money += x.reward; S.lifetime += x.reward;
+      addXp(S, x.xp);
+      o.rep = Math.min(T.repMax, o.rep + T.repWin);
+      o.done++;
+      if (hooks.orderDone) hooks.orderDone(x);
+    });
+  }
+  // Uniquement quand le joueur est présent (comme les sorties de studio): pas de commande ratée pendant l'absence.
+  function tickOrders(S, dt) {
+    if (!ordersOpen(S)) return;
+    var o = S.orders;
+    o.cd -= dt;
+    if (o.cd <= 0) {
+      o.cd = T.orderEvery;
+      if (o.offers.length < T.orderMaxOffers) { var x = makeOrder(S); if (x) { o.offers.push(x); if (hooks.orderNew) hooks.orderNew(x); } }
+    }
+    o.offers = o.offers.filter(function (x) { x.life -= dt; return x.life > 0; });
+    var failed = [];
+    o.active.forEach(function (x) { x.left -= dt; if (x.left <= 0) failed.push(x); });
+    failed.forEach(function (x) {
+      o.active = o.active.filter(function (y) { return y !== x; });
+      o.rep = Math.max(0, o.rep - T.repLose); o.failed++;
+      if (hooks.orderFail) hooks.orderFail(x);
+    });
+  }
+
+  // ---------- Top 50 ----------
+  function chartsOpen(S) { return S.level >= T.chartLevel; }
+  function songTitle() { var w = CHART.words, t = CHART.tails; return w[Math.floor(rand() * w.length)] + ' ' + t[Math.floor(rand() * t.length)]; }
+  function newRival(f) { return { t: songTitle(), a: CHART.artists[Math.floor(rand() * CHART.artists.length)], f: f, p: 0 }; }
+  function potential(S) { return Math.log10(rawPayout(S, bestAct(S)) + 10); }
+  function releaseScore(S, actId, q, promo) {
+    return Math.log10(rawPayout(S, ACT_BY[actId]) + 10) * (0.55 + 0.2 * q) * (promo ? T.promoMult : 1) * (1 + S.orders.rep / 200) * (0.9 + rand() * 0.2);
+  }
+  function initRivals(S) {
+    var c = S.charts; c.rivals = [];
+    for (var i = 0; i < T.chartSize; i++) c.rivals.push(newRival(0.55 + 1.5 * Math.pow(rand(), 1.8)));
+    rankCharts(S, true);
+  }
+  // Classe rivaux et titres du joueur. Renvoie le Top 50 (meilleur en premier).
+  function rankCharts(S, first) {
+    var c = S.charts, P = potential(S), all = [];
+    c.rivals.forEach(function (r) { all.push({ r: r, s: r.f * P }); });
+    c.mine.forEach(function (m) { all.push({ m: m, s: m.s }); });
+    all.sort(function (x, y) { return y.s - x.s; });
+    all.forEach(function (e, i) {
+      var pos = i + 1, o = e.r || e.m;
+      o.p = first ? pos : (o.pos || 0);
+      o.pos = pos;
+      if (e.m) { if (pos <= T.chartSize && (!o.best || pos < o.best)) o.best = pos; }
+    });
+    c.mine.forEach(function (m) { if (m.pos <= T.chartSize && (!c.best || m.pos < c.best)) c.best = m.pos; });
+    return all.slice(0, T.chartSize).map(function (e) { var o = e.r || e.m; return { t: o.t, a: e.r ? o.a : null, mine: !!e.m, id: e.m ? o.id : null, act: e.m ? o.act : null, q: e.m ? o.q : null, pos: o.pos, prev: o.p, weeks: e.m ? o.weeks : null }; });
+  }
+  function chartTop(S) {
+    var c = S.charts, P = potential(S), all = [];
+    c.rivals.forEach(function (r) { all.push({ o: r, s: r.f * P }); });
+    c.mine.forEach(function (m) { all.push({ o: m, s: m.s, mine: true }); });
+    all.sort(function (x, y) { return y.s - x.s; });
+    return all.slice(0, T.chartSize).map(function (e, i) { return { t: e.o.t, a: e.mine ? null : e.o.a, mine: !!e.mine, id: e.mine ? e.o.id : null, act: e.mine ? e.o.act : null, q: e.mine ? e.o.q : null, pos: i + 1, prev: e.o.p || 0, weeks: e.mine ? e.o.weeks : null }; });
+  }
+  function promoCost(S) { return incomeRef(S) * T.promoSec; }
+  function canFreeRelease(S) { return chartsOpen(S) && S.charts.free !== S.charts.week; }
+  // src: identifiant d'un titre mixé, ou 'free' pour un titre du catalogue (une fois par semaine, qualité de base, production choisie).
+  function release(S, src, promo, actId) {
+    if (!chartsOpen(S)) return null;
+    var c = S.charts, act, q;
+    if (!c.rivals.length) initRivals(S);
+    if (src === 'free') {
+      act = actId && ACT_BY[actId] && isUnlocked(S, ACT_BY[actId]) ? actId : bestAct(S).id;
+      if (!canFreeRelease(S)) return null;
+      q = baseQuality(S, act);
+    } else {
+      var m = null;
+      S.masters.forEach(function (x) { if (x.id === src) m = x; });
+      if (!m) return null;
+      act = m.act; q = m.q;
+    }
+    var cost = promo ? promoCost(S) : 0;
+    if (S.money < cost) return null;
+    S.money -= cost;
+    if (src === 'free') c.free = c.week; else S.masters = S.masters.filter(function (x) { return x.id !== src; });
+    var e = { id: c.nextId++, t: songTitle(), act: act, q: q, s: releaseScore(S, act, q, promo), weeks: 0, pos: 0, p: 0, best: 0, promo: !!promo, earned: 0 };
+    c.mine.push(e); c.releases++;
+    rankCharts(S, false);
+    e.p = 0;
+    if (e.pos > T.chartSize) c.mine = c.mine.filter(function (x) { return x !== e; });
+    if (hooks.release) hooks.release(e);
+    return e;
+  }
+  function chartPay(S, pos) { return incomeRef(S) * T.chartPaySec * (T.chartSize + 1 - pos) / T.chartSize; }
+  function weekEnd(S) {
+    var c = S.charts, pay = 0, entries = [];
+    rankCharts(S, false);
+    c.mine.forEach(function (m) {
+      if (m.pos > T.chartSize) return;
+      var g = chartPay(S, m.pos);
+      pay += g; m.earned += g; m.weeks++;
+      entries.push({ t: m.t, pos: m.pos, gain: g });
+      if (m.pos === 1) { c.num1++; S.orders.rep = Math.min(T.repMax, S.orders.rep + 3); }
+    });
+    S.money += pay; S.lifetime += pay;
+    // la semaine suivante: les titres vieillissent, de nouveaux rivaux entrent
+    c.mine.forEach(function (m) { m.s *= T.chartDecay * (0.95 + rand() * 0.1); });
+    c.rivals.forEach(function (r) { r.f *= 0.93 + rand() * 0.12; });
+    c.rivals.sort(function (x, y) { return y.f - x.f; });
+    for (var i = 0; i < 5; i++) c.rivals.splice(Math.floor(rand() * c.rivals.length), 1);
+    while (c.rivals.length < T.chartSize) c.rivals.push(newRival(0.75 + 1.1 * Math.pow(rand(), 1.5)));
+    c.rivals.forEach(function (r) { r.f = Math.max(0.4, Math.min(2.1, r.f)); });
+    c.week++; c.left = T.weekLen;
+    rankCharts(S, false);
+    c.mine = c.mine.filter(function (m) { return m.pos <= T.chartSize; });
+    if (hooks.chartWeek) hooks.chartWeek({ week: c.week - 1, pay: pay, entries: entries });
+    return { pay: pay, entries: entries };
+  }
+  function tickCharts(S, dt) {
+    if (!chartsOpen(S)) return;
+    var c = S.charts;
+    if (!c.rivals.length) initRivals(S);
+    c.left -= dt;
+    if (c.left <= 0) weekEnd(S);
+  }
+  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); }
+
   // ---------- Tournée mondiale (prestige) ----------
   // Points de renommée au total pour un cumul de gains donné.
   function fameAt(n) { return Math.pow(n, 1 / T.fameExp) * T.fameBase; } // cumul de gains qui donne n points
@@ -1446,6 +1825,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var tm = S.team || newTeam(), al = tm.staff.map(function (m) { return { id: m.id, name: m.name, role: m.role, stars: m.stars, lvl: m.lvl, xp: 0, salary: m.salary, look: m.look }; });
     tm.alumni = al.concat(tm.alumni.filter(function (a) { return !al.some(function (b) { return b.id === a.id; }); })).slice(0, 16);
     tm.staff = []; tm.pool = []; tm.poolCd = 0; S.team = tm;
+    S.masters = []; S.orders.offers = []; S.orders.active = []; S.orders.cd = T.orderFirst; // la réputation et le Top 50 restent
     S.fame = (S.fame || 0) + n; S.tours = (S.tours || 0) + 1;
     S.savedAt = now; S.epoch = now;
     touch(S);
@@ -1474,6 +1854,11 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       case 'fame': n = S.fame || 0; break;
       case 'tours': n = S.tours || 0; break;
       case 'staff': n = S.team ? S.team.staff.length : 0; break;
+      case 'mixes': n = S.mixes || 0; break;
+      case 'perfect': n = S.perfect || 0; break;
+      case 'orders': n = S.orders ? S.orders.done : 0; break;
+      case 'rep': n = S.orders ? S.orders.rep : 0; break;
+      case 'chartBest': n = S.charts && S.charts.best ? T.chartSize + 1 - S.charts.best : 0; break;
       case 'staffLvl': (S.team ? S.team.staff : []).forEach(function (m) { n = Math.max(n, m.lvl); }); break;
       case 'outings': Object.keys(S.ev.seen || {}).forEach(function (id) { n += S.ev.seen[id] || 0; }); break;
     }
@@ -1618,7 +2003,11 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     ROLES: ROLES, ROLE_BY: ROLE_BY, teamOpen: teamOpen, teamCap: teamCap, staffXpNeed: staffXpNeed, roleFits: roleFits, staffFx: staffFx, memberFx: memberFx,
     incomeRef: incomeRef, payroll: payroll, refreshPool: refreshPool, poolRefreshCost: poolRefreshCost, buyRefresh: buyRefresh, signCost: signCost,
     hire: hire, fire: fire, assign: assign, trainCost: trainCost, train: train, bonusCost: bonusCost, giveBonus: giveBonus, sendRest: sendRest,
-    findMember: findMember, working: working, setRandom: function (f) { rand = f || Math.random; }
+    findMember: findMember, working: working, setRandom: function (f) { rand = f || Math.random; },
+    baseQuality: baseQuality, canMix: canMix, startMix: startMix, cancelMix: cancelMix, finishMix: finishMix, mixStars: mixStars,
+    ordersOpen: ordersOpen, makeOrder: makeOrder, acceptOrder: acceptOrder, declineOrder: declineOrder, tickOrders: tickOrders,
+    chartsOpen: chartsOpen, chartTop: chartTop, rankCharts: rankCharts, release: release, canFreeRelease: canFreeRelease, promoCost: promoCost,
+    chartPay: chartPay, weekEnd: weekEnd, tickCharts: tickCharts, tickLive: tickLive, potential: potential
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;
@@ -2722,6 +3111,222 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     } catch (e) { /* le son est facultatif */ }
   }
 
+
+  // ---------- Qualité ----------
+  function starsTxt(q) { return '★★★★★'.slice(0, q) + '☆☆☆☆☆'.slice(0, 5 - q); }
+  function starsHtml(q) { return '<span class="qual" aria-label="' + q + ' étoile' + (q > 1 ? 's' : '') + ' sur 5">' + '★★★★★'.slice(0, q) + '<s>' + '★★★★★'.slice(q) + '</s></span>'; }
+
+  // ---------- Mini-jeu de mixage ----------
+  var CHANNELS = ['Voix', 'Batterie', 'Basse', 'Synthé'], ZH = 0.09;
+  var mix = { open: false, act: null, i: 0, acc: [], zones: [], speeds: [], phase: [], t0: 0, raf: 0, pos: 0, done: false, opener: null, faders: [] };
+  function knobPos(k, t) { var x = (t * mix.speeds[k] + mix.phase[k]) % 2; x = x < 1 ? x : 2 - x; return 0.04 + 0.92 * x; }
+  function openMix(id) {
+    if (mix.open || !G.startMix(S, id)) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    mix.open = true; mix.done = false; mix.act = id; mix.i = 0; mix.acc = []; mix.opener = document.activeElement;
+    mix.zones = []; mix.speeds = []; mix.phase = [];
+    for (var k = 0; k < 4; k++) { mix.zones.push(0.2 + Math.random() * 0.6); mix.speeds.push((0.55 + k * 0.15) * (reduce ? 0.7 : 1)); mix.phase.push(Math.random() * 2); }
+    $('mixTitle').textContent = 'Mixer « ' + G.ACT_BY[id].name + ' »';
+    var box = $('mixer'); box.innerHTML = ''; mix.faders = [];
+    CHANNELS.forEach(function (ch, k) {
+      var f = document.createElement('div');
+      f.className = 'fader' + (k === 0 ? ' cur' : '');
+      f.innerHTML = '<div class="track"><i class="zone"></i><b class="knob"></b></div><span class="ch"></span><span class="acc"></span>';
+      f.querySelector('.ch').textContent = ch;
+      var z = f.querySelector('.zone'); z.style.bottom = ((mix.zones[k] - ZH) * 100).toFixed(1) + '%'; z.style.height = (ZH * 200).toFixed(1) + '%';
+      box.appendChild(f);
+      mix.faders.push({ el: f, knob: f.querySelector('.knob'), acc: f.querySelector('.acc') });
+    });
+    $('mixPlay').hidden = false; $('mixResult').hidden = true;
+    setText($('mixStep'), 'Fader 1 sur 4 : ' + CHANNELS[0]);
+    $('mixScrim').hidden = false; $('app').inert = true;
+    $('mixStop').focus();
+    mix.t0 = performance.now();
+    cancelAnimationFrame(mix.raf); mix.raf = requestAnimationFrame(mixLoop);
+    render();
+  }
+  function mixLoop(now) {
+    if (!mix.open || mix.done) return;
+    var k = mix.i, p = knobPos(k, (now - mix.t0) / 1000);
+    mix.pos = p;
+    mix.faders[k].knob.style.bottom = (p * 100).toFixed(2) + '%';
+    mix.raf = requestAnimationFrame(mixLoop);
+  }
+  function mixStop() {
+    if (!mix.open || mix.done) return;
+    var k = mix.i, d = Math.abs(mix.pos - mix.zones[k]);
+    var acc = d <= ZH ? 1 - 0.3 * d / ZH : Math.max(0, 0.7 - (d - ZH) * 2.5);
+    mix.acc.push(acc);
+    var f = mix.faders[k];
+    f.el.classList.remove('cur'); f.el.classList.add(acc >= 0.7 ? 'done' : 'miss');
+    f.acc.textContent = Math.round(acc * 100) + ' %';
+    blip(acc >= 0.9 ? 9 : acc >= 0.7 ? 5 : 1);
+    mix.i++;
+    if (mix.i >= 4) { finishMixGame(); return; }
+    mix.faders[mix.i].el.classList.add('cur');
+    setText($('mixStep'), 'Fader ' + (mix.i + 1) + ' sur 4 : ' + CHANNELS[mix.i]);
+    mix.t0 = performance.now();
+  }
+  function finishMixGame() {
+    mix.done = true; cancelAnimationFrame(mix.raf);
+    var score = mix.acc.reduce(function (a, b) { return a + b; }, 0) / mix.acc.length;
+    var r = G.finishMix(S, mix.act, score);
+    if (!r) { closeMix(); return; }
+    $('mixStars').innerHTML = '★★★★★'.slice(0, r.q) + '<s>' + '★★★★★'.slice(r.q) + '</s>';
+    setText($('mixVerdict'), ['Mix raté…', 'Un peu brouillon', 'Mix correct', 'Très propre !', 'Mix parfait !'][r.q - 1] + ' (' + Math.round(score * 100) + ' %)');
+    setText($('mixGain'), 'Gains ×' + nf2.format(r.m) + ' et +' + Math.round(r.x * 100) + ' % d’expertise sur la production en cours.' +
+      (G.chartsOpen(S) ? ' Le titre mixé (' + r.q + '★) est prêt à sortir dans le Top 50.' : ' Les titres mixés pourront sortir dans le Top 50 dès le niveau ' + D.TUNING.chartLevel + '.') +
+      (S.orders.active.some(function (o) { return o.act === mix.act && o.q > G.baseQuality(S, mix.act) && r.q >= o.q; }) ? ' Il compte pour ta commande exigeante.' : ''));
+    $('mixPlay').hidden = true; $('mixResult').hidden = false;
+    $('mixClose').focus();
+    markCloud(); saveLocal(); chs.key = '';
+    blip(r.q >= 5 ? 12 : 7);
+  }
+  function closeMix() {
+    if (!mix.open) return;
+    if (!mix.done) G.cancelMix(S, mix.act);
+    mix.open = false; cancelAnimationFrame(mix.raf);
+    $('mixScrim').hidden = true; $('app').inert = false;
+    var o = mix.opener; mix.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+    render();
+  }
+
+  // ---------- Commandes clients ----------
+  var ord = { key: '', cards: {}, t: 0, wasOpen: null };
+  function orderCard(x, active) {
+    var act = G.ACT_BY[x.act], needMix = x.q > G.baseQuality(S, x.act);
+    var el = document.createElement('article');
+    el.className = 'card order' + (active ? ' active' : '');
+    el.setAttribute('data-oid', x.id);
+    el.innerHTML = '<div class="o-head"><b></b><span class="p"></span></div>' +
+      '<p class="o-what"></p>' +
+      (active ? '<span class="meter" aria-hidden="true"><i data-k="fill"></i></span>' : '') +
+      '<div class="o-meta"><span data-k="a"></span><span data-k="b"></span></div>' +
+      (active ? '' : '<div class="o-btns"><button class="btn sm primary" type="button" data-oact="accept">Accepter</button><button class="btn sm" type="button" data-oact="decline">Refuser</button></div>');
+    el.querySelector('.o-head b').textContent = x.client + ' · ' + x.kind;
+    el.querySelector('.o-head .p').textContent = '+' + eur(x.reward);
+    el.querySelector('.o-what').innerHTML = '<b>' + x.n + ' ×</b> ' + esc(act.name) + ' · qualité ' + starsHtml(x.q) + ' min.' + (needMix ? ' <span class="need-mix">Exige un mix</span>' : '');
+    var r = { root: el, x: x, active: active };
+    el.querySelectorAll('[data-k]').forEach(function (n) { r[n.getAttribute('data-k')] = n; });
+    r.accept = el.querySelector('[data-oact="accept"]');
+    return r;
+  }
+  function renderOrders() {
+    var open = G.ordersOpen(S), o = S.orders, onProd = $('app').getAttribute('data-view') === 'prod';
+    if (ord.wasOpen === false && open && !quiet) toast('Des clients commencent à t’appeler : retrouve leurs commandes dans Productions.', 6000);
+    ord.wasOpen = open;
+    setHidden($('ordersBox'), !open);
+    setClass($('tabProd'), 'has', open && !onProd && o.offers.length > 0 && o.active.length < D.TUNING.orderMaxActive);
+    if (!open) return;
+    var now = performance.now();
+    if (!onProd && now - ord.t < 1000) return;
+    ord.t = now;
+    setText($('repChip'), 'Réputation ' + Math.round(o.rep) + ' / ' + D.TUNING.repMax);
+    var key = o.active.map(function (x) { return 'a' + x.id; }).concat(o.offers.map(function (x) { return 'o' + x.id; })).join(',') + '|' + G.tierIndex(S);
+    if (key !== ord.key) {
+      ord.key = key;
+      var box = $('orderList'); box.innerHTML = ''; ord.cards = {};
+      o.active.forEach(function (x) { var c = orderCard(x, true); box.appendChild(c.root); ord.cards['a' + x.id] = c; });
+      o.offers.forEach(function (x) { var c = orderCard(x, false); box.appendChild(c.root); ord.cards['o' + x.id] = c; });
+    }
+    var full = o.active.length >= D.TUNING.orderMaxActive;
+    Object.keys(ord.cards).forEach(function (k) {
+      var c = ord.cards[k], x = c.x;
+      if (c.active) {
+        setWidth(c.fill, x.got / x.n * 100);
+        setText(c.a, x.got + ' / ' + x.n + ' livré' + (x.got > 1 ? 's' : ''));
+        setText(c.b, 'Reste ' + clock(x.left));
+        setClass(c.root, 'urgent', x.left < 30);
+      } else {
+        setText(c.a, 'Délai : ' + dur(x.time));
+        setText(c.b, 'Offre valable ' + clock(x.life));
+        setDisabled(c.accept, full);
+      }
+    });
+    setText($('orderNote'), !o.active.length && !o.offers.length ? 'Pas de demande pour l’instant. Prochain appel dans ' + clock(o.cd) + '. La réputation augmente la prime des commandes et ton classement au Top 50.'
+      : full && o.offers.length ? 'Tu mènes déjà ' + D.TUNING.orderMaxActive + ' commandes : termine-en une pour en accepter une autre.' : 'Les productions terminées comptent si leur qualité suffit. Un délai dépassé coûte ' + D.TUNING.repLose + ' points de réputation.');
+  }
+
+  // ---------- Top 50 ----------
+  var chs = { key: '', t: 0, listT: 0, wasOpen: null };
+  function moveHtml(e) {
+    if (!e.prev) return '<span class="mv new">NEW</span>';
+    var d = e.prev - e.pos;
+    return d > 0 ? '<span class="mv up">▲' + d + '</span>' : d < 0 ? '<span class="mv down">▼' + (-d) + '</span>' : '<span class="mv">=</span>';
+  }
+  function renderCharts(force) {
+    var open = G.chartsOpen(S), c = S.charts, onCh = $('app').getAttribute('data-view') === 'charts';
+    if (chs.wasOpen === false && open && !quiet) toast('Le Top 50 est ouvert : sors tes titres et grimpe au classement.', 6000);
+    chs.wasOpen = open;
+    setClass($('tabCharts'), 'has', open && !onCh && S.masters.length > 0);
+    setHidden($('chartLock'), open); setHidden($('chartOpen'), !open);
+    if (!open) { setText($('chartWeek'), ''); setText($('chartLockText'), 'Atteins le niveau d’expertise ' + D.TUNING.chartLevel + ' pour sortir tes titres face aux studios rivaux.'); return; }
+    if (!onCh && !force) return;
+    setText($('chartWeek'), 'Semaine ' + c.week + ' · fin dans ' + clock(c.left));
+    var pc = G.promoCost(S);
+    setText($('promoP'), 'Coûte ' + eur(pc) + ' · place au classement ×' + nf1.format(D.TUNING.promoMult));
+    setDisabled($('promoChk'), S.money < pc);
+    if ($('promoChk').checked && S.money < pc) $('promoChk').checked = false;
+    var unlocked = G.ACTS.filter(function (a) { return G.isUnlocked(S, a); });
+    var key = S.masters.map(function (m) { return m.id; }).join(',') + '|' + G.canFreeRelease(S) + '|' + unlocked.length + '|' + c.mine.map(function (m) { return m.id + ':' + m.pos; }).join(',');
+    if (key !== chs.key || force) {
+      chs.key = key;
+      var box = $('releaseList'); box.innerHTML = '';
+      S.masters.slice().reverse().forEach(function (m) {
+        var el = document.createElement('article'); el.className = 'card rel';
+        el.innerHTML = '<div><b>Titre mixé · ' + esc(G.ACT_BY[m.act].name) + '</b><p>' + starsHtml(m.q) + '</p></div><button class="btn sm primary" type="button" data-rel="' + m.id + '">Sortir</button>';
+        box.appendChild(el);
+      });
+      var fr = document.createElement('article'); fr.className = 'card rel';
+      var opts = unlocked.slice().reverse().map(function (a) { return '<option value="' + a.id + '">' + esc(a.name) + ' (' + G.baseQuality(S, a.id) + '★)</option>'; }).join('');
+      fr.innerHTML = '<div><b>Titre du catalogue</b><p>' + (G.canFreeRelease(S) ? 'Qualité de base, une sortie par semaine.' : 'Déjà fait cette semaine.') + '</p><select id="freeAct" aria-label="Production à sortir">' + opts + '</select></div><button class="btn sm" type="button" data-rel="free"' + (G.canFreeRelease(S) ? '' : ' disabled') + '>Sortir</button>';
+      box.appendChild(fr);
+      if (!S.masters.length) { var n = document.createElement('p'); n.className = 'small-note'; n.style.margin = '0'; n.textContent = 'Mixe une production toi-même (bouton Mixer) pour obtenir un titre de meilleure qualité.'; box.insertBefore(n, fr); }
+      var mine = c.mine.slice().sort(function (a, b) { return a.pos - b.pos; });
+      setText($('mineNote'), mine.length ? 'Gains par semaine selon la place. Les titres perdent des places au fil des semaines.' : 'Aucun titre classé pour l’instant.');
+      $('mineList').innerHTML = mine.map(function (m) {
+        return '<li class="mine' + (m.pos === 1 ? ' top1' : '') + '"><span class="pos">' + m.pos + '</span>' + moveHtml({ prev: m.p, pos: m.pos }) + '<span class="tt"><b>' + esc(m.t) + '</b><span>' + esc(G.ACT_BY[m.act].name) + ' · ' + starsTxt(m.q) + ' · ' + m.weeks + ' sem.' + (m.best ? ' · record ' + m.best : '') + '</span></span><span class="gain">+' + eur(G.chartPay(S, m.pos)) + '/sem.</span></li>';
+      }).join('');
+    }
+    var now = performance.now();
+    if (now - chs.listT > 2000 || force) {
+      chs.listT = now;
+      $('chartList').innerHTML = G.chartTop(S).map(function (e) {
+        return '<li class="' + (e.mine ? 'mine' : '') + (e.pos === 1 ? ' top1' : '') + '"><span class="pos">' + e.pos + '</span>' + moveHtml(e) + '<span class="tt"><b>' + esc(e.t) + '</b><span>' + (e.mine ? 'Ta prod · ' + esc(G.ACT_BY[e.act].name) + ' · ' + starsTxt(e.q) : esc(e.a)) + '</span></span><span class="gain">' + (e.mine ? '+' + eur(G.chartPay(S, e.pos)) : '') + '</span></li>';
+      }).join('');
+    }
+  }
+
+  function bindFeatures() {
+    $('mixStop').addEventListener('click', mixStop);
+    $('mixer').addEventListener('pointerdown', function (e) { e.preventDefault(); mixStop(); });
+    $('mixCancel').addEventListener('click', closeMix);
+    $('mixClose').addEventListener('click', closeMix);
+    document.addEventListener('keydown', function (e) {
+      if (!mix.open) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeMix(); }
+      else if ((e.key === ' ' || e.key === 'Enter') && !mix.done && document.activeElement !== $('mixCancel')) { e.preventDefault(); mixStop(); }
+    });
+    $('orderList').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-oact]'), card = e.target.closest('[data-oid]');
+      if (!b || b.disabled || !card) return;
+      var id = +card.getAttribute('data-oid');
+      if (b.getAttribute('data-oact') === 'accept') { if (G.acceptOrder(S, id)) toast('Commande acceptée. Au travail !'); }
+      else G.declineOrder(S, id);
+      ord.key = ''; markCloud(); render();
+    });
+    $('releaseList').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-rel]');
+      if (!b || b.disabled) return;
+      var src = b.getAttribute('data-rel'), promo = $('promoChk').checked;
+      var r = src === 'free' ? G.release(S, 'free', promo, $('freeAct') && $('freeAct').value) : G.release(S, +src, promo);
+      if (!r) { toast('Sortie impossible pour le moment.'); return; }
+      $('promoChk').checked = false;
+      markCloud(); render(); renderCharts(true);
+    });
+  }
+
   // ---------- Construction de l'interface ----------
   function buildActs() {
     var host = $('acts');
@@ -2739,7 +3344,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
           '<div class="meter" aria-hidden="true"><i data-k="fill"></i></div>' +
           '<div class="meter-info"><span data-k="gain"></span><span data-k="time"></span></div>' +
           '<div class="actions">' +
-            '<button class="pad" type="button" id="go-' + act.id + '" data-do="go" data-act="' + act.id + '"><b data-k="goT"></b><small data-k="goS"></small></button>' +
+            '<div class="go-row"><button class="pad" type="button" id="go-' + act.id + '" data-do="go" data-act="' + act.id + '"><b data-k="goT"></b><small data-k="goS"></small></button>' +
+            '<button class="btn mixbtn" type="button" id="mix-' + act.id + '" data-do="mix" data-act="' + act.id + '" title="Mixer toi-même cette production"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18M12 3v18M18 3v18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3.5" y="12" width="5" height="3.4" rx="1" fill="currentColor"/><rect x="9.5" y="6" width="5" height="3.4" rx="1" fill="currentColor"/><rect x="15.5" y="14.5" width="5" height="3.4" rx="1" fill="currentColor"/></svg><small data-k="mixT">Mixer</small></button></div>' +
             '<button class="btn" type="button" id="up-' + act.id + '" data-do="up" data-act="' + act.id + '"><span class="t"><b>Perfectionner</b><small data-k="upS"></small></span><span class="p" data-k="upP"></span></button>' +
             '<button class="btn" type="button" id="auto-' + act.id + '" data-do="auto" data-act="' + act.id + '"><span class="t"><b>Automatiser</b><small>' + act.autoRole + '</small></span><span class="p" data-k="autoP"></span></button>' +
           '</div>' +
@@ -2748,7 +3354,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       host.appendChild(el);
       var r = { root: el, led: el.querySelector('.led') };
       el.querySelectorAll('[data-k]').forEach(function (n) { r[n.getAttribute('data-k')] = n; });
-      r.go = el.querySelector('[data-do="go"]'); r.up = el.querySelector('[data-do="up"]'); r.auto = el.querySelector('[data-do="auto"]');
+      r.go = el.querySelector('[data-do="go"]'); r.up = el.querySelector('[data-do="up"]'); r.auto = el.querySelector('[data-do="auto"]'); r.mix = el.querySelector('[data-do="mix"]');
       rows[act.id] = r;
     });
   }
@@ -2878,7 +3484,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       setHidden(r.auto, a.auto);
       setText(r.autoP, eur(act.autoCost));
       setDisabled(r.auto, S.money < act.autoCost);
-      setText(r.foot, nf0.format(a.done) + (a.done > 1 ? ' réalisés' : ' réalisé') + (a.auto ? ' · ' + act.autoRole + ' s’en occupe' : ''));
+      setText(r.foot, nf0.format(a.done) + (a.done > 1 ? ' réalisés' : ' réalisé') + ' · qualité ' + starsTxt(G.baseQuality(S, act.id)) + (a.auto ? ' · ' + act.autoRole + ' s’en occupe' : ''));
+      setDisabled(r.mix, !G.canMix(S, act.id));
+      setText(r.mixT, a.mix ? 'Mixé ' + a.mix.q + '★' : a.hold ? 'Mixage…' : 'Mixer');
     });
 
     var key = visibleItems();
@@ -2898,6 +3506,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     renderTour();
     renderTrophies();
     renderTeam();
+    renderOrders();
+    renderCharts();
     renderScene();
     var hint = $('hint');
     if (hint) setHidden(hint, S.acts.beat.done >= 6);
@@ -3484,6 +4094,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
+    closeMix(); ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null;
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -3532,6 +4143,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var id = b.getAttribute('data-act'), what = b.getAttribute('data-do');
       markCloud();
       if (what === 'go') { if (!G.startAct(S, id)) G.tapAct(S, id); }
+      else if (what === 'mix') { openMix(id); return; }
       else if (what === 'up') { G.upgradeAct(S, id); }
       else if (what === 'auto') { if (G.buyAuto(S, id)) { toast(G.ACT_BY[id].autoRole + ' s’occupe de « ' + G.ACT_BY[id].name + ' ».'); markCloud(); } }
       render();
@@ -3542,7 +4154,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       G.buy(S, b.getAttribute('data-buy'));
       render();
     });
-    var TABS = { prod: 'tabProd', shop: 'tabShop', team: 'tabTeam', trophies: 'tabTro', account: 'tabMore' };
+    var TABS = { prod: 'tabProd', shop: 'tabShop', team: 'tabTeam', charts: 'tabCharts', trophies: 'tabTro', account: 'tabMore' };
     function view(v) {
       var was = $('app').getAttribute('data-view');
       $('app').setAttribute('data-view', v);
@@ -3550,6 +4162,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (was !== v) $('panes').scrollTop = 0;
       if (v === 'trophies') seeTrophies();
       if (v === 'team') { team.key = ''; renderTeam(true); }
+      if (v === 'charts') { chs.key = ''; chs.listT = 0; renderCharts(true); }
       if (v !== 'team') team.focus = null;
       render();
     }
@@ -3568,6 +4181,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     $('tabShop').addEventListener('click', function () { tab('shop'); });
     $('tabTro').addEventListener('click', function () { tab('trophies'); });
     $('tabTeam').addEventListener('click', function () { tab('team'); });
+    $('tabCharts').addEventListener('click', function () { tab('charts'); });
+    bindFeatures();
     $('tabMore').addEventListener('click', function () { tab('account'); });
     $('goal').addEventListener('click', function () { view('trophies'); });
 
@@ -3727,6 +4342,23 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     team.lastUnpaid = now;
     toast('Budget à zéro : les salaires ne sont plus payés et le moral de l’équipe chute.', 6000);
   };
+  G.hooks.orderNew = function (x) { if (!quiet) { toast('Nouvelle commande : ' + x.client + ' (' + x.kind.toLowerCase() + ') te contacte.', 4500); blip(6); } };
+  G.hooks.orderDone = function (x) {
+    markCloud(); ord.key = '';
+    if (quiet) return;
+    toast('Commande livrée à ' + x.client + ' : +' + eur(x.reward) + ', réputation +' + D.TUNING.repWin + '.', 5000);
+    if (scene3d) S3.pop('+' + eur(x.reward), x.act, 'lvl');
+    blip(10);
+  };
+  G.hooks.orderFail = function (x) { markCloud(); ord.key = ''; if (!quiet) { toast('Délai dépassé : ' + x.client + ' annule sa commande. Réputation −' + D.TUNING.repLose + '.', 6000); blip(1); } };
+  G.hooks.release = function (e) { markCloud(); chs.key = ''; if (!quiet) { toast('« ' + e.t + ' » entre dans le Top 50 à la place ' + e.pos + ' !', 5500); blip(9); } };
+  G.hooks.chartWeek = function (w) {
+    markCloud(); chs.key = '';
+    if (quiet || !w.entries.length) return;
+    var best = w.entries.reduce(function (a, b) { return a.pos < b.pos ? a : b; });
+    toast('Top 50, semaine ' + w.week + ' : +' + eur(w.pay) + (best.pos === 1 ? '. « ' + best.t + ' » est numéro un !' : '. Meilleure place : ' + best.pos + '.'), 6000);
+    blip(best.pos === 1 ? 12 : 8);
+  };
   G.hooks.eventSpawn = function (x) { toast('Sortie de studio : une rencontre t’attend.', 4200); blip(7); };
   G.hooks.eventExpire = function () { if (!ev.open) toast('L’occasion est passée.'); };
   G.hooks.upgrade = function (act, lvl) {
@@ -3761,7 +4393,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
         if (o) { o.trophies = G.trophyCount(S) - tc1; showOffline(o); }
       } else {
         G.advance(S, dt);
-        if (!document.hidden) G.tickEvents(S, dt);
+        if (!document.hidden) { G.tickEvents(S, dt); G.tickLive(S, dt); }
       }
       render();
       if (t - lastSave > 5000) { lastSave = t; saveLocal(); }

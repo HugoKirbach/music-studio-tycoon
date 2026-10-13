@@ -82,6 +82,222 @@
     } catch (e) { /* le son est facultatif */ }
   }
 
+
+  // ---------- Qualité ----------
+  function starsTxt(q) { return '★★★★★'.slice(0, q) + '☆☆☆☆☆'.slice(0, 5 - q); }
+  function starsHtml(q) { return '<span class="qual" aria-label="' + q + ' étoile' + (q > 1 ? 's' : '') + ' sur 5">' + '★★★★★'.slice(0, q) + '<s>' + '★★★★★'.slice(q) + '</s></span>'; }
+
+  // ---------- Mini-jeu de mixage ----------
+  var CHANNELS = ['Voix', 'Batterie', 'Basse', 'Synthé'], ZH = 0.09;
+  var mix = { open: false, act: null, i: 0, acc: [], zones: [], speeds: [], phase: [], t0: 0, raf: 0, pos: 0, done: false, opener: null, faders: [] };
+  function knobPos(k, t) { var x = (t * mix.speeds[k] + mix.phase[k]) % 2; x = x < 1 ? x : 2 - x; return 0.04 + 0.92 * x; }
+  function openMix(id) {
+    if (mix.open || !G.startMix(S, id)) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    mix.open = true; mix.done = false; mix.act = id; mix.i = 0; mix.acc = []; mix.opener = document.activeElement;
+    mix.zones = []; mix.speeds = []; mix.phase = [];
+    for (var k = 0; k < 4; k++) { mix.zones.push(0.2 + Math.random() * 0.6); mix.speeds.push((0.55 + k * 0.15) * (reduce ? 0.7 : 1)); mix.phase.push(Math.random() * 2); }
+    $('mixTitle').textContent = 'Mixer « ' + G.ACT_BY[id].name + ' »';
+    var box = $('mixer'); box.innerHTML = ''; mix.faders = [];
+    CHANNELS.forEach(function (ch, k) {
+      var f = document.createElement('div');
+      f.className = 'fader' + (k === 0 ? ' cur' : '');
+      f.innerHTML = '<div class="track"><i class="zone"></i><b class="knob"></b></div><span class="ch"></span><span class="acc"></span>';
+      f.querySelector('.ch').textContent = ch;
+      var z = f.querySelector('.zone'); z.style.bottom = ((mix.zones[k] - ZH) * 100).toFixed(1) + '%'; z.style.height = (ZH * 200).toFixed(1) + '%';
+      box.appendChild(f);
+      mix.faders.push({ el: f, knob: f.querySelector('.knob'), acc: f.querySelector('.acc') });
+    });
+    $('mixPlay').hidden = false; $('mixResult').hidden = true;
+    setText($('mixStep'), 'Fader 1 sur 4 : ' + CHANNELS[0]);
+    $('mixScrim').hidden = false; $('app').inert = true;
+    $('mixStop').focus();
+    mix.t0 = performance.now();
+    cancelAnimationFrame(mix.raf); mix.raf = requestAnimationFrame(mixLoop);
+    render();
+  }
+  function mixLoop(now) {
+    if (!mix.open || mix.done) return;
+    var k = mix.i, p = knobPos(k, (now - mix.t0) / 1000);
+    mix.pos = p;
+    mix.faders[k].knob.style.bottom = (p * 100).toFixed(2) + '%';
+    mix.raf = requestAnimationFrame(mixLoop);
+  }
+  function mixStop() {
+    if (!mix.open || mix.done) return;
+    var k = mix.i, d = Math.abs(mix.pos - mix.zones[k]);
+    var acc = d <= ZH ? 1 - 0.3 * d / ZH : Math.max(0, 0.7 - (d - ZH) * 2.5);
+    mix.acc.push(acc);
+    var f = mix.faders[k];
+    f.el.classList.remove('cur'); f.el.classList.add(acc >= 0.7 ? 'done' : 'miss');
+    f.acc.textContent = Math.round(acc * 100) + ' %';
+    blip(acc >= 0.9 ? 9 : acc >= 0.7 ? 5 : 1);
+    mix.i++;
+    if (mix.i >= 4) { finishMixGame(); return; }
+    mix.faders[mix.i].el.classList.add('cur');
+    setText($('mixStep'), 'Fader ' + (mix.i + 1) + ' sur 4 : ' + CHANNELS[mix.i]);
+    mix.t0 = performance.now();
+  }
+  function finishMixGame() {
+    mix.done = true; cancelAnimationFrame(mix.raf);
+    var score = mix.acc.reduce(function (a, b) { return a + b; }, 0) / mix.acc.length;
+    var r = G.finishMix(S, mix.act, score);
+    if (!r) { closeMix(); return; }
+    $('mixStars').innerHTML = '★★★★★'.slice(0, r.q) + '<s>' + '★★★★★'.slice(r.q) + '</s>';
+    setText($('mixVerdict'), ['Mix raté…', 'Un peu brouillon', 'Mix correct', 'Très propre !', 'Mix parfait !'][r.q - 1] + ' (' + Math.round(score * 100) + ' %)');
+    setText($('mixGain'), 'Gains ×' + nf2.format(r.m) + ' et +' + Math.round(r.x * 100) + ' % d’expertise sur la production en cours.' +
+      (G.chartsOpen(S) ? ' Le titre mixé (' + r.q + '★) est prêt à sortir dans le Top 50.' : ' Les titres mixés pourront sortir dans le Top 50 dès le niveau ' + D.TUNING.chartLevel + '.') +
+      (S.orders.active.some(function (o) { return o.act === mix.act && o.q > G.baseQuality(S, mix.act) && r.q >= o.q; }) ? ' Il compte pour ta commande exigeante.' : ''));
+    $('mixPlay').hidden = true; $('mixResult').hidden = false;
+    $('mixClose').focus();
+    markCloud(); saveLocal(); chs.key = '';
+    blip(r.q >= 5 ? 12 : 7);
+  }
+  function closeMix() {
+    if (!mix.open) return;
+    if (!mix.done) G.cancelMix(S, mix.act);
+    mix.open = false; cancelAnimationFrame(mix.raf);
+    $('mixScrim').hidden = true; $('app').inert = false;
+    var o = mix.opener; mix.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+    render();
+  }
+
+  // ---------- Commandes clients ----------
+  var ord = { key: '', cards: {}, t: 0, wasOpen: null };
+  function orderCard(x, active) {
+    var act = G.ACT_BY[x.act], needMix = x.q > G.baseQuality(S, x.act);
+    var el = document.createElement('article');
+    el.className = 'card order' + (active ? ' active' : '');
+    el.setAttribute('data-oid', x.id);
+    el.innerHTML = '<div class="o-head"><b></b><span class="p"></span></div>' +
+      '<p class="o-what"></p>' +
+      (active ? '<span class="meter" aria-hidden="true"><i data-k="fill"></i></span>' : '') +
+      '<div class="o-meta"><span data-k="a"></span><span data-k="b"></span></div>' +
+      (active ? '' : '<div class="o-btns"><button class="btn sm primary" type="button" data-oact="accept">Accepter</button><button class="btn sm" type="button" data-oact="decline">Refuser</button></div>');
+    el.querySelector('.o-head b').textContent = x.client + ' · ' + x.kind;
+    el.querySelector('.o-head .p').textContent = '+' + eur(x.reward);
+    el.querySelector('.o-what').innerHTML = '<b>' + x.n + ' ×</b> ' + esc(act.name) + ' · qualité ' + starsHtml(x.q) + ' min.' + (needMix ? ' <span class="need-mix">Exige un mix</span>' : '');
+    var r = { root: el, x: x, active: active };
+    el.querySelectorAll('[data-k]').forEach(function (n) { r[n.getAttribute('data-k')] = n; });
+    r.accept = el.querySelector('[data-oact="accept"]');
+    return r;
+  }
+  function renderOrders() {
+    var open = G.ordersOpen(S), o = S.orders, onProd = $('app').getAttribute('data-view') === 'prod';
+    if (ord.wasOpen === false && open && !quiet) toast('Des clients commencent à t’appeler : retrouve leurs commandes dans Productions.', 6000);
+    ord.wasOpen = open;
+    setHidden($('ordersBox'), !open);
+    setClass($('tabProd'), 'has', open && !onProd && o.offers.length > 0 && o.active.length < D.TUNING.orderMaxActive);
+    if (!open) return;
+    var now = performance.now();
+    if (!onProd && now - ord.t < 1000) return;
+    ord.t = now;
+    setText($('repChip'), 'Réputation ' + Math.round(o.rep) + ' / ' + D.TUNING.repMax);
+    var key = o.active.map(function (x) { return 'a' + x.id; }).concat(o.offers.map(function (x) { return 'o' + x.id; })).join(',') + '|' + G.tierIndex(S);
+    if (key !== ord.key) {
+      ord.key = key;
+      var box = $('orderList'); box.innerHTML = ''; ord.cards = {};
+      o.active.forEach(function (x) { var c = orderCard(x, true); box.appendChild(c.root); ord.cards['a' + x.id] = c; });
+      o.offers.forEach(function (x) { var c = orderCard(x, false); box.appendChild(c.root); ord.cards['o' + x.id] = c; });
+    }
+    var full = o.active.length >= D.TUNING.orderMaxActive;
+    Object.keys(ord.cards).forEach(function (k) {
+      var c = ord.cards[k], x = c.x;
+      if (c.active) {
+        setWidth(c.fill, x.got / x.n * 100);
+        setText(c.a, x.got + ' / ' + x.n + ' livré' + (x.got > 1 ? 's' : ''));
+        setText(c.b, 'Reste ' + clock(x.left));
+        setClass(c.root, 'urgent', x.left < 30);
+      } else {
+        setText(c.a, 'Délai : ' + dur(x.time));
+        setText(c.b, 'Offre valable ' + clock(x.life));
+        setDisabled(c.accept, full);
+      }
+    });
+    setText($('orderNote'), !o.active.length && !o.offers.length ? 'Pas de demande pour l’instant. Prochain appel dans ' + clock(o.cd) + '. La réputation augmente la prime des commandes et ton classement au Top 50.'
+      : full && o.offers.length ? 'Tu mènes déjà ' + D.TUNING.orderMaxActive + ' commandes : termine-en une pour en accepter une autre.' : 'Les productions terminées comptent si leur qualité suffit. Un délai dépassé coûte ' + D.TUNING.repLose + ' points de réputation.');
+  }
+
+  // ---------- Top 50 ----------
+  var chs = { key: '', t: 0, listT: 0, wasOpen: null };
+  function moveHtml(e) {
+    if (!e.prev) return '<span class="mv new">NEW</span>';
+    var d = e.prev - e.pos;
+    return d > 0 ? '<span class="mv up">▲' + d + '</span>' : d < 0 ? '<span class="mv down">▼' + (-d) + '</span>' : '<span class="mv">=</span>';
+  }
+  function renderCharts(force) {
+    var open = G.chartsOpen(S), c = S.charts, onCh = $('app').getAttribute('data-view') === 'charts';
+    if (chs.wasOpen === false && open && !quiet) toast('Le Top 50 est ouvert : sors tes titres et grimpe au classement.', 6000);
+    chs.wasOpen = open;
+    setClass($('tabCharts'), 'has', open && !onCh && S.masters.length > 0);
+    setHidden($('chartLock'), open); setHidden($('chartOpen'), !open);
+    if (!open) { setText($('chartWeek'), ''); setText($('chartLockText'), 'Atteins le niveau d’expertise ' + D.TUNING.chartLevel + ' pour sortir tes titres face aux studios rivaux.'); return; }
+    if (!onCh && !force) return;
+    setText($('chartWeek'), 'Semaine ' + c.week + ' · fin dans ' + clock(c.left));
+    var pc = G.promoCost(S);
+    setText($('promoP'), 'Coûte ' + eur(pc) + ' · place au classement ×' + nf1.format(D.TUNING.promoMult));
+    setDisabled($('promoChk'), S.money < pc);
+    if ($('promoChk').checked && S.money < pc) $('promoChk').checked = false;
+    var unlocked = G.ACTS.filter(function (a) { return G.isUnlocked(S, a); });
+    var key = S.masters.map(function (m) { return m.id; }).join(',') + '|' + G.canFreeRelease(S) + '|' + unlocked.length + '|' + c.mine.map(function (m) { return m.id + ':' + m.pos; }).join(',');
+    if (key !== chs.key || force) {
+      chs.key = key;
+      var box = $('releaseList'); box.innerHTML = '';
+      S.masters.slice().reverse().forEach(function (m) {
+        var el = document.createElement('article'); el.className = 'card rel';
+        el.innerHTML = '<div><b>Titre mixé · ' + esc(G.ACT_BY[m.act].name) + '</b><p>' + starsHtml(m.q) + '</p></div><button class="btn sm primary" type="button" data-rel="' + m.id + '">Sortir</button>';
+        box.appendChild(el);
+      });
+      var fr = document.createElement('article'); fr.className = 'card rel';
+      var opts = unlocked.slice().reverse().map(function (a) { return '<option value="' + a.id + '">' + esc(a.name) + ' (' + G.baseQuality(S, a.id) + '★)</option>'; }).join('');
+      fr.innerHTML = '<div><b>Titre du catalogue</b><p>' + (G.canFreeRelease(S) ? 'Qualité de base, une sortie par semaine.' : 'Déjà fait cette semaine.') + '</p><select id="freeAct" aria-label="Production à sortir">' + opts + '</select></div><button class="btn sm" type="button" data-rel="free"' + (G.canFreeRelease(S) ? '' : ' disabled') + '>Sortir</button>';
+      box.appendChild(fr);
+      if (!S.masters.length) { var n = document.createElement('p'); n.className = 'small-note'; n.style.margin = '0'; n.textContent = 'Mixe une production toi-même (bouton Mixer) pour obtenir un titre de meilleure qualité.'; box.insertBefore(n, fr); }
+      var mine = c.mine.slice().sort(function (a, b) { return a.pos - b.pos; });
+      setText($('mineNote'), mine.length ? 'Gains par semaine selon la place. Les titres perdent des places au fil des semaines.' : 'Aucun titre classé pour l’instant.');
+      $('mineList').innerHTML = mine.map(function (m) {
+        return '<li class="mine' + (m.pos === 1 ? ' top1' : '') + '"><span class="pos">' + m.pos + '</span>' + moveHtml({ prev: m.p, pos: m.pos }) + '<span class="tt"><b>' + esc(m.t) + '</b><span>' + esc(G.ACT_BY[m.act].name) + ' · ' + starsTxt(m.q) + ' · ' + m.weeks + ' sem.' + (m.best ? ' · record ' + m.best : '') + '</span></span><span class="gain">+' + eur(G.chartPay(S, m.pos)) + '/sem.</span></li>';
+      }).join('');
+    }
+    var now = performance.now();
+    if (now - chs.listT > 2000 || force) {
+      chs.listT = now;
+      $('chartList').innerHTML = G.chartTop(S).map(function (e) {
+        return '<li class="' + (e.mine ? 'mine' : '') + (e.pos === 1 ? ' top1' : '') + '"><span class="pos">' + e.pos + '</span>' + moveHtml(e) + '<span class="tt"><b>' + esc(e.t) + '</b><span>' + (e.mine ? 'Ta prod · ' + esc(G.ACT_BY[e.act].name) + ' · ' + starsTxt(e.q) : esc(e.a)) + '</span></span><span class="gain">' + (e.mine ? '+' + eur(G.chartPay(S, e.pos)) : '') + '</span></li>';
+      }).join('');
+    }
+  }
+
+  function bindFeatures() {
+    $('mixStop').addEventListener('click', mixStop);
+    $('mixer').addEventListener('pointerdown', function (e) { e.preventDefault(); mixStop(); });
+    $('mixCancel').addEventListener('click', closeMix);
+    $('mixClose').addEventListener('click', closeMix);
+    document.addEventListener('keydown', function (e) {
+      if (!mix.open) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeMix(); }
+      else if ((e.key === ' ' || e.key === 'Enter') && !mix.done && document.activeElement !== $('mixCancel')) { e.preventDefault(); mixStop(); }
+    });
+    $('orderList').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-oact]'), card = e.target.closest('[data-oid]');
+      if (!b || b.disabled || !card) return;
+      var id = +card.getAttribute('data-oid');
+      if (b.getAttribute('data-oact') === 'accept') { if (G.acceptOrder(S, id)) toast('Commande acceptée. Au travail !'); }
+      else G.declineOrder(S, id);
+      ord.key = ''; markCloud(); render();
+    });
+    $('releaseList').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-rel]');
+      if (!b || b.disabled) return;
+      var src = b.getAttribute('data-rel'), promo = $('promoChk').checked;
+      var r = src === 'free' ? G.release(S, 'free', promo, $('freeAct') && $('freeAct').value) : G.release(S, +src, promo);
+      if (!r) { toast('Sortie impossible pour le moment.'); return; }
+      $('promoChk').checked = false;
+      markCloud(); render(); renderCharts(true);
+    });
+  }
+
   // ---------- Construction de l'interface ----------
   function buildActs() {
     var host = $('acts');
@@ -99,7 +315,8 @@
           '<div class="meter" aria-hidden="true"><i data-k="fill"></i></div>' +
           '<div class="meter-info"><span data-k="gain"></span><span data-k="time"></span></div>' +
           '<div class="actions">' +
-            '<button class="pad" type="button" id="go-' + act.id + '" data-do="go" data-act="' + act.id + '"><b data-k="goT"></b><small data-k="goS"></small></button>' +
+            '<div class="go-row"><button class="pad" type="button" id="go-' + act.id + '" data-do="go" data-act="' + act.id + '"><b data-k="goT"></b><small data-k="goS"></small></button>' +
+            '<button class="btn mixbtn" type="button" id="mix-' + act.id + '" data-do="mix" data-act="' + act.id + '" title="Mixer toi-même cette production"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18M12 3v18M18 3v18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3.5" y="12" width="5" height="3.4" rx="1" fill="currentColor"/><rect x="9.5" y="6" width="5" height="3.4" rx="1" fill="currentColor"/><rect x="15.5" y="14.5" width="5" height="3.4" rx="1" fill="currentColor"/></svg><small data-k="mixT">Mixer</small></button></div>' +
             '<button class="btn" type="button" id="up-' + act.id + '" data-do="up" data-act="' + act.id + '"><span class="t"><b>Perfectionner</b><small data-k="upS"></small></span><span class="p" data-k="upP"></span></button>' +
             '<button class="btn" type="button" id="auto-' + act.id + '" data-do="auto" data-act="' + act.id + '"><span class="t"><b>Automatiser</b><small>' + act.autoRole + '</small></span><span class="p" data-k="autoP"></span></button>' +
           '</div>' +
@@ -108,7 +325,7 @@
       host.appendChild(el);
       var r = { root: el, led: el.querySelector('.led') };
       el.querySelectorAll('[data-k]').forEach(function (n) { r[n.getAttribute('data-k')] = n; });
-      r.go = el.querySelector('[data-do="go"]'); r.up = el.querySelector('[data-do="up"]'); r.auto = el.querySelector('[data-do="auto"]');
+      r.go = el.querySelector('[data-do="go"]'); r.up = el.querySelector('[data-do="up"]'); r.auto = el.querySelector('[data-do="auto"]'); r.mix = el.querySelector('[data-do="mix"]');
       rows[act.id] = r;
     });
   }
@@ -238,7 +455,9 @@
       setHidden(r.auto, a.auto);
       setText(r.autoP, eur(act.autoCost));
       setDisabled(r.auto, S.money < act.autoCost);
-      setText(r.foot, nf0.format(a.done) + (a.done > 1 ? ' réalisés' : ' réalisé') + (a.auto ? ' · ' + act.autoRole + ' s’en occupe' : ''));
+      setText(r.foot, nf0.format(a.done) + (a.done > 1 ? ' réalisés' : ' réalisé') + ' · qualité ' + starsTxt(G.baseQuality(S, act.id)) + (a.auto ? ' · ' + act.autoRole + ' s’en occupe' : ''));
+      setDisabled(r.mix, !G.canMix(S, act.id));
+      setText(r.mixT, a.mix ? 'Mixé ' + a.mix.q + '★' : a.hold ? 'Mixage…' : 'Mixer');
     });
 
     var key = visibleItems();
@@ -258,6 +477,8 @@
     renderTour();
     renderTrophies();
     renderTeam();
+    renderOrders();
+    renderCharts();
     renderScene();
     var hint = $('hint');
     if (hint) setHidden(hint, S.acts.beat.done >= 6);
@@ -844,6 +1065,7 @@
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
+    closeMix(); ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null;
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -892,6 +1114,7 @@
       var id = b.getAttribute('data-act'), what = b.getAttribute('data-do');
       markCloud();
       if (what === 'go') { if (!G.startAct(S, id)) G.tapAct(S, id); }
+      else if (what === 'mix') { openMix(id); return; }
       else if (what === 'up') { G.upgradeAct(S, id); }
       else if (what === 'auto') { if (G.buyAuto(S, id)) { toast(G.ACT_BY[id].autoRole + ' s’occupe de « ' + G.ACT_BY[id].name + ' ».'); markCloud(); } }
       render();
@@ -902,7 +1125,7 @@
       G.buy(S, b.getAttribute('data-buy'));
       render();
     });
-    var TABS = { prod: 'tabProd', shop: 'tabShop', team: 'tabTeam', trophies: 'tabTro', account: 'tabMore' };
+    var TABS = { prod: 'tabProd', shop: 'tabShop', team: 'tabTeam', charts: 'tabCharts', trophies: 'tabTro', account: 'tabMore' };
     function view(v) {
       var was = $('app').getAttribute('data-view');
       $('app').setAttribute('data-view', v);
@@ -910,6 +1133,7 @@
       if (was !== v) $('panes').scrollTop = 0;
       if (v === 'trophies') seeTrophies();
       if (v === 'team') { team.key = ''; renderTeam(true); }
+      if (v === 'charts') { chs.key = ''; chs.listT = 0; renderCharts(true); }
       if (v !== 'team') team.focus = null;
       render();
     }
@@ -928,6 +1152,8 @@
     $('tabShop').addEventListener('click', function () { tab('shop'); });
     $('tabTro').addEventListener('click', function () { tab('trophies'); });
     $('tabTeam').addEventListener('click', function () { tab('team'); });
+    $('tabCharts').addEventListener('click', function () { tab('charts'); });
+    bindFeatures();
     $('tabMore').addEventListener('click', function () { tab('account'); });
     $('goal').addEventListener('click', function () { view('trophies'); });
 
@@ -1087,6 +1313,23 @@
     team.lastUnpaid = now;
     toast('Budget à zéro : les salaires ne sont plus payés et le moral de l’équipe chute.', 6000);
   };
+  G.hooks.orderNew = function (x) { if (!quiet) { toast('Nouvelle commande : ' + x.client + ' (' + x.kind.toLowerCase() + ') te contacte.', 4500); blip(6); } };
+  G.hooks.orderDone = function (x) {
+    markCloud(); ord.key = '';
+    if (quiet) return;
+    toast('Commande livrée à ' + x.client + ' : +' + eur(x.reward) + ', réputation +' + D.TUNING.repWin + '.', 5000);
+    if (scene3d) S3.pop('+' + eur(x.reward), x.act, 'lvl');
+    blip(10);
+  };
+  G.hooks.orderFail = function (x) { markCloud(); ord.key = ''; if (!quiet) { toast('Délai dépassé : ' + x.client + ' annule sa commande. Réputation −' + D.TUNING.repLose + '.', 6000); blip(1); } };
+  G.hooks.release = function (e) { markCloud(); chs.key = ''; if (!quiet) { toast('« ' + e.t + ' » entre dans le Top 50 à la place ' + e.pos + ' !', 5500); blip(9); } };
+  G.hooks.chartWeek = function (w) {
+    markCloud(); chs.key = '';
+    if (quiet || !w.entries.length) return;
+    var best = w.entries.reduce(function (a, b) { return a.pos < b.pos ? a : b; });
+    toast('Top 50, semaine ' + w.week + ' : +' + eur(w.pay) + (best.pos === 1 ? '. « ' + best.t + ' » est numéro un !' : '. Meilleure place : ' + best.pos + '.'), 6000);
+    blip(best.pos === 1 ? 12 : 8);
+  };
   G.hooks.eventSpawn = function (x) { toast('Sortie de studio : une rencontre t’attend.', 4200); blip(7); };
   G.hooks.eventExpire = function () { if (!ev.open) toast('L’occasion est passée.'); };
   G.hooks.upgrade = function (act, lvl) {
@@ -1121,7 +1364,7 @@
         if (o) { o.trophies = G.trophyCount(S) - tc1; showOffline(o); }
       } else {
         G.advance(S, dt);
-        if (!document.hidden) G.tickEvents(S, dt);
+        if (!document.hidden) { G.tickEvents(S, dt); G.tickLive(S, dt); }
       }
       render();
       if (t - lastSave > 5000) { lastSave = t; saveLocal(); }
