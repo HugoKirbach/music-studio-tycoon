@@ -373,6 +373,39 @@
     setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 3300);
     if (!quiet && !firstRender) blip(11);
   }
+  // ---------- Thème (réglage propre à l'appareil) ----------
+  var TKEY = 'premier-mix:theme', themeMode = 'auto', hostTheme = null, themeBusy = false;
+  function loadTheme() { try { var v = localStorage.getItem(TKEY); return v === 'light' || v === 'dark' ? v : 'auto'; } catch (e) { return 'auto'; } }
+  function applyTheme() {
+    var root = document.documentElement, want = themeMode === 'auto' ? hostTheme : themeMode;
+    themeBusy = true;
+    if (want) { if (root.getAttribute('data-theme') !== want) root.setAttribute('data-theme', want); }
+    else if (root.hasAttribute('data-theme')) root.removeAttribute('data-theme');
+    themeBusy = false;
+    var seg = $('themeSeg');
+    if (seg) seg.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-theme-set') === themeMode ? 'true' : 'false'); });
+  }
+  function initTheme() {
+    hostTheme = document.documentElement.getAttribute('data-theme'); // thème éventuellement imposé par la page hôte
+    themeMode = loadTheme();
+    applyTheme();
+    try {
+      new MutationObserver(function () {
+        if (themeBusy) return;
+        var v = document.documentElement.getAttribute('data-theme');
+        if (themeMode === 'auto') { hostTheme = v; return; }
+        hostTheme = v;
+        if (v !== themeMode) applyTheme(); // le choix du joueur reste prioritaire
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    } catch (e) { /* facultatif */ }
+    $('themeSeg').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-theme-set]');
+      if (!b) return;
+      themeMode = b.getAttribute('data-theme-set');
+      try { localStorage.setItem(TKEY, themeMode); } catch (x) { /* stockage indisponible */ }
+      applyTheme();
+    });
+  }
   function initScene() {
     if (!S3 || !window.THREE) { $('stageFallback').hidden = false; return; }
     scene3d = S3.init($('stage'));
@@ -1028,6 +1061,7 @@
     var off = null, tc0 = creditTrophies(raw);
     if (raw) { quiet = true; off = G.offline(S, now); quiet = false; }
     S.savedAt = now;
+    initTheme();
     buildActs(); buildShop(); buildTrophies(); bind();
     initScene();
     render(); renderScene(true);

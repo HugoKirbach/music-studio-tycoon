@@ -202,7 +202,7 @@
       var a = grp(body, side * 0.22, 0.5, 0);
       mesh(a, G('cap', 0.055, 0.26), shirt, 0, -0.16, 0, 1, 1, 1);
       sph(a, 0.05, skin, 0, -0.33, 0);
-      a.rotation.x = sit ? -1.05 : 0.05; a.rotation.z = side * (sit ? -0.05 : 0.08);
+      a.rotation.x = sit ? 1.05 : 0.05; // positif: le bras part vers l'avant (le personnage regarde vers -z) a.rotation.z = side * (sit ? -0.05 : 0.08);
       return a;
     }
     var armL = arm(-1), armR = arm(1);
@@ -829,17 +829,17 @@
     var p = g.userData.p; if (!p) return;
     var k = reduce ? 0.3 : 1;
     if (mode === 'work') {
-      p.armL.rotation.x = -1.05 + Math.sin(t * 13 + p.t) * 0.09 * k;
-      p.armR.rotation.x = -1.05 + Math.sin(t * 11.3 + p.t + 1.3) * 0.09 * k;
+      p.armL.rotation.x = 1.05 + Math.sin(t * 13 + p.t) * 0.09 * k;
+      p.armR.rotation.x = 1.05 + Math.sin(t * 11.3 + p.t + 1.3) * 0.09 * k;
       p.head.rotation.x = Math.sin(t * 9.2 / 2 + p.t) * 0.06 * k + 0.05;
       p.body.rotation.y = 0;
     } else if (mode === 'rest') {
-      p.armL.rotation.x = -0.3; p.armR.rotation.x = -1.4 + Math.sin(t * 0.9 + p.t) * 0.15 * k;
+      p.armL.rotation.x = 0.3; p.armR.rotation.x = 1.4 + Math.sin(t * 0.9 + p.t) * 0.15 * k;
       p.head.rotation.x = -0.1; p.body.rotation.y = Math.sin(t * 0.4 + p.t) * 0.15 * k;
     } else if (mode === 'train') {
-      p.armL.rotation.x = -1.2; p.armR.rotation.x = -1.2; p.head.rotation.x = 0.35 + Math.sin(t * 0.7 + p.t) * 0.05 * k;
+      p.armL.rotation.x = 1.2; p.armR.rotation.x = 1.2; p.head.rotation.x = 0.35 + Math.sin(t * 0.7 + p.t) * 0.05 * k;
     } else {
-      p.armL.rotation.x = -0.6; p.armR.rotation.x = -0.6;
+      p.armL.rotation.x = 0.6; p.armR.rotation.x = 0.6;
       p.head.rotation.x = 0; p.head.rotation.y = Math.sin(t * 0.5 + p.t) * 0.35 * k;
       p.body.position.y = (p.sit ? 0.47 : 0.86) + Math.sin(t * 1.6 + p.t) * 0.004;
     }
@@ -980,6 +980,7 @@
   S3.setTheme = function (d) { var was = dark; dark = !!d; if (!S3.ok) return; applyTheme(); if (was !== dark && cur.placeKey) { var k = cur.placeKey, t = cur.tier; cur.placeKey = null; S3.update(Object.assign({}, view || {}, { place: k, tier: t })); } };
   S3.onPick = function (fn) { pickFn = fn; };
   S3.PLACES = PLACES;
+  S3._person = person; // tests
   S3.screenOf = function (kind, id) {
     if (!S3.ok) return null;
     var p = null;

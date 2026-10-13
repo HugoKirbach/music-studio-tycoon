@@ -242,6 +242,11 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .tro-prog { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
 .tro-prog .meter { height: 6px; }
 
+/* Réglages */
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--panel-2); border: 1px solid var(--line); }
+.seg button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 6px 4px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-soft); font-weight: 800; font-size: 14px; }
+.seg button svg { width: 18px; height: 18px; flex: none; }
+.seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow-s); }
 /* Compte */
 .acc-who { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
 .acc-who img { border-radius: 50%; }
@@ -407,7 +412,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
       <button type="button" id="tabShop" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="8" cy="12.5" r="2" fill="currentColor"/><circle cx="16" cy="12.5" r="2" fill="currentColor"/><path d="M8 7V4h8v3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>Matériel</button>
       <button type="button" id="tabTeam" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4" fill="currentColor"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" fill="currentColor"/><circle cx="17" cy="9" r="2.6" fill="currentColor" opacity=".7"/><path d="M15.5 14.2c3.3-.4 6 1.6 6 5" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/></svg>Équipe</button>
       <button type="button" id="tabTro" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 20h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Palmarès</button>
-      <button type="button" id="tabMore" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="currentColor"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" fill="currentColor"/></svg>Compte</button>
+      <button type="button" id="tabMore" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Réglages</button>
     </nav>
     <div class="panes" id="panes">
       <section class="pane" id="prod" aria-labelledby="prodTitle">
@@ -472,7 +477,15 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
       </section>
 
       <section class="pane" id="account" aria-labelledby="accTitle">
-        <h2 id="accTitle">Compte et sauvegarde</h2>
+        <h2>Réglages</h2>
+        <h3 class="sec" style="margin-top:4px">Apparence</h3>
+        <div class="seg" id="themeSeg" role="group" aria-label="Thème">
+          <button type="button" data-theme-set="auto" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>Automatique</button>
+          <button type="button" data-theme-set="light" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Clair</button>
+          <button type="button" data-theme-set="dark" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor"/></svg>Sombre</button>
+        </div>
+        <p class="small-note" id="themeNote">Automatique suit le réglage de ton appareil.</p>
+        <h3 class="sec" id="accTitle">Compte et sauvegarde</h3>
         <div class="acc-who">
           <img id="accAvatar" alt="" width="44" height="44" hidden>
           <div class="acc-text">
@@ -1798,7 +1811,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var a = grp(body, side * 0.22, 0.5, 0);
       mesh(a, G('cap', 0.055, 0.26), shirt, 0, -0.16, 0, 1, 1, 1);
       sph(a, 0.05, skin, 0, -0.33, 0);
-      a.rotation.x = sit ? -1.05 : 0.05; a.rotation.z = side * (sit ? -0.05 : 0.08);
+      a.rotation.x = sit ? 1.05 : 0.05; // positif: le bras part vers l'avant (le personnage regarde vers -z) a.rotation.z = side * (sit ? -0.05 : 0.08);
       return a;
     }
     var armL = arm(-1), armR = arm(1);
@@ -2425,17 +2438,17 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var p = g.userData.p; if (!p) return;
     var k = reduce ? 0.3 : 1;
     if (mode === 'work') {
-      p.armL.rotation.x = -1.05 + Math.sin(t * 13 + p.t) * 0.09 * k;
-      p.armR.rotation.x = -1.05 + Math.sin(t * 11.3 + p.t + 1.3) * 0.09 * k;
+      p.armL.rotation.x = 1.05 + Math.sin(t * 13 + p.t) * 0.09 * k;
+      p.armR.rotation.x = 1.05 + Math.sin(t * 11.3 + p.t + 1.3) * 0.09 * k;
       p.head.rotation.x = Math.sin(t * 9.2 / 2 + p.t) * 0.06 * k + 0.05;
       p.body.rotation.y = 0;
     } else if (mode === 'rest') {
-      p.armL.rotation.x = -0.3; p.armR.rotation.x = -1.4 + Math.sin(t * 0.9 + p.t) * 0.15 * k;
+      p.armL.rotation.x = 0.3; p.armR.rotation.x = 1.4 + Math.sin(t * 0.9 + p.t) * 0.15 * k;
       p.head.rotation.x = -0.1; p.body.rotation.y = Math.sin(t * 0.4 + p.t) * 0.15 * k;
     } else if (mode === 'train') {
-      p.armL.rotation.x = -1.2; p.armR.rotation.x = -1.2; p.head.rotation.x = 0.35 + Math.sin(t * 0.7 + p.t) * 0.05 * k;
+      p.armL.rotation.x = 1.2; p.armR.rotation.x = 1.2; p.head.rotation.x = 0.35 + Math.sin(t * 0.7 + p.t) * 0.05 * k;
     } else {
-      p.armL.rotation.x = -0.6; p.armR.rotation.x = -0.6;
+      p.armL.rotation.x = 0.6; p.armR.rotation.x = 0.6;
       p.head.rotation.x = 0; p.head.rotation.y = Math.sin(t * 0.5 + p.t) * 0.35 * k;
       p.body.position.y = (p.sit ? 0.47 : 0.86) + Math.sin(t * 1.6 + p.t) * 0.004;
     }
@@ -2576,6 +2589,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   S3.setTheme = function (d) { var was = dark; dark = !!d; if (!S3.ok) return; applyTheme(); if (was !== dark && cur.placeKey) { var k = cur.placeKey, t = cur.tier; cur.placeKey = null; S3.update(Object.assign({}, view || {}, { place: k, tier: t })); } };
   S3.onPick = function (fn) { pickFn = fn; };
   S3.PLACES = PLACES;
+  S3._person = person; // tests
   S3.screenOf = function (kind, id) {
     if (!S3.ok) return null;
     var p = null;
@@ -2964,6 +2978,39 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     $('stage').appendChild(el);
     setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 3300);
     if (!quiet && !firstRender) blip(11);
+  }
+  // ---------- Thème (réglage propre à l'appareil) ----------
+  var TKEY = 'premier-mix:theme', themeMode = 'auto', hostTheme = null, themeBusy = false;
+  function loadTheme() { try { var v = localStorage.getItem(TKEY); return v === 'light' || v === 'dark' ? v : 'auto'; } catch (e) { return 'auto'; } }
+  function applyTheme() {
+    var root = document.documentElement, want = themeMode === 'auto' ? hostTheme : themeMode;
+    themeBusy = true;
+    if (want) { if (root.getAttribute('data-theme') !== want) root.setAttribute('data-theme', want); }
+    else if (root.hasAttribute('data-theme')) root.removeAttribute('data-theme');
+    themeBusy = false;
+    var seg = $('themeSeg');
+    if (seg) seg.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-theme-set') === themeMode ? 'true' : 'false'); });
+  }
+  function initTheme() {
+    hostTheme = document.documentElement.getAttribute('data-theme'); // thème éventuellement imposé par la page hôte
+    themeMode = loadTheme();
+    applyTheme();
+    try {
+      new MutationObserver(function () {
+        if (themeBusy) return;
+        var v = document.documentElement.getAttribute('data-theme');
+        if (themeMode === 'auto') { hostTheme = v; return; }
+        hostTheme = v;
+        if (v !== themeMode) applyTheme(); // le choix du joueur reste prioritaire
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    } catch (e) { /* facultatif */ }
+    $('themeSeg').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-theme-set]');
+      if (!b) return;
+      themeMode = b.getAttribute('data-theme-set');
+      try { localStorage.setItem(TKEY, themeMode); } catch (x) { /* stockage indisponible */ }
+      applyTheme();
+    });
   }
   function initScene() {
     if (!S3 || !window.THREE) { $('stageFallback').hidden = false; return; }
@@ -3620,6 +3667,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var off = null, tc0 = creditTrophies(raw);
     if (raw) { quiet = true; off = G.offline(S, now); quiet = false; }
     S.savedAt = now;
+    initTheme();
     buildActs(); buildShop(); buildTrophies(); bind();
     initScene();
     render(); renderScene(true);
