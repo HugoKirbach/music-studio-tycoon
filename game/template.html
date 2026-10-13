@@ -341,6 +341,27 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .buyn span { padding: 0 6px 0 5px; font: 800 11px var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
 .buyn button { min-width: 44px; min-height: 34px; padding: 4px 8px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: 800 13.5px var(--f-body); }
 .buyn button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-s); }
+/* Label */
+.label-box { margin-bottom: 14px; }
+.label-box .orders-head { margin-top: 0; }
+.artist { display: grid; gap: 8px; }
+.artist > * { min-width: 0; }
+.artist.ask { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 7%, var(--card)); }
+.a-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.a-av { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--ac); color: #fff; font: 800 17px var(--f-title); }
+.a-head b { display: block; font: 800 16px var(--f-title); overflow-wrap: anywhere; }
+.a-head small { display: block; font-size: 12.5px; color: var(--ink-soft); font-weight: 700; }
+.a-mood { font: 800 12px var(--f-body); padding: 2px 9px; border-radius: 10px; background: var(--panel-2); white-space: nowrap; }
+.a-mood.m4 { color: var(--good); } .a-mood.m3 { color: var(--good); } .a-mood.m2 { color: var(--ink-soft); } .a-mood.m1 { color: var(--warn); } .a-mood.m0 { color: var(--bad); }
+.a-fame { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+.a-fame .meter { height: 8px; } .a-fame .meter i { background: linear-gradient(90deg, var(--gold), var(--accent)); }
+.a-fame b { color: var(--ink); }
+.a-ask { margin: 0; font-weight: 800; color: var(--accent); font-size: 14px; }
+.a-line { margin: 0; font-size: 13px; color: var(--ink-soft); }
+.scout { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.scout > * { min-width: 0; }
+.scout p { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+.pk .lk { font: 800 10.5px var(--f-body); padding: 1px 6px; border-radius: 8px; background: var(--good); color: #fff; }
 /* Tendances */
 .trend-card { display: grid; gap: 8px; margin-bottom: 12px; border-left: 4px solid var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--card)); }
 .trend-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -374,6 +395,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .hot3d .bang { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--bad); color: #fff; font-size: 12px; }
 .hot3d:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 @media (prefers-reduced-motion: no-preference) { .hot3d.hot { animation: hotPulse 1.6s ease-in-out infinite; } }
+@media (max-width: 599px) { .hot3d { padding: 5px; gap: 3px; } .hot3d > span, .hot3d small { display: none; } .hot3d svg { width: 22px; height: 22px; } }
 @keyframes hotPulse { 0%, 100% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 50% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 8px transparent; } }
 /* Atelier piano */
 .piano-sheet { width: min(640px, 100%); }
@@ -754,6 +776,14 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
         <h2 id="chartTitle">Top 50 <small id="chartWeek"></small></h2>
         <div class="card chart-lock" id="chartLock"><b>Le Top 50 t’attend</b><span id="chartLockText"></span></div>
         <div id="chartOpen">
+          <section class="label-box" id="labelBox" hidden>
+            <div class="orders-head"><h3>Ton label</h3><span class="rep-chip" id="labelChip"></span></div>
+            <p class="small-note" id="labelNote"></p>
+            <div class="list" id="labelRoster"></div>
+            <h3 class="sec" id="labelScoutT">Talents à signer</h3>
+            <div class="list" id="labelScouts"></div>
+            <p class="small-note" id="labelMore"></p>
+          </section>
           <article class="card trend-card" id="trendCard" hidden>
             <div class="trend-head"><h3>Tendances de la semaine</h3><span class="rep-chip" id="trendLeft"></span></div>
             <ul class="trend-list" id="trendList"></ul>
@@ -857,6 +887,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Projet de création</p>
     <h2 id="pjTitle">Nouveau projet</h2>
     <p class="ev-text">Un projet à part, en plus de tes productions qui continuent de tourner. Les critiques jugent l’association du genre, de l’ambiance et du public, tes réglages de chaque phase et l’équipe qui y travaille. Le titre entre ensuite au Top 50 et se vend chaque semaine tant qu’il y reste.</p>
+    <div class="pf" id="pjForBox" hidden><span class="lbl">Pour</span><div class="pick" id="pjFor" role="group" aria-label="Pour qui"></div><p class="small-note" id="pjForNote"></p></div>
     <label class="pf"><span class="lbl">Titre</span><input type="text" id="pjName" maxlength="40" autocomplete="off" spellcheck="false"></label>
     <div class="pf"><span class="lbl">Format</span><div class="pick" id="pjFmt" role="group" aria-label="Format"></div></div>
     <div class="pf"><span class="lbl">Genre</span><div class="pick" id="pjGenre" role="group" aria-label="Genre"></div></div>

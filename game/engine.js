@@ -31,6 +31,8 @@
   var DECO = D.DECO || { slots: [] }, DECO_BY = {};
   DECO.slots.forEach(function (s) { DECO_BY[s.id] = {}; s.options.forEach(function (o) { DECO_BY[s.id][o.id] = o; }); });
   var RULES = ['rapide', 'sans-clap', 'prime'];
+  var ARTISTS = D.ARTISTS || [], ART_BY = {};
+  ARTISTS.forEach(function (a) { ART_BY[a.id] = a; });
   var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
 
@@ -47,7 +49,7 @@
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco() };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco(), label: { roster: [], albums: 0 } };
   }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newBattle() { return { league: 1, pts: 0, wins: 0, losses: 0, best: 0, cd: T.battleFirst, rival: null }; }
@@ -116,6 +118,16 @@
       if (o.rd.spec && typeof o.rd.spec === 'object') RESEARCH.specs.forEach(function (t) { var id = o.rd.spec[t.tier]; if (SPEC_BY[id] && SPEC_BY[id].tier === t.tier) S.rd.spec[t.tier] = id; });
     }
     if (o.proj && typeof o.proj === 'object') hydrateProj(S, o.proj);
+    if (o.label && typeof o.label === 'object') {
+      S.label.albums = Math.max(0, Math.floor(num(o.label.albums, 0)));
+      (Array.isArray(o.label.roster) ? o.label.roster : []).forEach(function (r) {
+        if (!r || !ART_BY[r.id] || S.label.roster.some(function (x) { return x.id === r.id; }) || S.label.roster.length >= 8) return;
+        var ask = r.ask && typeof r.ask === 'object' ? { left: Math.max(0, Math.min(T.askLife, num(r.ask.left, T.askLife))) } : null;
+        S.label.roster.push({ id: r.id, fame: Math.max(0, Math.min(100, num(r.fame, 5))), mood: Math.max(0, Math.min(100, num(r.mood, 60))),
+          albums: Math.max(0, Math.floor(num(r.albums, 0))), cd: Math.max(0, num(r.cd, T.askEvery)), ask: ask,
+          disco: (Array.isArray(r.disco) ? r.disco : []).slice(0, 10).map(function (x) { return { t: String((x && x.t) || 'Album').slice(0, 40), avg: Math.max(0, Math.min(10, num(x && x.avg, 0))), pos: Math.max(0, Math.floor(num(x && x.pos, 0))) }; }) });
+      });
+    }
     if (o.deco && typeof o.deco === 'object') {
       DECO.slots.forEach(function (s) { if (DECO_BY[s.id][o.deco[s.id]]) S.deco[s.id] = o.deco[s.id]; });
       if (o.deco.seen && typeof o.deco.seen === 'object') Object.keys(o.deco.seen).forEach(function (k) { var p = k.split(':'); if (DECO_BY[p[0]] && DECO_BY[p[0]][p[1]]) S.deco.seen[k] = 1; });
@@ -188,7 +200,7 @@
       var e = { id: Math.max(1, Math.floor(num(m.id, 1))), t: String(m.t || 'Titre').slice(0, 40), act: m.act, q: Math.max(1, Math.min(5, Math.floor(num(m.q, 1)))),
         s: Math.max(0, num(m.s, 0)), weeks: Math.max(0, Math.floor(num(m.weeks, 0))), pos: Math.max(0, Math.floor(num(m.pos, 0))), p: Math.max(0, Math.floor(num(m.p, 0))),
         best: Math.max(0, Math.floor(num(m.best, 0))), promo: !!m.promo, earned: Math.max(0, num(m.earned, 0)) };
-      if (m.pj && typeof m.pj === 'object' && PJ_G[m.pj.g] && PJ_F[m.pj.f]) e.pj = { g: m.pj.g, f: m.pj.f, sales: Math.max(0, num(m.pj.sales, 0)), sold: Math.max(0, num(m.pj.sold, 0)), w: Math.max(0, Math.floor(num(m.pj.w, 0))), avg: Math.max(0, Math.min(10, num(m.pj.avg, 0))) };
+      if (m.pj && typeof m.pj === 'object' && PJ_G[m.pj.g] && PJ_F[m.pj.f]) e.pj = { g: m.pj.g, f: m.pj.f, sales: Math.max(0, num(m.pj.sales, 0)), sold: Math.max(0, num(m.pj.sold, 0)), w: Math.max(0, Math.floor(num(m.pj.w, 0))), avg: Math.max(0, Math.min(10, num(m.pj.avg, 0))), ar: ART_BY[m.pj.ar] ? m.pj.ar : null };
       mx = Math.max(mx, e.id); c.mine.push(e);
     });
     c.nextId = Math.max(mx + 1, Math.floor(num(o.nextId, 1)));
@@ -233,6 +245,7 @@
     g.gain *= 1 + T.trophyBonus * trophyCount(S);
     g.gain *= 1 + T.fameBonus * (S.fame || 0);
     g.xp *= 1 + T.fameXp * (S.fame || 0);
+    g.gain *= labelMult(S);
     var rf = computeRd(S);
     g.gain *= rf.gain; g.speed *= rf.speed; g.xp *= rf.xp; g.roy *= rf.roy;
     c = { g: g, v: v, vm: Math.pow(Math.max(v, 400) / 400, T.valueExp), rd: rf };
@@ -869,7 +882,7 @@
     c.left -= dt;
     if (c.left <= 0) weekEnd(S);
   }
-  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); tickBattle(S, dt); if (S.piano.cd > 0) S.piano.cd = Math.max(0, S.piano.cd - dt); }
+  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); tickBattle(S, dt); tickLabel(S, dt); if (S.piano.cd > 0) S.piano.cd = Math.max(0, S.piano.cd - dt); }
 
 
   // ---------- Projets de création (bonus facultatif) ----------
@@ -890,11 +903,13 @@
   }
   function sliderAcc(v, ideal) { return Math.max(0, Math.min(1, 1 - Math.max(0, Math.abs(v - ideal) - 8) / 50)); }
   function cleanCfg(S, c) {
-    if (!c || typeof c !== 'object' || !genreOpen(S, c.genre) || !PJ_M[c.mood] || !PJ_P[c.pub] || !formatOpen(S, c.fmt)) return null;
+    var art = c && c.artist ? artistOf(S, c.artist) : null;
+    if (c && c.artist && !art) return null;
+    if (!c || typeof c !== 'object' || !(genreOpen(S, c.genre) || (art && ART_BY[art.id].genre === c.genre)) || !PJ_M[c.mood] || !PJ_P[c.pub] || !formatOpen(S, c.fmt)) return null;
     var sl = [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, Math.round(num(c.sl && c.sl[i], 50)))); });
     var team = [0, 1, 2].map(function (i) { var id = c.team && c.team[i]; return id && findMember(S, id) ? id : null; });
     var title = String(c.title || '').replace(/\s+/g, ' ').trim().slice(0, 40) || songTitle();
-    return { title: title, genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt, sl: sl, team: team };
+    return { title: title, genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt, sl: sl, team: team, artist: art ? art.id : null };
   }
   function startProject(S, cfg) {
     if (!projOpen(S) || S.proj.cur) return null;
@@ -936,7 +951,7 @@
     var h = S.proj.hist, same = h.some(function (x) { return x.g === c.genre && x.m === c.mood; }), again = h.length && h[0].g === c.genre;
     var crea = 0; RESEARCH.nodes.forEach(function (n) { if (n.b === 'crea' && S.rd.nodes[n.id]) crea += 0.1; });
     var parts = { base: 1, combo: cg === 'top' ? 1.5 : cg === 'bad' ? -2 : 0, pub: pg === 'top' ? 1 : pg === 'bad' ? -1.5 : 0, sliders: 3.5 * acc, team: 3 * fit,
-      studio: Math.min(1, 0.25 * tierIndex(S)) + crea, fresh: same ? -1.5 : again ? -0.5 : 0, trend: (c.tg ? T.trendGenre : 0) + (c.tm ? T.trendMood : 0) };
+      studio: Math.min(1, 0.25 * tierIndex(S)) + crea, fresh: same ? -1.5 : again ? -0.5 : 0, trend: (c.tg ? T.trendGenre : 0) + (c.tm ? T.trendMood : 0), artist: artistParts(S, c) };
     var s = 0; Object.keys(parts).forEach(function (k) { s += parts[k]; });
     return { score: Math.max(0, Math.min(10, s + (rand() - 0.5) * 0.8)), parts: parts, combo: cg, pubG: pg, acc: acc, fit: fit };
   }
@@ -961,11 +976,12 @@
     P.hist.unshift({ g: c.genre, m: c.mood }); P.hist = P.hist.slice(0, 4);
     P.done++; P.best = Math.max(P.best, avg);
     // sortie dans le Top 50 et ventes réparties sur les semaines de classement
-    var sales = c.cost * (0.15 + 0.02 * avg * avg) * f.roi * (c.tg ? T.trendSales : 1);
+    var ar = c.artist ? artistOf(S, c.artist) : null, af = ar ? ar.fame : 0;
+    var sales = c.cost * (0.15 + 0.02 * avg * avg) * f.roi * (c.tg ? T.trendSales : 1) * (1 + af / 100);
     var c2 = S.charts; if (!c2.rivals.length) initRivals(S);
     var e = { id: c2.nextId++, t: c.title, act: bestAct(S).id, q: Math.max(1, Math.min(5, Math.round(avg / 2))),
-      s: potential(S) * (0.25 + 0.18 * avg) * f.chart * (1 + S.orders.rep / 200) * rdFx(S).chartScore,
-      weeks: 0, pos: 0, p: 0, best: 0, promo: false, earned: 0, pj: { g: c.genre, f: c.fmt, sales: sales, sold: 0, w: 0, avg: avg } };
+      s: potential(S) * (0.25 + 0.18 * avg) * f.chart * (1 + S.orders.rep / 200) * rdFx(S).chartScore * (1 + af / 250),
+      weeks: 0, pos: 0, p: 0, best: 0, promo: false, earned: 0, pj: { g: c.genre, f: c.fmt, sales: sales, sold: 0, w: 0, avg: avg, ar: ar ? ar.id : null } };
     c2.mine.push(e); c2.releases++;
     rankCharts(S, false); e.p = 0;
     var inChart = e.pos <= T.chartSize;
@@ -975,6 +991,7 @@
     if (avg >= 8) S.orders.rep = Math.min(T.repMax, S.orders.rep + Math.round(avg - 6));
     var res = { title: c.title, genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt, sl: c.sl.slice(), avg: avg, notes: notes, combo: r.combo, pubG: r.pubG,
       acc: Math.round(r.acc * 100), fit: Math.round(r.fit * 100), fresh: r.parts.fresh, pos: inChart ? e.pos : 0, sales: sales, cost: c.cost, tg: !!c.tg, tm: !!c.tm };
+    if (ar) res.artist = albumDone(S, ar, c, avg, inChart ? e.pos : 0);
     P.last = res;
     checkTrophies(S);
     if (hooks.projectDone) hooks.projectDone(res);
@@ -999,6 +1016,7 @@
         notes: l.notes.slice(0, PJ.critics.length).map(function (x) { return { name: String((x && x.name) || 'Critique').slice(0, 30), n: Math.max(0, Math.min(10, num(x && x.n, 0))) }; }),
         combo: G3.indexOf(l.combo) >= 0 ? l.combo : 'ok', pubG: G3.indexOf(l.pubG) >= 0 ? l.pubG : 'ok', acc: Math.max(0, Math.min(100, num(l.acc, 0))), fit: Math.max(0, Math.min(100, num(l.fit, 0))),
         fresh: Math.min(0, num(l.fresh, 0)), pos: Math.max(0, Math.floor(num(l.pos, 0))), sales: Math.max(0, num(l.sales, 0)), cost: Math.max(0, num(l.cost, 0)), tg: !!l.tg, tm: !!l.tm };
+      if (l.artist && typeof l.artist === 'object' && ART_BY[l.artist.id]) P.last.artist = { id: l.artist.id, fame: num(l.artist.fame, 0), dFame: num(l.artist.dFame, 0), dMood: num(l.artist.dMood, 0), mood: num(l.artist.mood, 50), ask: !!l.artist.ask, match: !!l.artist.match, likes: !!l.artist.likes };
     }
     var c = o.cur;
     if (c && typeof c === 'object' && PJ_G[c.genre] && PJ_M[c.mood] && PJ_P[c.pub] && PJ_F[c.fmt]) {
@@ -1007,13 +1025,71 @@
       P.cur = { title: String(c.title || 'Projet').slice(0, 40), genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt,
         sl: [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, Math.round(num(c.sl && c.sl[i], 50)))); }),
         team: [0, 1, 2].map(function (i) { var id = c.team && c.team[i]; return id && ids[id] ? id : null; }),
-        cost: Math.max(0, num(c.cost, 0)), phase: ph, t: Math.max(0, Math.min(projTime(c.fmt, ph), num(c.t, 0))), tg: !!c.tg, tm: !!c.tm,
+        cost: Math.max(0, num(c.cost, 0)), phase: ph, t: Math.max(0, Math.min(projTime(c.fmt, ph), num(c.t, 0))), tg: !!c.tg, tm: !!c.tm, artist: ART_BY[c.artist] ? c.artist : null,
         fit: [0, 1, 2].slice(0, ph).map(function (i) { return Math.max(0, Math.min(1, num(c.fit && c.fit[i], 0.35))); }) };
     }
   }
   function dismissProject(S) { if (S.proj) S.proj.last = null; }
 
 
+
+
+  // ---------- Label: artistes signés ----------
+  function labelOpen(S) { return S.level >= T.labelLevel && projOpen(S); }
+  function labelCap(S) { return 1 + Math.floor(tierIndex(S) / 2); }
+  function artistOf(S, id) { var r = S.label && S.label.roster; if (!r) return null; for (var i = 0; i < r.length; i++) if (r[i].id === id) return r[i]; return null; }
+  function labelMult(S) { var f = 0; ((S.label && S.label.roster) || []).forEach(function (a) { f += a.fame; }); return 1 + T.labelFame * f; }
+  // Artiste disponible à la signature: rencontré en sortie, ou repéré quand le studio atteint son lieu.
+  function artistAvailable(S, a) {
+    if (artistOf(S, a.id)) return false;
+    return a.contact ? !!S.contacts[a.contact] : tierIndex(S) >= (a.tier || 0);
+  }
+  function artistCost(S) { return incomeRef(S) * T.artistSignSec * (1 + 0.5 * S.label.roster.length); }
+  function signArtist(S, id) {
+    var a = ART_BY[id];
+    if (!labelOpen(S) || !a || !artistAvailable(S, a) || S.label.roster.length >= labelCap(S)) return null;
+    var cost = artistCost(S);
+    if (S.money < cost) return null;
+    S.money -= cost;
+    var r = { id: id, fame: a.contact ? 12 : 5, mood: 65, albums: 0, cd: T.askFirst, ask: null, disco: [] };
+    S.label.roster.push(r); touch(S);
+    checkTrophies(S);
+    if (hooks.artistSign) hooks.artistSign(a, r);
+    return r;
+  }
+  function tickLabel(S, dt) {
+    if (!labelOpen(S)) return;
+    S.label.roster.forEach(function (r) {
+      var a = ART_BY[r.id];
+      if (r.ask) {
+        if (S.proj.cur && S.proj.cur.artist === r.id) return; // l'album est en cours: la demande attend
+        r.ask.left -= dt;
+        if (r.ask.left <= 0) { r.ask = null; r.cd = T.askEvery; r.mood = Math.max(0, r.mood - 8); if (hooks.artistIgnored) hooks.artistIgnored(a, r); }
+        return;
+      }
+      r.cd -= dt;
+      if (r.cd <= 0) { r.ask = { left: T.askLife }; r.cd = 0; if (hooks.artistAsk) hooks.artistAsk(a, r); }
+    });
+  }
+  // Effet de l'artiste sur la note: son genre, ses ambiances préférées et son humeur.
+  function artistParts(S, c) {
+    var r = c.artist ? artistOf(S, c.artist) : null;
+    if (!r) return 0;
+    var a = ART_BY[r.id];
+    return (c.genre === a.genre ? 0.8 : -0.6) + (a.likes.indexOf(c.mood) >= 0 ? 0.4 : 0) + (r.mood - 50) / 100;
+  }
+  function albumDone(S, r, c, avg, pos) {
+    var a = ART_BY[r.id], match = c.genre === a.genre, likes = a.likes.indexOf(c.mood) >= 0, asked = !!r.ask;
+    var dFame = Math.max(-5, Math.min(18, Math.round(avg * 2.2 - 8 + (pos && pos <= 10 ? 4 : 0))));
+    var dMood = (avg >= 7 ? 12 : avg >= 5 ? 2 : -12) + (match ? 6 : -16) + (likes ? 5 : 0) + (asked ? 8 : 0);
+    var f0 = r.fame, m0 = r.mood;
+    r.fame = Math.max(0, Math.min(100, r.fame + dFame)); r.mood = Math.max(0, Math.min(100, r.mood + dMood));
+    r.albums++; S.label.albums++;
+    r.disco.unshift({ t: c.title, avg: avg, pos: pos }); r.disco = r.disco.slice(0, 10);
+    if (asked) { r.ask = null; r.cd = T.askEvery; }
+    touch(S);
+    return { id: r.id, fame: r.fame, dFame: r.fame - f0, mood: r.mood, dMood: r.mood - m0, ask: asked, match: match, likes: likes };
+  }
 
   // ---------- Tendances de la semaine ----------
   function trendFor(S) { var c = S.charts; return c && c.trend && c.trend.w === c.week && S.level >= T.chartLevel ? c.trend : null; }
@@ -1170,6 +1246,7 @@
     });
     S.ev.cd = T.eventFirst; S.ev.pending = null; S.ev.hold = false;
     if (S.proj) { S.proj.cur = null; S.proj.last = null; } // un projet en cours est abandonné, le carnet reste
+    S.label.roster.forEach(function (a) { a.ask = null; a.cd = T.askEvery; });
     S.rd.spec = {}; // les recherches restent, les spécialisations se choisissent à nouveau
     // L'équipe part aussi en tournée: ses membres pourront revenir sans prime d'embauche.
     var tm = S.team || newTeam(), al = tm.staff.map(function (m) { return { id: m.id, name: m.name, role: m.role, stars: m.stars, lvl: m.lvl, xp: 0, salary: m.salary, look: m.look }; });
@@ -1231,6 +1308,9 @@
       case 'battles': n = S.battle ? S.battle.wins : 0; break;
       case 'league': n = S.battle ? S.battle.league : 1; break;
       case 'combo': n = S.battle ? S.battle.best : 0; break;
+      case 'signed': n = S.label ? S.label.roster.length : 0; break;
+      case 'artistAlbums': n = S.label ? S.label.albums : 0; break;
+      case 'artistFame': (S.label ? S.label.roster : []).forEach(function (a) { n = Math.max(n, a.fame); }); break;
       case 'pianoBest': n = S.piano ? S.piano.best : 0; break;
       case 'specs': n = Object.keys((S.rd && S.rd.spec) || {}).length; break;
       case 'staffLvl': (S.team ? S.team.staff : []).forEach(function (m) { n = Math.max(n, m.lvl); }); break;
@@ -1437,6 +1517,8 @@
     finishProject: finishProject, dismissProject: dismissProject, comboGrade: comboGrade, pubGrade: pubGrade,
     TROPHY_LEVELS: TLV, trophyTotal: trophyTotal, trophyLevel: trophyLevel, levelName: levelName, choiceInfo: choiceInfo,
     BATTLE: BT, DECO: DECO, decoOpt: decoOpt, decoUnlocked: decoUnlocked, decoProgress: decoProgress, setDeco: setDeco, decoNew: decoNew, seeDeco: seeDeco,
+    ARTISTS: ARTISTS, ART_BY: ART_BY, labelOpen: labelOpen, labelCap: labelCap, artistOf: artistOf, labelMult: labelMult, artistAvailable: artistAvailable,
+    artistCost: artistCost, signArtist: signArtist, tickLabel: tickLabel, artistParts: artistParts,
     trendFor: trendFor, trendAct: trendAct, makeTrend: makeTrend, RULES: RULES, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
   };
 

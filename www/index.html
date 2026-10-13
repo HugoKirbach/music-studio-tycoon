@@ -341,6 +341,27 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .buyn span { padding: 0 6px 0 5px; font: 800 11px var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
 .buyn button { min-width: 44px; min-height: 34px; padding: 4px 8px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: 800 13.5px var(--f-body); }
 .buyn button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-s); }
+/* Label */
+.label-box { margin-bottom: 14px; }
+.label-box .orders-head { margin-top: 0; }
+.artist { display: grid; gap: 8px; }
+.artist > * { min-width: 0; }
+.artist.ask { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 7%, var(--card)); }
+.a-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.a-av { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--ac); color: #fff; font: 800 17px var(--f-title); }
+.a-head b { display: block; font: 800 16px var(--f-title); overflow-wrap: anywhere; }
+.a-head small { display: block; font-size: 12.5px; color: var(--ink-soft); font-weight: 700; }
+.a-mood { font: 800 12px var(--f-body); padding: 2px 9px; border-radius: 10px; background: var(--panel-2); white-space: nowrap; }
+.a-mood.m4 { color: var(--good); } .a-mood.m3 { color: var(--good); } .a-mood.m2 { color: var(--ink-soft); } .a-mood.m1 { color: var(--warn); } .a-mood.m0 { color: var(--bad); }
+.a-fame { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+.a-fame .meter { height: 8px; } .a-fame .meter i { background: linear-gradient(90deg, var(--gold), var(--accent)); }
+.a-fame b { color: var(--ink); }
+.a-ask { margin: 0; font-weight: 800; color: var(--accent); font-size: 14px; }
+.a-line { margin: 0; font-size: 13px; color: var(--ink-soft); }
+.scout { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.scout > * { min-width: 0; }
+.scout p { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+.pk .lk { font: 800 10.5px var(--f-body); padding: 1px 6px; border-radius: 8px; background: var(--good); color: #fff; }
 /* Tendances */
 .trend-card { display: grid; gap: 8px; margin-bottom: 12px; border-left: 4px solid var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--card)); }
 .trend-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -374,6 +395,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .hot3d .bang { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--bad); color: #fff; font-size: 12px; }
 .hot3d:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 @media (prefers-reduced-motion: no-preference) { .hot3d.hot { animation: hotPulse 1.6s ease-in-out infinite; } }
+@media (max-width: 599px) { .hot3d { padding: 5px; gap: 3px; } .hot3d > span, .hot3d small { display: none; } .hot3d svg { width: 22px; height: 22px; } }
 @keyframes hotPulse { 0%, 100% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 50% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 8px transparent; } }
 /* Atelier piano */
 .piano-sheet { width: min(640px, 100%); }
@@ -754,6 +776,14 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
         <h2 id="chartTitle">Top 50 <small id="chartWeek"></small></h2>
         <div class="card chart-lock" id="chartLock"><b>Le Top 50 t’attend</b><span id="chartLockText"></span></div>
         <div id="chartOpen">
+          <section class="label-box" id="labelBox" hidden>
+            <div class="orders-head"><h3>Ton label</h3><span class="rep-chip" id="labelChip"></span></div>
+            <p class="small-note" id="labelNote"></p>
+            <div class="list" id="labelRoster"></div>
+            <h3 class="sec" id="labelScoutT">Talents à signer</h3>
+            <div class="list" id="labelScouts"></div>
+            <p class="small-note" id="labelMore"></p>
+          </section>
           <article class="card trend-card" id="trendCard" hidden>
             <div class="trend-head"><h3>Tendances de la semaine</h3><span class="rep-chip" id="trendLeft"></span></div>
             <ul class="trend-list" id="trendList"></ul>
@@ -857,6 +887,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Projet de création</p>
     <h2 id="pjTitle">Nouveau projet</h2>
     <p class="ev-text">Un projet à part, en plus de tes productions qui continuent de tourner. Les critiques jugent l’association du genre, de l’ambiance et du public, tes réglages de chaque phase et l’équipe qui y travaille. Le titre entre ensuite au Top 50 et se vend chaque semaine tant qu’il y reste.</p>
+    <div class="pf" id="pjForBox" hidden><span class="lbl">Pour</span><div class="pick" id="pjFor" role="group" aria-label="Pour qui"></div><p class="small-note" id="pjForNote"></p></div>
     <label class="pf"><span class="lbl">Titre</span><input type="text" id="pjName" maxlength="40" autocomplete="off" spellcheck="false"></label>
     <div class="pf"><span class="lbl">Format</span><div class="pick" id="pjFmt" role="group" aria-label="Format"></div></div>
     <div class="pf"><span class="lbl">Genre</span><div class="pick" id="pjGenre" role="group" aria-label="Genre"></div></div>
@@ -1045,6 +1076,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     // Atelier piano: une inspiration récompensée toutes les pianoEvery secondes de jeu
     pianoEvery: 240,
     // Tendances de la semaine (une par semaine du Top 50)
+    // Label: artistes signés et cycle d'album
+    labelLevel: 6, artistSignSec: 240, askEvery: 420, askFirst: 90, askLife: 600, labelFame: 0.0006,
     trendAct: 1.25, trendOrder: 0.4, trendOrderReward: 1.3, trendGenre: 0.6, trendMood: 0.4, trendSales: 1.3
   };
 
@@ -1641,6 +1674,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     { id: 'clash', name: 'Clash', m: 'battles', levels: [1, 10, 50, 150], desc: 'Remporte {n} clashs de beatmakers.', descs: ['Remporte ton premier clash de beatmakers.'] },
     { id: 'ligue', name: 'Ligue des beatmakers', m: 'league', levels: [2, 3, 4, 5], descs: ['Monte en ligue Régionale.', 'Monte en ligue Nationale.', 'Monte en ligue Internationale.', 'Atteins la ligue Légende.'] },
     { id: 'piano', name: 'Oreille musicale', m: 'pianoBest', levels: [5, 9, 13], desc: 'Rejoue une mélodie de {n} notes à l’atelier piano.' },
+    { id: 'label', name: 'Directeur de label', m: 'signed', levels: [1, 2, 4], desc: 'Signe {n} artistes sur ton label.', descs: ['Signe ton premier artiste.'] },
+    { id: 'albums', name: 'Disques d’artistes', m: 'artistAlbums', levels: [1, 10, 30], desc: 'Réalise {n} albums pour tes artistes.', descs: ['Réalise le premier album d’un de tes artistes.'] },
+    { id: 'vedette', name: 'Faiseur de vedettes', m: 'artistFame', levels: [40, 75, 100], desc: 'Porte un artiste à {n} de notoriété.' },
     { id: 'combo', name: 'Main sûre', m: 'combo', levels: [20, 50, 100], desc: 'Enchaîne {n} frappes réussies d’affilée dans un clash.' }
   ];
 
@@ -1794,6 +1830,25 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     ]
   };
 
+
+  // Artistes à signer. contact: rencontré en sortie de studio ; tier: repéré quand le studio atteint ce lieu.
+  var ARTISTS = [
+    { id: 'kais', name: 'Kaïs', genre: 'rap', likes: ['rue', 'revolte'], contact: 'rappeur', bio: 'Le rappeur du café, plume affûtée et flow nerveux.' },
+    { id: 'ines', name: 'Inès', genre: 'chanson', likes: ['amour', 'nostalgie'], contact: 'openmic', bio: 'La chanteuse du micro ouvert, une voix qui fait taire les bars.' },
+    { id: 'moussa', name: 'Moussa', genre: 'trap', likes: ['rue', 'fete'], contact: 'cypher', bio: 'Beatboxer du parc, il veut ses propres morceaux.' },
+    { id: 'lou', name: 'Lou', genre: 'rock', likes: ['revolte', 'spleen'], contact: 'groupe', bio: 'Chanteuse des Marées, prête à tracer sa route.' },
+    { id: 'salome', name: 'Salomé', genre: 'bo', likes: ['voyage', 'espoir'], contact: 'panne', bio: 'Chanteuse lyrique, elle rêve de musiques de film.' },
+    { id: 'anatole', name: 'Anatole', genre: 'jazz', likes: ['nostalgie', 'voyage'], contact: 'pianiste', bio: 'Le pianiste du métro, des doigts d’or.' },
+    { id: 'nox', name: 'DJ Nox', genre: 'electro', likes: ['fete', 'voyage'], contact: 'pirate', bio: 'La voix des nuits de la radio pirate.' },
+    { id: 'maya', name: 'Maya Lorent', genre: 'pop', likes: ['amour', 'espoir'], contact: 'artiste', bio: 'La star que tout le monde connaît. Exigeante, et généreuse avec ceux qui la suivent.' },
+    { id: 'leila', name: 'Leïla Noor', genre: 'rnb', likes: ['amour', 'spleen'], contact: 'star', bio: 'Auteure-compositrice perfectionniste, des refrains en or.' },
+    { id: 'zoe', name: 'Zoé Kahn', genre: 'pop', likes: ['fete', 'amour'], tier: 2, bio: 'Repérée sur les réseaux, un tube par semaine dans sa chambre.' },
+    { id: 'volts', name: 'Les Volts', genre: 'rock', likes: ['revolte', 'fete'], tier: 3, bio: 'Quatre lycéens devenus groupe de scène redoutable.' },
+    { id: 'nayla', name: 'Nayla', genre: 'afro', likes: ['fete', 'amour'], tier: 3, bio: 'Danseuse et chanteuse, elle fait bouger tout le quartier.' },
+    { id: 'seo', name: 'Kim Seo-yeon', genre: 'kpop', likes: ['amour', 'espoir'], tier: 4, bio: 'Venue de Séoul pour une carrière européenne.' },
+    { id: 'lofi-sam', name: 'Sam & Lune', genre: 'lofi', likes: ['nostalgie', 'spleen'], tier: 4, bio: 'Un duo de chambre aux millions d’écoutes.' }
+  ];
+
   // Commandes: clients par type de production
   var CLIENTS = {
     beat: ['Rappeur', ['Kaïs', 'Lil Néo', 'Sami B', 'Zoya']], mix: ['Groupe', ['Les Rivages', 'Fuzz Club', 'Velvet Garage']],
@@ -1823,7 +1878,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1861,6 +1916,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   var DECO = D.DECO || { slots: [] }, DECO_BY = {};
   DECO.slots.forEach(function (s) { DECO_BY[s.id] = {}; s.options.forEach(function (o) { DECO_BY[s.id][o.id] = o; }); });
   var RULES = ['rapide', 'sans-clap', 'prime'];
+  var ARTISTS = D.ARTISTS || [], ART_BY = {};
+  ARTISTS.forEach(function (a) { ART_BY[a.id] = a; });
   var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
 
@@ -1877,7 +1934,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco() };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco(), label: { roster: [], albums: 0 } };
   }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newBattle() { return { league: 1, pts: 0, wins: 0, losses: 0, best: 0, cd: T.battleFirst, rival: null }; }
@@ -1946,6 +2003,16 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (o.rd.spec && typeof o.rd.spec === 'object') RESEARCH.specs.forEach(function (t) { var id = o.rd.spec[t.tier]; if (SPEC_BY[id] && SPEC_BY[id].tier === t.tier) S.rd.spec[t.tier] = id; });
     }
     if (o.proj && typeof o.proj === 'object') hydrateProj(S, o.proj);
+    if (o.label && typeof o.label === 'object') {
+      S.label.albums = Math.max(0, Math.floor(num(o.label.albums, 0)));
+      (Array.isArray(o.label.roster) ? o.label.roster : []).forEach(function (r) {
+        if (!r || !ART_BY[r.id] || S.label.roster.some(function (x) { return x.id === r.id; }) || S.label.roster.length >= 8) return;
+        var ask = r.ask && typeof r.ask === 'object' ? { left: Math.max(0, Math.min(T.askLife, num(r.ask.left, T.askLife))) } : null;
+        S.label.roster.push({ id: r.id, fame: Math.max(0, Math.min(100, num(r.fame, 5))), mood: Math.max(0, Math.min(100, num(r.mood, 60))),
+          albums: Math.max(0, Math.floor(num(r.albums, 0))), cd: Math.max(0, num(r.cd, T.askEvery)), ask: ask,
+          disco: (Array.isArray(r.disco) ? r.disco : []).slice(0, 10).map(function (x) { return { t: String((x && x.t) || 'Album').slice(0, 40), avg: Math.max(0, Math.min(10, num(x && x.avg, 0))), pos: Math.max(0, Math.floor(num(x && x.pos, 0))) }; }) });
+      });
+    }
     if (o.deco && typeof o.deco === 'object') {
       DECO.slots.forEach(function (s) { if (DECO_BY[s.id][o.deco[s.id]]) S.deco[s.id] = o.deco[s.id]; });
       if (o.deco.seen && typeof o.deco.seen === 'object') Object.keys(o.deco.seen).forEach(function (k) { var p = k.split(':'); if (DECO_BY[p[0]] && DECO_BY[p[0]][p[1]]) S.deco.seen[k] = 1; });
@@ -2018,7 +2085,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var e = { id: Math.max(1, Math.floor(num(m.id, 1))), t: String(m.t || 'Titre').slice(0, 40), act: m.act, q: Math.max(1, Math.min(5, Math.floor(num(m.q, 1)))),
         s: Math.max(0, num(m.s, 0)), weeks: Math.max(0, Math.floor(num(m.weeks, 0))), pos: Math.max(0, Math.floor(num(m.pos, 0))), p: Math.max(0, Math.floor(num(m.p, 0))),
         best: Math.max(0, Math.floor(num(m.best, 0))), promo: !!m.promo, earned: Math.max(0, num(m.earned, 0)) };
-      if (m.pj && typeof m.pj === 'object' && PJ_G[m.pj.g] && PJ_F[m.pj.f]) e.pj = { g: m.pj.g, f: m.pj.f, sales: Math.max(0, num(m.pj.sales, 0)), sold: Math.max(0, num(m.pj.sold, 0)), w: Math.max(0, Math.floor(num(m.pj.w, 0))), avg: Math.max(0, Math.min(10, num(m.pj.avg, 0))) };
+      if (m.pj && typeof m.pj === 'object' && PJ_G[m.pj.g] && PJ_F[m.pj.f]) e.pj = { g: m.pj.g, f: m.pj.f, sales: Math.max(0, num(m.pj.sales, 0)), sold: Math.max(0, num(m.pj.sold, 0)), w: Math.max(0, Math.floor(num(m.pj.w, 0))), avg: Math.max(0, Math.min(10, num(m.pj.avg, 0))), ar: ART_BY[m.pj.ar] ? m.pj.ar : null };
       mx = Math.max(mx, e.id); c.mine.push(e);
     });
     c.nextId = Math.max(mx + 1, Math.floor(num(o.nextId, 1)));
@@ -2063,6 +2130,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     g.gain *= 1 + T.trophyBonus * trophyCount(S);
     g.gain *= 1 + T.fameBonus * (S.fame || 0);
     g.xp *= 1 + T.fameXp * (S.fame || 0);
+    g.gain *= labelMult(S);
     var rf = computeRd(S);
     g.gain *= rf.gain; g.speed *= rf.speed; g.xp *= rf.xp; g.roy *= rf.roy;
     c = { g: g, v: v, vm: Math.pow(Math.max(v, 400) / 400, T.valueExp), rd: rf };
@@ -2699,7 +2767,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     c.left -= dt;
     if (c.left <= 0) weekEnd(S);
   }
-  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); tickBattle(S, dt); if (S.piano.cd > 0) S.piano.cd = Math.max(0, S.piano.cd - dt); }
+  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); tickBattle(S, dt); tickLabel(S, dt); if (S.piano.cd > 0) S.piano.cd = Math.max(0, S.piano.cd - dt); }
 
 
   // ---------- Projets de création (bonus facultatif) ----------
@@ -2720,11 +2788,13 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
   function sliderAcc(v, ideal) { return Math.max(0, Math.min(1, 1 - Math.max(0, Math.abs(v - ideal) - 8) / 50)); }
   function cleanCfg(S, c) {
-    if (!c || typeof c !== 'object' || !genreOpen(S, c.genre) || !PJ_M[c.mood] || !PJ_P[c.pub] || !formatOpen(S, c.fmt)) return null;
+    var art = c && c.artist ? artistOf(S, c.artist) : null;
+    if (c && c.artist && !art) return null;
+    if (!c || typeof c !== 'object' || !(genreOpen(S, c.genre) || (art && ART_BY[art.id].genre === c.genre)) || !PJ_M[c.mood] || !PJ_P[c.pub] || !formatOpen(S, c.fmt)) return null;
     var sl = [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, Math.round(num(c.sl && c.sl[i], 50)))); });
     var team = [0, 1, 2].map(function (i) { var id = c.team && c.team[i]; return id && findMember(S, id) ? id : null; });
     var title = String(c.title || '').replace(/\s+/g, ' ').trim().slice(0, 40) || songTitle();
-    return { title: title, genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt, sl: sl, team: team };
+    return { title: title, genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt, sl: sl, team: team, artist: art ? art.id : null };
   }
   function startProject(S, cfg) {
     if (!projOpen(S) || S.proj.cur) return null;
@@ -2766,7 +2836,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var h = S.proj.hist, same = h.some(function (x) { return x.g === c.genre && x.m === c.mood; }), again = h.length && h[0].g === c.genre;
     var crea = 0; RESEARCH.nodes.forEach(function (n) { if (n.b === 'crea' && S.rd.nodes[n.id]) crea += 0.1; });
     var parts = { base: 1, combo: cg === 'top' ? 1.5 : cg === 'bad' ? -2 : 0, pub: pg === 'top' ? 1 : pg === 'bad' ? -1.5 : 0, sliders: 3.5 * acc, team: 3 * fit,
-      studio: Math.min(1, 0.25 * tierIndex(S)) + crea, fresh: same ? -1.5 : again ? -0.5 : 0, trend: (c.tg ? T.trendGenre : 0) + (c.tm ? T.trendMood : 0) };
+      studio: Math.min(1, 0.25 * tierIndex(S)) + crea, fresh: same ? -1.5 : again ? -0.5 : 0, trend: (c.tg ? T.trendGenre : 0) + (c.tm ? T.trendMood : 0), artist: artistParts(S, c) };
     var s = 0; Object.keys(parts).forEach(function (k) { s += parts[k]; });
     return { score: Math.max(0, Math.min(10, s + (rand() - 0.5) * 0.8)), parts: parts, combo: cg, pubG: pg, acc: acc, fit: fit };
   }
@@ -2791,11 +2861,12 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     P.hist.unshift({ g: c.genre, m: c.mood }); P.hist = P.hist.slice(0, 4);
     P.done++; P.best = Math.max(P.best, avg);
     // sortie dans le Top 50 et ventes réparties sur les semaines de classement
-    var sales = c.cost * (0.15 + 0.02 * avg * avg) * f.roi * (c.tg ? T.trendSales : 1);
+    var ar = c.artist ? artistOf(S, c.artist) : null, af = ar ? ar.fame : 0;
+    var sales = c.cost * (0.15 + 0.02 * avg * avg) * f.roi * (c.tg ? T.trendSales : 1) * (1 + af / 100);
     var c2 = S.charts; if (!c2.rivals.length) initRivals(S);
     var e = { id: c2.nextId++, t: c.title, act: bestAct(S).id, q: Math.max(1, Math.min(5, Math.round(avg / 2))),
-      s: potential(S) * (0.25 + 0.18 * avg) * f.chart * (1 + S.orders.rep / 200) * rdFx(S).chartScore,
-      weeks: 0, pos: 0, p: 0, best: 0, promo: false, earned: 0, pj: { g: c.genre, f: c.fmt, sales: sales, sold: 0, w: 0, avg: avg } };
+      s: potential(S) * (0.25 + 0.18 * avg) * f.chart * (1 + S.orders.rep / 200) * rdFx(S).chartScore * (1 + af / 250),
+      weeks: 0, pos: 0, p: 0, best: 0, promo: false, earned: 0, pj: { g: c.genre, f: c.fmt, sales: sales, sold: 0, w: 0, avg: avg, ar: ar ? ar.id : null } };
     c2.mine.push(e); c2.releases++;
     rankCharts(S, false); e.p = 0;
     var inChart = e.pos <= T.chartSize;
@@ -2805,6 +2876,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (avg >= 8) S.orders.rep = Math.min(T.repMax, S.orders.rep + Math.round(avg - 6));
     var res = { title: c.title, genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt, sl: c.sl.slice(), avg: avg, notes: notes, combo: r.combo, pubG: r.pubG,
       acc: Math.round(r.acc * 100), fit: Math.round(r.fit * 100), fresh: r.parts.fresh, pos: inChart ? e.pos : 0, sales: sales, cost: c.cost, tg: !!c.tg, tm: !!c.tm };
+    if (ar) res.artist = albumDone(S, ar, c, avg, inChart ? e.pos : 0);
     P.last = res;
     checkTrophies(S);
     if (hooks.projectDone) hooks.projectDone(res);
@@ -2829,6 +2901,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
         notes: l.notes.slice(0, PJ.critics.length).map(function (x) { return { name: String((x && x.name) || 'Critique').slice(0, 30), n: Math.max(0, Math.min(10, num(x && x.n, 0))) }; }),
         combo: G3.indexOf(l.combo) >= 0 ? l.combo : 'ok', pubG: G3.indexOf(l.pubG) >= 0 ? l.pubG : 'ok', acc: Math.max(0, Math.min(100, num(l.acc, 0))), fit: Math.max(0, Math.min(100, num(l.fit, 0))),
         fresh: Math.min(0, num(l.fresh, 0)), pos: Math.max(0, Math.floor(num(l.pos, 0))), sales: Math.max(0, num(l.sales, 0)), cost: Math.max(0, num(l.cost, 0)), tg: !!l.tg, tm: !!l.tm };
+      if (l.artist && typeof l.artist === 'object' && ART_BY[l.artist.id]) P.last.artist = { id: l.artist.id, fame: num(l.artist.fame, 0), dFame: num(l.artist.dFame, 0), dMood: num(l.artist.dMood, 0), mood: num(l.artist.mood, 50), ask: !!l.artist.ask, match: !!l.artist.match, likes: !!l.artist.likes };
     }
     var c = o.cur;
     if (c && typeof c === 'object' && PJ_G[c.genre] && PJ_M[c.mood] && PJ_P[c.pub] && PJ_F[c.fmt]) {
@@ -2837,13 +2910,71 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       P.cur = { title: String(c.title || 'Projet').slice(0, 40), genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt,
         sl: [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, Math.round(num(c.sl && c.sl[i], 50)))); }),
         team: [0, 1, 2].map(function (i) { var id = c.team && c.team[i]; return id && ids[id] ? id : null; }),
-        cost: Math.max(0, num(c.cost, 0)), phase: ph, t: Math.max(0, Math.min(projTime(c.fmt, ph), num(c.t, 0))), tg: !!c.tg, tm: !!c.tm,
+        cost: Math.max(0, num(c.cost, 0)), phase: ph, t: Math.max(0, Math.min(projTime(c.fmt, ph), num(c.t, 0))), tg: !!c.tg, tm: !!c.tm, artist: ART_BY[c.artist] ? c.artist : null,
         fit: [0, 1, 2].slice(0, ph).map(function (i) { return Math.max(0, Math.min(1, num(c.fit && c.fit[i], 0.35))); }) };
     }
   }
   function dismissProject(S) { if (S.proj) S.proj.last = null; }
 
 
+
+
+  // ---------- Label: artistes signés ----------
+  function labelOpen(S) { return S.level >= T.labelLevel && projOpen(S); }
+  function labelCap(S) { return 1 + Math.floor(tierIndex(S) / 2); }
+  function artistOf(S, id) { var r = S.label && S.label.roster; if (!r) return null; for (var i = 0; i < r.length; i++) if (r[i].id === id) return r[i]; return null; }
+  function labelMult(S) { var f = 0; ((S.label && S.label.roster) || []).forEach(function (a) { f += a.fame; }); return 1 + T.labelFame * f; }
+  // Artiste disponible à la signature: rencontré en sortie, ou repéré quand le studio atteint son lieu.
+  function artistAvailable(S, a) {
+    if (artistOf(S, a.id)) return false;
+    return a.contact ? !!S.contacts[a.contact] : tierIndex(S) >= (a.tier || 0);
+  }
+  function artistCost(S) { return incomeRef(S) * T.artistSignSec * (1 + 0.5 * S.label.roster.length); }
+  function signArtist(S, id) {
+    var a = ART_BY[id];
+    if (!labelOpen(S) || !a || !artistAvailable(S, a) || S.label.roster.length >= labelCap(S)) return null;
+    var cost = artistCost(S);
+    if (S.money < cost) return null;
+    S.money -= cost;
+    var r = { id: id, fame: a.contact ? 12 : 5, mood: 65, albums: 0, cd: T.askFirst, ask: null, disco: [] };
+    S.label.roster.push(r); touch(S);
+    checkTrophies(S);
+    if (hooks.artistSign) hooks.artistSign(a, r);
+    return r;
+  }
+  function tickLabel(S, dt) {
+    if (!labelOpen(S)) return;
+    S.label.roster.forEach(function (r) {
+      var a = ART_BY[r.id];
+      if (r.ask) {
+        if (S.proj.cur && S.proj.cur.artist === r.id) return; // l'album est en cours: la demande attend
+        r.ask.left -= dt;
+        if (r.ask.left <= 0) { r.ask = null; r.cd = T.askEvery; r.mood = Math.max(0, r.mood - 8); if (hooks.artistIgnored) hooks.artistIgnored(a, r); }
+        return;
+      }
+      r.cd -= dt;
+      if (r.cd <= 0) { r.ask = { left: T.askLife }; r.cd = 0; if (hooks.artistAsk) hooks.artistAsk(a, r); }
+    });
+  }
+  // Effet de l'artiste sur la note: son genre, ses ambiances préférées et son humeur.
+  function artistParts(S, c) {
+    var r = c.artist ? artistOf(S, c.artist) : null;
+    if (!r) return 0;
+    var a = ART_BY[r.id];
+    return (c.genre === a.genre ? 0.8 : -0.6) + (a.likes.indexOf(c.mood) >= 0 ? 0.4 : 0) + (r.mood - 50) / 100;
+  }
+  function albumDone(S, r, c, avg, pos) {
+    var a = ART_BY[r.id], match = c.genre === a.genre, likes = a.likes.indexOf(c.mood) >= 0, asked = !!r.ask;
+    var dFame = Math.max(-5, Math.min(18, Math.round(avg * 2.2 - 8 + (pos && pos <= 10 ? 4 : 0))));
+    var dMood = (avg >= 7 ? 12 : avg >= 5 ? 2 : -12) + (match ? 6 : -16) + (likes ? 5 : 0) + (asked ? 8 : 0);
+    var f0 = r.fame, m0 = r.mood;
+    r.fame = Math.max(0, Math.min(100, r.fame + dFame)); r.mood = Math.max(0, Math.min(100, r.mood + dMood));
+    r.albums++; S.label.albums++;
+    r.disco.unshift({ t: c.title, avg: avg, pos: pos }); r.disco = r.disco.slice(0, 10);
+    if (asked) { r.ask = null; r.cd = T.askEvery; }
+    touch(S);
+    return { id: r.id, fame: r.fame, dFame: r.fame - f0, mood: r.mood, dMood: r.mood - m0, ask: asked, match: match, likes: likes };
+  }
 
   // ---------- Tendances de la semaine ----------
   function trendFor(S) { var c = S.charts; return c && c.trend && c.trend.w === c.week && S.level >= T.chartLevel ? c.trend : null; }
@@ -3000,6 +3131,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     });
     S.ev.cd = T.eventFirst; S.ev.pending = null; S.ev.hold = false;
     if (S.proj) { S.proj.cur = null; S.proj.last = null; } // un projet en cours est abandonné, le carnet reste
+    S.label.roster.forEach(function (a) { a.ask = null; a.cd = T.askEvery; });
     S.rd.spec = {}; // les recherches restent, les spécialisations se choisissent à nouveau
     // L'équipe part aussi en tournée: ses membres pourront revenir sans prime d'embauche.
     var tm = S.team || newTeam(), al = tm.staff.map(function (m) { return { id: m.id, name: m.name, role: m.role, stars: m.stars, lvl: m.lvl, xp: 0, salary: m.salary, look: m.look }; });
@@ -3061,6 +3193,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       case 'battles': n = S.battle ? S.battle.wins : 0; break;
       case 'league': n = S.battle ? S.battle.league : 1; break;
       case 'combo': n = S.battle ? S.battle.best : 0; break;
+      case 'signed': n = S.label ? S.label.roster.length : 0; break;
+      case 'artistAlbums': n = S.label ? S.label.albums : 0; break;
+      case 'artistFame': (S.label ? S.label.roster : []).forEach(function (a) { n = Math.max(n, a.fame); }); break;
       case 'pianoBest': n = S.piano ? S.piano.best : 0; break;
       case 'specs': n = Object.keys((S.rd && S.rd.spec) || {}).length; break;
       case 'staffLvl': (S.team ? S.team.staff : []).forEach(function (m) { n = Math.max(n, m.lvl); }); break;
@@ -3267,6 +3402,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     finishProject: finishProject, dismissProject: dismissProject, comboGrade: comboGrade, pubGrade: pubGrade,
     TROPHY_LEVELS: TLV, trophyTotal: trophyTotal, trophyLevel: trophyLevel, levelName: levelName, choiceInfo: choiceInfo,
     BATTLE: BT, DECO: DECO, decoOpt: decoOpt, decoUnlocked: decoUnlocked, decoProgress: decoProgress, setDeco: setDeco, decoNew: decoNew, seeDeco: seeDeco,
+    ARTISTS: ARTISTS, ART_BY: ART_BY, labelOpen: labelOpen, labelCap: labelCap, artistOf: artistOf, labelMult: labelMult, artistAvailable: artistAvailable,
+    artistCost: artistCost, signArtist: signArtist, tickLabel: tickLabel, artistParts: artistParts,
     trendFor: trendFor, trendAct: trendAct, makeTrend: makeTrend, RULES: RULES, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
   };
 
@@ -4279,8 +4416,19 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       p.project(camera);
       var x = (p.x + 1) / 2 * w, y = (1 - p.y) / 2 * h, out = p.z > 1 || x < 8 || x > w - 8 || y < 8 || y > h - 8;
       if (o.el.hidden !== out) o.el.hidden = out;
-      if (!out) { var tr = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) translate(-50%,-100%)'; if (o.tr !== tr) { o.tr = tr; o.el.style.transform = tr; } }
+      o.x = x; o.y = y; o.out = out;
     });
+    // les icônes proches s'écartent pour rester lisibles
+    var vis = ids.map(function (id) { return hots[id]; }).filter(function (o) { return !o.out; });
+    vis.forEach(function (o) { if (!o.w || o.key !== o.wk) { o.w = o.el.offsetWidth || 60; o.h = o.el.offsetHeight || 30; o.wk = o.key; } });
+    vis.sort(function (a, b) { return b.y - a.y; });
+    for (var i = 0; i < vis.length; i++) {
+      for (var j = 0; j < i; j++) {
+        var a = vis[i], b = vis[j];
+        if (Math.abs(a.x - b.x) < (a.w + b.w) / 2 + 4 && Math.abs(a.y - b.y) < (a.h + b.h) / 2 + 4) a.y = b.y - (a.h + b.h) / 2 - 6;
+      }
+    }
+    vis.forEach(function (o) { var tr = 'translate(' + o.x.toFixed(1) + 'px,' + o.y.toFixed(1) + 'px) translate(-50%,-100%)'; if (o.tr !== tr) { o.tr = tr; o.el.style.transform = tr; } });
   }
 
   // ---------- Pops (gains flottants) ----------
@@ -4723,6 +4871,65 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
 
 
+
+
+  // ---------- Label ----------
+  var lbv = { key: '', cards: {}, wasOpen: null };
+  var GENRE_COL = { rap: '#e0663d', pop: '#e04f8f', electro: '#3d7be0', lofi: '#7a8fa8', chanson: '#b8743a', afro: '#d99a20', rnb: '#8e4fd1', trap: '#5a5f6b', rock: '#c0392b', jazz: '#2e8b78', kpop: '#ff6fb1', bo: '#4a6fb0' };
+  function moodTxt(m) { return m >= 80 ? ['Ravi', 4] : m >= 60 ? ['Content', 3] : m >= 40 ? ['Partagé', 2] : m >= 20 ? ['Frustré', 1] : ['En colère', 0]; }
+  function artName(id) { return G.ART_BY[id] ? G.ART_BY[id].name : ''; }
+  function artInitials(n) { return n.split(/[\s&]+/).filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join(''); }
+  function renderLabel(force) {
+    var open = G.labelOpen(S), L = S.label, onCh = $('app').getAttribute('data-view') === 'charts';
+    if (lbv.wasOpen === false && open && !quiet) toast('Nouveau : ton label ! Signe des artistes et produis leurs albums depuis l’onglet Top 50.', 7000);
+    lbv.wasOpen = open;
+    setHidden($('labelBox'), !open);
+    var asks = open && L.roster.some(function (r) { return r.ask; });
+    setClass($('tabCharts'), 'warn', asks && !onCh);
+    if (!open || (!onCh && !force)) return;
+    var cap = G.labelCap(S), avail = G.ARTISTS.filter(function (a) { return G.artistAvailable(S, a); });
+    setText($('labelChip'), L.roster.length + ' / ' + cap + ' artiste' + (cap > 1 ? 's' : ''));
+    setText($('labelNote'), L.roster.length
+      ? 'Leur notoriété ajoute +' + nf1.format((G.labelMult(S) - 1) * 100) + ' % à tous tes gains. Respecte leur genre et leurs goûts : un artiste content progresse plus vite.'
+      : 'Signe un artiste, puis produis ses albums avec l’outil de projet de création. Ses albums font grimper sa notoriété, qui dope les ventes et tous tes gains.');
+    var key = JSON.stringify(L.roster.map(function (r) { return [r.id, Math.round(r.fame), Math.round(r.mood), !!r.ask, r.albums]; })) + '|' + avail.map(function (a) { return a.id; }).join(',') + '|' + cap + '|' + !!S.proj.cur;
+    if (key !== lbv.key) {
+      lbv.key = key; lbv.cards = {};
+      $('labelRoster').innerHTML = L.roster.map(function (r) {
+        var a = G.ART_BY[r.id], mt = moodTxt(r.mood), last = r.disco[0];
+        return '<article class="card artist' + (r.ask ? ' ask' : '') + '" data-aid="' + r.id + '">' +
+          '<div class="a-head"><span class="a-av" style="--ac:' + (GENRE_COL[a.genre] || '#777') + '" aria-hidden="true">' + esc(artInitials(a.name)) + '</span><div><b>' + esc(a.name) + '</b><small>' + esc(G.PJ_G[a.genre].name) + ' · aime ' + a.likes.map(function (m) { return esc(G.PJ_M[m].name.toLowerCase()); }).join(' et ') + '</small></div><span class="a-mood m' + mt[1] + '">' + mt[0] + '</span></div>' +
+          '<div class="a-fame"><span>Notoriété</span><span class="meter" aria-hidden="true"><i style="width:' + r.fame + '%"></i></span><b>' + Math.round(r.fame) + '</b></div>' +
+          '<p class="' + (r.ask ? 'a-ask' : 'a-line') + '" data-k="when"></p>' +
+          (last ? '<p class="a-line">Dernier album : « ' + esc(last.t) + ' » ' + nf1.format(last.avg) + '/10' + (last.pos ? ', entré n°' + last.pos : '') + ' · ' + r.albums + ' album' + (r.albums > 1 ? 's' : '') + '</p>' : '<p class="a-line">Pas encore d’album sur ton label.</p>') +
+          '<div class="proj-row"><button class="btn sm' + (r.ask ? ' primary' : '') + '" type="button" data-art="album" data-id="' + r.id + '"' + (S.proj.cur ? ' disabled' : '') + '>' + (S.proj.cur ? 'Un projet est déjà en cours' : 'Préparer son album') + '</button></div></article>';
+      }).join('');
+      L.roster.forEach(function (r) { lbv.cards[r.id] = $('labelRoster').querySelector('[data-aid="' + r.id + '"] [data-k="when"]'); });
+      setHidden($('labelScoutT'), !avail.length);
+      var full = L.roster.length >= cap, cost = G.artistCost(S);
+      $('labelScouts').innerHTML = avail.map(function (a) {
+        return '<article class="card scout"><div><b>' + esc(a.name) + ' · ' + esc(G.PJ_G[a.genre].name) + '</b><p>' + esc(a.bio) + ' ' + (a.contact ? 'Rencontré en sortie de studio.' : 'Repéré par ton réseau.') + '</p></div>' +
+          '<button class="btn sm primary" type="button" data-art="sign" data-id="' + a.id + '"' + (full ? ' disabled' : '') + '><span>Signer</span><span class="p">' + eur(cost) + '</span></button></article>';
+      }).join('');
+      var hidden = G.ARTISTS.filter(function (a) { return !G.artistOf(S, a.id) && !G.artistAvailable(S, a); }).length;
+      setText($('labelMore'), (avail.length && full ? 'Ton lieu actuel accueille ' + cap + ' artiste' + (cap > 1 ? 's' : '') + ' : emménage plus grand pour en signer d’autres. ' : '') +
+        (hidden ? hidden + ' autre' + (hidden > 1 ? 's' : '') + ' talent' + (hidden > 1 ? 's' : '') + ' à découvrir en sortie de studio ou en faisant grandir ton studio.' : ''));
+    }
+    L.roster.forEach(function (r) {
+      var el = lbv.cards[r.id]; if (!el) return;
+      var busy = S.proj.cur && S.proj.cur.artist === r.id;
+      setText(el, busy ? 'Son album est en cours de production.' : r.ask ? artName(r.id) + ' veut sortir un album · reste ' + clock(r.ask.left) : 'Prochaine envie d’album dans ' + clock(r.cd) + '.');
+    });
+    $('labelScouts').querySelectorAll('[data-art="sign"]').forEach(function (b) { setDisabled(b, L.roster.length >= cap || S.money < G.artistCost(S)); });
+  }
+  function bindLabel() {
+    $('labelBox').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-art]'); if (!b || b.disabled) return;
+      var id = b.getAttribute('data-id');
+      if (b.getAttribute('data-art') === 'sign') { if (G.signArtist(S, id)) { saveLocal(); markCloud(); lbv.key = ''; renderLabel(true); render(); } }
+      else openProj(id);
+    });
+  }
 
   // ---------- Tendances de la semaine ----------
   var RULE_TXT = { rapide: ['Tempo rapide', 'Les clashs vont 10 % plus vite, et la victoire rapporte 25 % de plus.'], 'sans-clap': ['Sans clap', 'La piste Clap reste muette pendant les clashs : concentre-toi sur les trois autres.'], prime: ['Grosse prime', 'Les victoires en clash rapportent 50 % de plus.'] };
@@ -5258,7 +5465,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
 
   // ---------- Projets de création (bonus) ----------
-  var pjv = { key: '', t: 0, wasOpen: null, open: false, opener: null, cfg: { genre: 'rap', mood: null, pub: null, fmt: 'single', sl: [50, 50, 50], team: [null, null, null] }, confirm: false };
+  var pjv = { key: '', t: 0, wasOpen: null, open: false, opener: null, cfg: { genre: 'rap', mood: null, pub: null, fmt: 'single', sl: [50, 50, 50], team: [null, null, null], artist: null }, confirm: false };
   var GRADE = { top: 'idéal', ok: 'neutre', bad: 'à éviter' };
   function pjGenreName(id) { return G.PJ_G[id] ? G.PJ_G[id].name : id; }
   function pjMeta(c) { return G.PJ_F[c.fmt].name + ' · ' + pjGenreName(c.genre) + ' · ' + G.PJ_M[c.mood].name + ' · ' + G.PJ_P[c.pub].name; }
@@ -5289,13 +5496,14 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
           '<li class="' + L.pubG + '">Public ' + esc(G.PJ_P[L.pub].name.toLowerCase()) + ' : ' + (L.pubG === 'top' ? 'la cible idéale.' : L.pubG === 'bad' ? 'pas du tout sa cible.' : 'une cible correcte.') + '</li>' +
           '<li class="' + (L.acc >= 85 ? 'top' : L.acc < 50 ? 'bad' : 'ok') + '">Réglages des phases justes à ' + L.acc + ' %. Le carnet garde la zone probable.</li>' +
           '<li class="' + (L.fit >= 75 ? 'top' : L.fit < 45 ? 'bad' : 'ok') + '">Apport de l’équipe : ' + L.fit + ' %.</li>' +
+          (L.artist ? '<li class="' + (L.artist.dMood >= 0 ? 'top' : 'bad') + '">' + esc(artName(L.artist.id)) + ' : ' + (L.artist.match ? '' : 'pas son genre, ') + 'humeur ' + moodTxt(L.artist.mood)[0].toLowerCase() + ' (' + (L.artist.dMood >= 0 ? '+' : '') + Math.round(L.artist.dMood) + '), notoriété ' + Math.round(L.artist.fame) + ' (' + (L.artist.dFame >= 0 ? '+' : '') + Math.round(L.artist.dFame) + ')' + (L.artist.ask ? ', demande comblée' : '') + '.</li>' : '') +
           (L.tg || L.tm ? '<li class="top">Dans l’air du temps : ' + (L.tg && L.tm ? 'genre et ambiance à la mode' : L.tg ? 'genre à la mode, ventes boostées' : 'ambiance à la mode') + '.</li>' : '') +
           (L.fresh < 0 ? '<li class="bad">' + (L.fresh <= -1.5 ? 'Déjà entendu : le public se lasse de cette association.' : 'Encore ce genre : un peu de lassitude.') + '</li>' : '') +
           '</ul><p class="proj-meta">' + (L.pos ? 'Entré au Top 50 à la place ' + L.pos + '. Ventes attendues : ' + eur(L.sales) + ' sur ' + D.PROJECTS.sales.length + ' semaines s’il reste classé (budget ' + eur(L.cost) + ').' : 'Pas assez fort pour entrer au Top 50 : aucune vente.') + '</p>' +
           '<button class="btn sm" type="button" data-pj="dismiss">Ranger le compte rendu</button></article>';
       }
       if (c) {
-        h += '<article class="card proj-card"><h4>' + esc(c.title) + '</h4><p class="proj-meta">' + esc(pjMeta(c)) + '</p><div class="proj-phases">' +
+        h += '<article class="card proj-card"><h4>' + esc(c.title) + '</h4><p class="proj-meta">' + (c.artist ? 'Album de ' + esc(artName(c.artist)) + ' · ' : '') + esc(pjMeta(c)) + '</p><div class="proj-phases">' +
           D.PROJECTS.phases.map(function (ph, i) {
             var m = c.team[i] ? G.findMember(S, c.team[i]) : null;
             return '<div class="proj-ph' + (i < c.phase ? ' done' : i === c.phase ? ' now' : '') + '"><span>' + esc(ph.name) + '</span><span class="meter"><i data-pjm="' + i + '"></i></span><span>' + (m ? esc(m.name) : 'Personne') + '</span></div>';
@@ -5328,13 +5536,23 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
   function renderPjForm() {
     var cf = pjv.cfg, PR = D.PROJECTS;
-    if (!G.genreOpen(S, cf.genre)) cf.genre = 'rap';
+    if (cf.artist && !G.artistOf(S, cf.artist)) cf.artist = null;
+    var ART = cf.artist ? G.ART_BY[cf.artist] : null;
+    function gOk(id) { return G.genreOpen(S, id) || (ART && ART.genre === id); }
+    if (!gOk(cf.genre)) cf.genre = 'rap';
+    var ros = G.labelOpen(S) ? S.label.roster : [];
+    setHidden($('pjForBox'), !ros.length);
+    $('pjFor').innerHTML = ros.length ? '<button type="button" class="pk" data-artist="" aria-pressed="' + !cf.artist + '">Le studio</button>' + ros.map(function (r) {
+      var a = G.ART_BY[r.id]; return '<button type="button" class="pk" data-artist="' + r.id + '" aria-pressed="' + (cf.artist === r.id) + '">' + esc(a.name) + (r.ask ? ' <small>demande</small>' : '') + '</button>';
+    }).join('') : '';
+    setText($('pjForNote'), ART ? ART.name + ' fait du ' + G.PJ_G[ART.genre].name + ' et aime ' + ART.likes.map(function (m) { return G.PJ_M[m].name.toLowerCase(); }).join(' et ') + '. Son humeur (' + moodTxt(G.artistOf(S, ART.id).mood)[0].toLowerCase() + ') pèse sur la note, sa notoriété sur les ventes.' : ros.length ? 'Un projet libre pour le studio, ou l’album d’un de tes artistes.' : '');
     if (!G.formatOpen(S, cf.fmt)) cf.fmt = 'single';
     $('pjFmt').innerHTML = PR.formats.map(function (f) { var ok = G.formatOpen(S, f.id); return pickBtn('fmt', f.id, f.name, cf.fmt === f.id, !ok, ok ? (f.cost > 1 ? '×' + nf1.format(f.cost) + ' budget' : '') : 'dès ' + D.TIERS[f.tier].name.toLowerCase()); }).join('');
     var trd = G.trendFor(S);
-    $('pjGenre').innerHTML = PR.genres.map(function (g) { var ok = G.genreOpen(S, g.id); return pickBtn('genre', g.id, g.name, cf.genre === g.id, !ok, ok ? '' : 'recherche ' + G.RD_BY[g.rd].name); }).join('');
+    $('pjGenre').innerHTML = PR.genres.map(function (g) { var ok = gOk(g.id); return pickBtn('genre', g.id, g.name, cf.genre === g.id, !ok, ok ? (ART && ART.genre === g.id ? 'son genre' : '') : 'recherche ' + G.RD_BY[g.rd].name); }).join('');
     $('pjMood').innerHTML = PR.moods.map(function (m) { return pickBtn('mood', m.id, m.name, cf.mood === m.id, false, '', pjGrade('m', cf.genre, m.id)); }).join('');
     $('pjPub').innerHTML = PR.pubs.map(function (p) { return pickBtn('pub', p.id, p.name, cf.pub === p.id, false, '', pjGrade('p', cf.genre, p.id)); }).join('');
+    if (ART) ART.likes.forEach(function (m) { var b = $('pjMood').querySelector('[data-mood="' + m + '"]'); if (b) { var s = document.createElement('span'); s.className = 'lk'; s.textContent = 'aime'; b.appendChild(s); } });
     if (trd) [['pjGenre', 'genre', trd.g], ['pjMood', 'mood', trd.m]].forEach(function (q) {
       var b = $(q[0]).querySelector('[data-' + q[1] + '="' + q[2] + '"]');
       if (b && !b.disabled) { var s = document.createElement('span'); s.className = 'tr'; s.textContent = 'tendance'; b.appendChild(s); }
@@ -5366,12 +5584,15 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   var TW = ['Minuit', 'Néon', 'Asphalte', 'Comète', 'Velours', 'Mirage', 'Orage', 'Sirène', 'Cendres', 'Lumière', 'Satellite', 'Rivage'];
   var TT = ['sur la ville', 'de juillet', 'en boucle', 'sans retour', 'au ralenti', 'dans le noir', 'pour toujours', 'à l’horizon'];
   function suggestTitle() { return TW[Math.floor(Math.random() * TW.length)] + ' ' + TT[Math.floor(Math.random() * TT.length)]; }
-  function openProj() {
+  function openProj(artist) {
     if (pjv.open || !G.projOpen(S) || S.proj.cur) return;
     pjv.open = true; pjv.opener = document.activeElement;
     var cf = pjv.cfg;
+    cf.artist = typeof artist === 'string' && G.artistOf(S, artist) ? artist : null;
+    if (cf.artist) cf.genre = G.ART_BY[cf.artist].genre;
     cf.team = cf.team.map(function (id) { return id && G.findMember(S, id) ? id : null; });
     $('pjName').value = ''; $('pjName').placeholder = suggestTitle();
+    setText($('pjTitle'), cf.artist ? 'Album de ' + G.ART_BY[cf.artist].name : 'Nouveau projet');
     renderPjForm();
     $('projScrim').hidden = false; $('app').inert = true;
     $('projScrim').querySelector('.sheet').scrollTop = 0;
@@ -5399,6 +5620,13 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     scrim.addEventListener('click', function (e) {
       if (e.target === scrim) { closeProj(); return; }
       var b = e.target.closest('button.pk'); if (!b || b.disabled) return;
+      if (b.hasAttribute('data-artist')) {
+        var aid = b.getAttribute('data-artist') || null;
+        pjv.cfg.artist = aid; if (aid) pjv.cfg.genre = G.ART_BY[aid].genre;
+        renderPjForm();
+        var fb = scrim.querySelector('[data-artist="' + (aid || '') + '"]'); if (fb) fb.focus();
+        return;
+      }
       var k = KS.filter(function (x) { return b.hasAttribute('data-' + x); })[0]; if (!k) return;
       var v = b.getAttribute('data-' + k);
       pjv.cfg[k] = v;
@@ -5415,7 +5643,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     $('pjClose').addEventListener('click', closeProj);
     $('pjGo').addEventListener('click', function () {
       var cf = pjv.cfg;
-      var c = G.startProject(S, { genre: cf.genre, mood: cf.mood, pub: cf.pub, fmt: cf.fmt, sl: cf.sl.slice(), team: cf.team.slice(), title: $('pjName').value.trim() || $('pjName').placeholder });
+      var c = G.startProject(S, { genre: cf.genre, mood: cf.mood, pub: cf.pub, fmt: cf.fmt, sl: cf.sl.slice(), team: cf.team.slice(), artist: cf.artist, title: $('pjName').value.trim() || $('pjName').placeholder });
       if (!c) { pjFoot(); return; }
       saveLocal(); markCloud();
       closeProj(); pjv.key = ''; renderProj(true); render();
@@ -5580,14 +5808,14 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var mine = c.mine.slice().sort(function (a, b) { return a.pos - b.pos; });
       setText($('mineNote'), mine.length ? 'Gains par semaine selon la place. Les titres perdent des places au fil des semaines.' : 'Aucun titre classé pour l’instant.');
       $('mineList').innerHTML = mine.map(function (m) {
-        return '<li class="mine' + (m.pos === 1 ? ' top1' : '') + '"><span class="pos">' + m.pos + '</span>' + moveHtml({ prev: m.p, pos: m.pos }) + '<span class="tt"><b>' + esc(m.t) + '</b><span>' + (m.pj ? '<span class="pjt">' + esc(G.PJ_F[m.pj.f].name + ' ' + pjGenreName(m.pj.g)) + '</span> · ' + pjNote(m.pj.avg) : esc(G.ACT_BY[m.act].name) + ' · ' + starsTxt(m.q)) + ' · ' + m.weeks + ' sem.' + (m.best ? ' · record ' + m.best : '') + '</span></span><span class="gain">+' + eur(G.chartPay(S, m.pos) + pjWeek(m)) + '/sem.</span></li>';
+        return '<li class="mine' + (m.pos === 1 ? ' top1' : '') + '"><span class="pos">' + m.pos + '</span>' + moveHtml({ prev: m.p, pos: m.pos }) + '<span class="tt"><b>' + esc(m.t) + '</b><span>' + (m.pj ? (m.pj.ar ? esc(artName(m.pj.ar)) + ' · ' : '') + '<span class="pjt">' + esc(G.PJ_F[m.pj.f].name + ' ' + pjGenreName(m.pj.g)) + '</span> · ' + pjNote(m.pj.avg) : esc(G.ACT_BY[m.act].name) + ' · ' + starsTxt(m.q)) + ' · ' + m.weeks + ' sem.' + (m.best ? ' · record ' + m.best : '') + '</span></span><span class="gain">+' + eur(G.chartPay(S, m.pos) + pjWeek(m)) + '/sem.</span></li>';
       }).join('');
     }
     var now = performance.now();
     if (now - chs.listT > 2000 || force) {
       chs.listT = now;
       $('chartList').innerHTML = G.chartTop(S).map(function (e) {
-        return '<li class="' + (e.mine ? 'mine' : '') + (e.pos === 1 ? ' top1' : '') + '"><span class="pos">' + e.pos + '</span>' + moveHtml(e) + '<span class="tt"><b>' + esc(e.t) + '</b><span>' + (e.mine ? (e.pj ? 'Ton projet · <span class="pjt">' + esc(pjGenreName(e.pj.g)) + '</span> · ' + pjNote(e.pj.avg) : 'Ta prod · ' + esc(G.ACT_BY[e.act].name) + ' · ' + starsTxt(e.q)) : esc(e.a)) + '</span></span><span class="gain">' + (e.mine ? '+' + eur(G.chartPay(S, e.pos) + pjWeek(e)) : '') + '</span></li>';
+        return '<li class="' + (e.mine ? 'mine' : '') + (e.pos === 1 ? ' top1' : '') + '"><span class="pos">' + e.pos + '</span>' + moveHtml(e) + '<span class="tt"><b>' + esc(e.t) + '</b><span>' + (e.mine ? (e.pj ? (e.pj.ar ? 'Ton label · ' + esc(artName(e.pj.ar)) : 'Ton projet') + ' · <span class="pjt">' + esc(pjGenreName(e.pj.g)) + '</span> · ' + pjNote(e.pj.avg) : 'Ta prod · ' + esc(G.ACT_BY[e.act].name) + ' · ' + starsTxt(e.q)) : esc(e.a)) + '</span></span><span class="gain">' + (e.mine ? '+' + eur(G.chartPay(S, e.pos) + pjWeek(e)) : '') + '</span></li>';
       }).join('');
     }
   }
@@ -5597,6 +5825,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     bindClash();
     bindPiano();
     bindDeco();
+    bindLabel();
     $('rd').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-rd]'), sp = e.target.closest('button[data-spec]');
       if (b && !b.disabled) { if (G.research(S, b.getAttribute('data-rd'))) saveLocal(); renderRd(true); render(); }
@@ -5820,6 +6049,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     renderProj();
     renderClash();
     renderTrends();
+    renderLabel();
     if (pjv.open) pjFoot();
     renderScene();
     var hint = $('hint');
@@ -6443,7 +6673,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
-    closeMix(); closeProj(); cl.playing = false; closeClash(); closePiano(); closeDeco(); trv.key = ''; cl.key = ''; cl.wasOpen = null; pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
+    closeMix(); closeProj(); cl.playing = false; closeClash(); closePiano(); closeDeco(); trv.key = ''; lbv.key = ''; lbv.wasOpen = null; cl.key = ''; cl.wasOpen = null; pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -6525,7 +6755,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (was !== v) $('panes').scrollTop = 0;
       if (v === 'trophies') seeTrophies();
       if (v === 'team') { team.key = ''; renderTeam(true); }
-      if (v === 'charts') { chs.key = ''; chs.listT = 0; renderCharts(true); }
+      if (v === 'charts') { chs.key = ''; chs.listT = 0; renderCharts(true); lbv.key = ''; renderLabel(true); }
       if (v === 'rd') { rdv.key = ''; renderRd(true); }
       if (v !== 'team') team.focus = null;
       render();
@@ -6700,10 +6930,13 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   };
   G.hooks.research = function (n) { markCloud(); rdv.key = ''; if (!quiet) { toast('Recherche terminée : ' + n.name + '.', 4500); blip(10); } };
   G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
+  G.hooks.artistSign = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' rejoint ton label !', 5000); blip(12); } };
+  G.hooks.artistAsk = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' veut sortir un album. Rendez-vous dans le Top 50, section Ton label.', 6500); blip(9); } };
+  G.hooks.artistIgnored = function (a) { lbv.key = ''; markCloud(); if (!quiet) toast(a.name + ' attendra son album un peu plus longtemps, un peu déçu.', 5000); };
   G.hooks.trend = function (tr) {
     trv.key = ''; markCloud();
     if (quiet) return;
-    toast('Nouvelles tendances : ' + G.ACT_BY[tr.act].name.toLowerCase() + ' en vogue, le public veut du ' + G.PJ_G[tr.g].name + '. Détails dans le Top 50.', 6500);
+    toast('Nouvelles tendances : « ' + G.ACT_BY[tr.act].name + ' » en vogue, le public veut du ' + G.PJ_G[tr.g].name + '. Détails dans le Top 50.', 6500);
   };
   G.hooks.battleNew = function (r) { cl.key = ''; markCloud(); if (!quiet) { toast(r.name + ' te défie en clash de beatmakers ! Rendez-vous dans Productions.', 6000); blip(10); } };
   G.hooks.battleDone = function () { cl.key = ''; markCloud(); };

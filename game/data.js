@@ -72,6 +72,8 @@
     // Atelier piano: une inspiration récompensée toutes les pianoEvery secondes de jeu
     pianoEvery: 240,
     // Tendances de la semaine (une par semaine du Top 50)
+    // Label: artistes signés et cycle d'album
+    labelLevel: 6, artistSignSec: 240, askEvery: 420, askFirst: 90, askLife: 600, labelFame: 0.0006,
     trendAct: 1.25, trendOrder: 0.4, trendOrderReward: 1.3, trendGenre: 0.6, trendMood: 0.4, trendSales: 1.3
   };
 
@@ -668,6 +670,9 @@
     { id: 'clash', name: 'Clash', m: 'battles', levels: [1, 10, 50, 150], desc: 'Remporte {n} clashs de beatmakers.', descs: ['Remporte ton premier clash de beatmakers.'] },
     { id: 'ligue', name: 'Ligue des beatmakers', m: 'league', levels: [2, 3, 4, 5], descs: ['Monte en ligue Régionale.', 'Monte en ligue Nationale.', 'Monte en ligue Internationale.', 'Atteins la ligue Légende.'] },
     { id: 'piano', name: 'Oreille musicale', m: 'pianoBest', levels: [5, 9, 13], desc: 'Rejoue une mélodie de {n} notes à l’atelier piano.' },
+    { id: 'label', name: 'Directeur de label', m: 'signed', levels: [1, 2, 4], desc: 'Signe {n} artistes sur ton label.', descs: ['Signe ton premier artiste.'] },
+    { id: 'albums', name: 'Disques d’artistes', m: 'artistAlbums', levels: [1, 10, 30], desc: 'Réalise {n} albums pour tes artistes.', descs: ['Réalise le premier album d’un de tes artistes.'] },
+    { id: 'vedette', name: 'Faiseur de vedettes', m: 'artistFame', levels: [40, 75, 100], desc: 'Porte un artiste à {n} de notoriété.' },
     { id: 'combo', name: 'Main sûre', m: 'combo', levels: [20, 50, 100], desc: 'Enchaîne {n} frappes réussies d’affilée dans un clash.' }
   ];
 
@@ -821,6 +826,25 @@
     ]
   };
 
+
+  // Artistes à signer. contact: rencontré en sortie de studio ; tier: repéré quand le studio atteint ce lieu.
+  var ARTISTS = [
+    { id: 'kais', name: 'Kaïs', genre: 'rap', likes: ['rue', 'revolte'], contact: 'rappeur', bio: 'Le rappeur du café, plume affûtée et flow nerveux.' },
+    { id: 'ines', name: 'Inès', genre: 'chanson', likes: ['amour', 'nostalgie'], contact: 'openmic', bio: 'La chanteuse du micro ouvert, une voix qui fait taire les bars.' },
+    { id: 'moussa', name: 'Moussa', genre: 'trap', likes: ['rue', 'fete'], contact: 'cypher', bio: 'Beatboxer du parc, il veut ses propres morceaux.' },
+    { id: 'lou', name: 'Lou', genre: 'rock', likes: ['revolte', 'spleen'], contact: 'groupe', bio: 'Chanteuse des Marées, prête à tracer sa route.' },
+    { id: 'salome', name: 'Salomé', genre: 'bo', likes: ['voyage', 'espoir'], contact: 'panne', bio: 'Chanteuse lyrique, elle rêve de musiques de film.' },
+    { id: 'anatole', name: 'Anatole', genre: 'jazz', likes: ['nostalgie', 'voyage'], contact: 'pianiste', bio: 'Le pianiste du métro, des doigts d’or.' },
+    { id: 'nox', name: 'DJ Nox', genre: 'electro', likes: ['fete', 'voyage'], contact: 'pirate', bio: 'La voix des nuits de la radio pirate.' },
+    { id: 'maya', name: 'Maya Lorent', genre: 'pop', likes: ['amour', 'espoir'], contact: 'artiste', bio: 'La star que tout le monde connaît. Exigeante, et généreuse avec ceux qui la suivent.' },
+    { id: 'leila', name: 'Leïla Noor', genre: 'rnb', likes: ['amour', 'spleen'], contact: 'star', bio: 'Auteure-compositrice perfectionniste, des refrains en or.' },
+    { id: 'zoe', name: 'Zoé Kahn', genre: 'pop', likes: ['fete', 'amour'], tier: 2, bio: 'Repérée sur les réseaux, un tube par semaine dans sa chambre.' },
+    { id: 'volts', name: 'Les Volts', genre: 'rock', likes: ['revolte', 'fete'], tier: 3, bio: 'Quatre lycéens devenus groupe de scène redoutable.' },
+    { id: 'nayla', name: 'Nayla', genre: 'afro', likes: ['fete', 'amour'], tier: 3, bio: 'Danseuse et chanteuse, elle fait bouger tout le quartier.' },
+    { id: 'seo', name: 'Kim Seo-yeon', genre: 'kpop', likes: ['amour', 'espoir'], tier: 4, bio: 'Venue de Séoul pour une carrière européenne.' },
+    { id: 'lofi-sam', name: 'Sam & Lune', genre: 'lofi', likes: ['nostalgie', 'spleen'], tier: 4, bio: 'Un duo de chambre aux millions d’écoutes.' }
+  ];
+
   // Commandes: clients par type de production
   var CLIENTS = {
     beat: ['Rappeur', ['Kaïs', 'Lil Néo', 'Sami B', 'Zoya']], mix: ['Groupe', ['Les Rivages', 'Fuzz Club', 'Velvet Garage']],
@@ -850,7 +874,7 @@
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);
