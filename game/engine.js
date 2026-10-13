@@ -15,6 +15,9 @@
 
   var RESEARCH = D.RESEARCH || { branches: [], nodes: [], specs: [], costs: [] }, RD_BY = {}, SPEC_BY = {};
   RESEARCH.nodes.forEach(function (n) { RD_BY[n.id] = n; });
+  var PJ = D.PROJECTS || { genres: [], moods: [], pubs: [], formats: [], phases: [], critics: [], sales: [] }, PJ_G = {}, PJ_M = {}, PJ_P = {}, PJ_F = {};
+  PJ.genres.forEach(function (x) { PJ_G[x.id] = x; }); PJ.moods.forEach(function (x) { PJ_M[x.id] = x; });
+  PJ.pubs.forEach(function (x) { PJ_P[x.id] = x; }); PJ.formats.forEach(function (x) { PJ_F[x.id] = x; });
   RESEARCH.specs.forEach(function (t) { t.options.forEach(function (o) { SPEC_BY[o.id] = { o: o, tier: t.tier }; }); });
   var ROLES = D.ROLES || [], NAMES = D.NAMES || [], CLIENTS = D.CLIENTS || {}, CHART = D.CHART || { words: ['Titre'], tails: [''], artists: ['Artiste'] };
   var ACT_BY = {}, ITEM_BY = {}, EVENT_BY = {}, TROPHY_BY = {}, ROLE_BY = {};
@@ -38,8 +41,9 @@
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd() };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj() };
   }
+  function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newRd() { return { pts: 0, total: 0, nodes: {}, spec: {} }; }
   function newOrders() { return { offers: [], active: [], cd: T.orderFirst, rep: 0, done: 0, failed: 0, nextId: 1 }; }
   function newCharts() { return { week: 1, left: T.weekLen, rivals: [], mine: [], free: 0, best: 0, num1: 0, releases: 0, nextId: 1 }; }
@@ -102,6 +106,7 @@
       RESEARCH.branches.forEach(function (b) { var ok = true; branchNodes(b.id).forEach(function (n) { if (!ok) delete S.rd.nodes[n.id]; else if (!S.rd.nodes[n.id]) ok = false; }); });
       if (o.rd.spec && typeof o.rd.spec === 'object') RESEARCH.specs.forEach(function (t) { var id = o.rd.spec[t.tier]; if (SPEC_BY[id] && SPEC_BY[id].tier === t.tier) S.rd.spec[t.tier] = id; });
     }
+    if (o.proj && typeof o.proj === 'object') hydrateProj(S, o.proj);
     return S;
   }
 
@@ -139,7 +144,7 @@
     r.cd = Math.max(0, num(o.cd, T.orderFirst)); r.rep = Math.max(0, Math.min(T.repMax, num(o.rep, 0)));
     r.done = Math.max(0, Math.floor(num(o.done, 0))); r.failed = Math.max(0, Math.floor(num(o.failed, 0)));
     (Array.isArray(o.offers) ? o.offers : []).forEach(function (x) { var c = cleanOrder(x); if (c && r.offers.length < T.orderMaxOffers) r.offers.push(c); });
-    (Array.isArray(o.active) ? o.active : []).forEach(function (x) { var c = cleanOrder(x); if (c && r.active.length < T.orderMaxActive) r.active.push(c); });
+    (Array.isArray(o.active) ? o.active : []).forEach(function (x) { var c = cleanOrder(x); if (c && r.active.length < T.orderMaxActive + 2) r.active.push(c); });
     var mx = 0; r.offers.concat(r.active).forEach(function (x) { mx = Math.max(mx, x.id); });
     r.nextId = Math.max(mx + 1, Math.floor(num(o.nextId, 1)));
   }
@@ -157,6 +162,7 @@
       var e = { id: Math.max(1, Math.floor(num(m.id, 1))), t: String(m.t || 'Titre').slice(0, 40), act: m.act, q: Math.max(1, Math.min(5, Math.floor(num(m.q, 1)))),
         s: Math.max(0, num(m.s, 0)), weeks: Math.max(0, Math.floor(num(m.weeks, 0))), pos: Math.max(0, Math.floor(num(m.pos, 0))), p: Math.max(0, Math.floor(num(m.p, 0))),
         best: Math.max(0, Math.floor(num(m.best, 0))), promo: !!m.promo, earned: Math.max(0, num(m.earned, 0)) };
+      if (m.pj && typeof m.pj === 'object' && PJ_G[m.pj.g] && PJ_F[m.pj.f]) e.pj = { g: m.pj.g, f: m.pj.f, sales: Math.max(0, num(m.pj.sales, 0)), sold: Math.max(0, num(m.pj.sold, 0)), w: Math.max(0, Math.floor(num(m.pj.w, 0))), avg: Math.max(0, Math.min(10, num(m.pj.avg, 0))) };
       mx = Math.max(mx, e.id); c.mine.push(e);
     });
     c.nextId = Math.max(mx + 1, Math.floor(num(o.nextId, 1)));
@@ -441,7 +447,7 @@
     if (!st || !st.length) return NOFX;
     for (var i = 0; i < st.length; i++) {
       var m = st[i];
-      if (m.act !== actId || !working(m)) continue;
+      if (m.act !== actId || !working(m) || projBusy(S, m)) continue;
       var eff = (0.5 + m.morale / 200) * (roleFits(m, actId) ? 1 : T.offRole);
       return { sp: 1 + (T.staffSpeedStar * m.stars + T.staffSpeedLvl * m.lvl) * eff, gn: 1 + (T.staffGainStar * m.stars + T.staffGainLvl * m.lvl) * eff, m: m };
     }
@@ -741,14 +747,14 @@
       if (e.m) { if (pos <= T.chartSize && (!o.best || pos < o.best)) o.best = pos; }
     });
     c.mine.forEach(function (m) { if (m.pos <= T.chartSize && (!c.best || m.pos < c.best)) c.best = m.pos; });
-    return all.slice(0, T.chartSize).map(function (e) { var o = e.r || e.m; return { t: o.t, a: e.r ? o.a : null, mine: !!e.m, id: e.m ? o.id : null, act: e.m ? o.act : null, q: e.m ? o.q : null, pos: o.pos, prev: o.p, weeks: e.m ? o.weeks : null }; });
+    return all.slice(0, T.chartSize).map(function (e) { var o = e.r || e.m; return { t: o.t, a: e.r ? o.a : null, mine: !!e.m, id: e.m ? o.id : null, act: e.m ? o.act : null, q: e.m ? o.q : null, pos: o.pos, prev: o.p, weeks: e.m ? o.weeks : null, pj: e.m && o.pj ? o.pj : null }; });
   }
   function chartTop(S) {
     var c = S.charts, P = potential(S), all = [];
     c.rivals.forEach(function (r) { all.push({ o: r, s: r.f * P }); });
     c.mine.forEach(function (m) { all.push({ o: m, s: m.s, mine: true }); });
     all.sort(function (x, y) { return y.s - x.s; });
-    return all.slice(0, T.chartSize).map(function (e, i) { return { t: e.o.t, a: e.mine ? null : e.o.a, mine: !!e.mine, id: e.mine ? e.o.id : null, act: e.mine ? e.o.act : null, q: e.mine ? e.o.q : null, pos: i + 1, prev: e.o.p || 0, weeks: e.mine ? e.o.weeks : null }; });
+    return all.slice(0, T.chartSize).map(function (e, i) { return { t: e.o.t, a: e.mine ? null : e.o.a, mine: !!e.mine, id: e.mine ? e.o.id : null, act: e.mine ? e.o.act : null, q: e.mine ? e.o.q : null, pos: i + 1, prev: e.o.p || 0, weeks: e.mine ? e.o.weeks : null, pj: e.mine && e.o.pj ? e.o.pj : null }; });
   }
   function promoCost(S) { return incomeRef(S) * T.promoSec * rdFx(S).promoCost; }
   function canFreeRelease(S) { return chartsOpen(S) && S.charts.free !== S.charts.week; }
@@ -786,6 +792,7 @@
     c.mine.forEach(function (m) {
       if (m.pos > T.chartSize) return;
       var g = chartPay(S, m.pos);
+      if (m.pj && m.pj.w < PJ.sales.length) { var sl = m.pj.sales * PJ.sales[m.pj.w]; m.pj.w++; m.pj.sold += sl; g += sl; }
       pay += g; m.earned += g; m.weeks++;
       entries.push({ t: m.t, pos: m.pos, gain: g });
       if (m.pos === 1) { c.num1++; S.orders.rep = Math.min(T.repMax, S.orders.rep + 3); }
@@ -813,7 +820,148 @@
     c.left -= dt;
     if (c.left <= 0) weekEnd(S);
   }
-  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); }
+  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); }
+
+
+  // ---------- Projets de création (bonus facultatif) ----------
+  function projOpen(S) { return S.level >= T.projLevel && chartsOpen(S); }
+  function genreOpen(S, id) { var g = PJ_G[id]; return !!g && (!g.rd || !!(S.rd && S.rd.nodes[g.rd])); }
+  function formatOpen(S, id) { var f = PJ_F[id]; return !!f && tierIndex(S) >= f.tier; }
+  function projCost(S, fmt) { var f = PJ_F[fmt] || PJ.formats[0]; return incomeRef(S) * T.projCostSec * f.cost; }
+  function projTime(fmt, i) { var f = PJ_F[fmt] || PJ.formats[0]; return PJ.phases[i].dur * f.time; }
+  function comboGrade(g, mood) { return g.good.indexOf(mood) >= 0 ? 'top' : g.bad.indexOf(mood) >= 0 ? 'bad' : 'ok'; }
+  function pubGrade(g, pub) { return g.pub === pub ? 'top' : g.badPub === pub ? 'bad' : 'ok'; }
+  function projBusy(S, m) { var c = S.proj && S.proj.cur; return !!c && c.team[c.phase] === m.id; }
+  // Apport d'un membre de l'équipe à une phase (0,35 sans personne, jusqu'à 1).
+  function phaseFit(S, i, id) {
+    var m = id ? findMember(S, id) : null;
+    if (!m || m.rest > 0 || m.train > 0) return 0.35;
+    var fits = PJ.phases[i].roles.indexOf(m.role) >= 0;
+    return Math.min(1, (0.45 + 0.07 * m.stars + 0.015 * m.lvl) * (fits ? 1 : 0.75) * (0.7 + 0.3 * m.morale / 100));
+  }
+  function sliderAcc(v, ideal) { return Math.max(0, Math.min(1, 1 - Math.max(0, Math.abs(v - ideal) - 8) / 50)); }
+  function cleanCfg(S, c) {
+    if (!c || typeof c !== 'object' || !genreOpen(S, c.genre) || !PJ_M[c.mood] || !PJ_P[c.pub] || !formatOpen(S, c.fmt)) return null;
+    var sl = [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, Math.round(num(c.sl && c.sl[i], 50)))); });
+    var team = [0, 1, 2].map(function (i) { var id = c.team && c.team[i]; return id && findMember(S, id) ? id : null; });
+    var title = String(c.title || '').replace(/\s+/g, ' ').trim().slice(0, 40) || songTitle();
+    return { title: title, genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt, sl: sl, team: team };
+  }
+  function startProject(S, cfg) {
+    if (!projOpen(S) || S.proj.cur) return null;
+    var c = cleanCfg(S, cfg);
+    if (!c) return null;
+    var cost = projCost(S, c.fmt);
+    if (S.money < cost) return null;
+    S.money -= cost;
+    c.cost = cost; c.phase = 0; c.t = 0; c.fit = [];
+    S.proj.cur = c;
+    if (hooks.projectStart) hooks.projectStart(c);
+    return c;
+  }
+  function cancelProject(S) {
+    var c = S.proj && S.proj.cur;
+    if (!c) return 0;
+    var back = c.cost * T.projRefund;
+    S.money += back; S.proj.cur = null;
+    return back;
+  }
+  function tickProject(S, dt) {
+    var c = S.proj && S.proj.cur;
+    if (!c) return;
+    c.t += dt;
+    while (c && c.t >= projTime(c.fmt, c.phase)) {
+      c.t -= projTime(c.fmt, c.phase);
+      c.fit[c.phase] = phaseFit(S, c.phase, c.team[c.phase]);
+      c.phase++;
+      if (c.phase >= PJ.phases.length) { finishProject(S); c = null; }
+      else if (hooks.projectPhase) hooks.projectPhase(c);
+    }
+  }
+  // Note de 0 à 10 et détail, à partir des choix et de l'équipe.
+  function projScore(S, c) {
+    var g = PJ_G[c.genre], cg = comboGrade(g, c.mood), pg = pubGrade(g, c.pub), acc = 0, fit = 0;
+    c.sl.forEach(function (v, i) { acc += sliderAcc(v, g.ideal[i]) / 3; });
+    (c.fit || []).forEach(function (f) { fit += f / 3; });
+    var h = S.proj.hist, same = h.some(function (x) { return x.g === c.genre && x.m === c.mood; }), again = h.length && h[0].g === c.genre;
+    var crea = 0; RESEARCH.nodes.forEach(function (n) { if (n.b === 'crea' && S.rd.nodes[n.id]) crea += 0.1; });
+    var parts = { base: 1, combo: cg === 'top' ? 1.5 : cg === 'bad' ? -2 : 0, pub: pg === 'top' ? 1 : pg === 'bad' ? -1.5 : 0, sliders: 3.5 * acc, team: 3 * fit,
+      studio: Math.min(1, 0.25 * tierIndex(S)) + crea, fresh: same ? -1.5 : again ? -0.5 : 0 };
+    var s = 0; Object.keys(parts).forEach(function (k) { s += parts[k]; });
+    return { score: Math.max(0, Math.min(10, s + (rand() - 0.5) * 0.8)), parts: parts, combo: cg, pubG: pg, acc: acc, fit: fit };
+  }
+  function finishProject(S) {
+    var P = S.proj, c = P.cur, g = PJ_G[c.genre], f = PJ_F[c.fmt], r = projScore(S, c);
+    P.cur = null;
+    var notes = PJ.critics.map(function (name) { return { name: name, n: Math.max(0, Math.min(10, Math.round((r.score + (rand() - 0.5) * 1.6) * 2) / 2)) }; });
+    var avg = 0; notes.forEach(function (x) { avg += x.n / notes.length; });
+    avg = Math.round(avg * 10) / 10;
+    // carnet du studio: associations découvertes et zone probable de chaque curseur
+    var key = c.genre + '|' + c.mood;
+    P.book.c[key] = r.combo; P.book.p[c.genre + '|' + c.pub] = r.pubG;
+    var h = P.book.h[c.genre] || [[0, 100], [0, 100], [0, 100]];
+    c.sl.forEach(function (v, i) {
+      var d = g.ideal[i] - v, z = h[i];
+      if (Math.abs(d) <= 12) { z[0] = Math.max(z[0], v - 12); z[1] = Math.min(z[1], v + 12); }
+      else if (d > 0) z[0] = Math.max(z[0], Math.min(v + 12, 100));
+      else z[1] = Math.min(z[1], Math.max(v - 12, 0));
+      if (z[0] > z[1]) { var mid = (z[0] + z[1]) / 2; z[0] = mid; z[1] = mid; }
+    });
+    P.book.h[c.genre] = h;
+    P.hist.unshift({ g: c.genre, m: c.mood }); P.hist = P.hist.slice(0, 4);
+    P.done++; P.best = Math.max(P.best, avg);
+    // sortie dans le Top 50 et ventes réparties sur les semaines de classement
+    var sales = c.cost * (0.15 + 0.02 * avg * avg) * f.roi;
+    var c2 = S.charts; if (!c2.rivals.length) initRivals(S);
+    var e = { id: c2.nextId++, t: c.title, act: bestAct(S).id, q: Math.max(1, Math.min(5, Math.round(avg / 2))),
+      s: potential(S) * (0.25 + 0.18 * avg) * f.chart * (1 + S.orders.rep / 200) * rdFx(S).chartScore,
+      weeks: 0, pos: 0, p: 0, best: 0, promo: false, earned: 0, pj: { g: c.genre, f: c.fmt, sales: sales, sold: 0, w: 0, avg: avg } };
+    c2.mine.push(e); c2.releases++;
+    rankCharts(S, false); e.p = 0;
+    var inChart = e.pos <= T.chartSize;
+    if (!inChart) c2.mine = c2.mine.filter(function (x) { return x !== e; });
+    addXp(S, xpGain(S, bestAct(S)) * T.projXp * f.time * (0.5 + avg / 10));
+    addRp(S, T.rpProj * avg * f.time);
+    if (avg >= 8) S.orders.rep = Math.min(T.repMax, S.orders.rep + Math.round(avg - 6));
+    var res = { title: c.title, genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt, sl: c.sl.slice(), avg: avg, notes: notes, combo: r.combo, pubG: r.pubG,
+      acc: Math.round(r.acc * 100), fit: Math.round(r.fit * 100), fresh: r.parts.fresh, pos: inChart ? e.pos : 0, sales: sales, cost: c.cost };
+    P.last = res;
+    checkTrophies(S);
+    if (hooks.projectDone) hooks.projectDone(res);
+    return res;
+  }
+  function hydrateProj(S, o) {
+    var P = S.proj;
+    P.done = Math.max(0, Math.floor(num(o.done, 0))); P.best = Math.max(0, Math.min(10, num(o.best, 0)));
+    var b = o.book && typeof o.book === 'object' ? o.book : {}, G3 = ['top', 'ok', 'bad'];
+    if (b.c && typeof b.c === 'object') Object.keys(b.c).forEach(function (k) { var p = k.split('|'); if (PJ_G[p[0]] && PJ_M[p[1]] && G3.indexOf(b.c[k]) >= 0) P.book.c[k] = b.c[k]; });
+    if (b.p && typeof b.p === 'object') Object.keys(b.p).forEach(function (k) { var p = k.split('|'); if (PJ_G[p[0]] && PJ_P[p[1]] && G3.indexOf(b.p[k]) >= 0) P.book.p[k] = b.p[k]; });
+    if (b.h && typeof b.h === 'object') Object.keys(b.h).forEach(function (k) {
+      var h = b.h[k];
+      if (!PJ_G[k] || !Array.isArray(h) || h.length !== 3) return;
+      P.book.h[k] = h.map(function (z) { var lo = Math.max(0, Math.min(100, num(z && z[0], 0))), hi = Math.max(lo, Math.min(100, num(z && z[1], 100))); return [lo, hi]; });
+    });
+    (Array.isArray(o.hist) ? o.hist : []).forEach(function (x) { if (x && PJ_G[x.g] && PJ_M[x.m] && P.hist.length < 4) P.hist.push({ g: x.g, m: x.m }); });
+    var l = o.last;
+    if (l && typeof l === 'object' && PJ_G[l.genre] && PJ_M[l.mood] && PJ_P[l.pub] && PJ_F[l.fmt] && Array.isArray(l.notes)) {
+      P.last = { title: String(l.title || 'Projet').slice(0, 40), genre: l.genre, mood: l.mood, pub: l.pub, fmt: l.fmt,
+        sl: [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, num(l.sl && l.sl[i], 50))); }), avg: Math.max(0, Math.min(10, num(l.avg, 0))),
+        notes: l.notes.slice(0, PJ.critics.length).map(function (x) { return { name: String((x && x.name) || 'Critique').slice(0, 30), n: Math.max(0, Math.min(10, num(x && x.n, 0))) }; }),
+        combo: G3.indexOf(l.combo) >= 0 ? l.combo : 'ok', pubG: G3.indexOf(l.pubG) >= 0 ? l.pubG : 'ok', acc: Math.max(0, Math.min(100, num(l.acc, 0))), fit: Math.max(0, Math.min(100, num(l.fit, 0))),
+        fresh: Math.min(0, num(l.fresh, 0)), pos: Math.max(0, Math.floor(num(l.pos, 0))), sales: Math.max(0, num(l.sales, 0)), cost: Math.max(0, num(l.cost, 0)) };
+    }
+    var c = o.cur;
+    if (c && typeof c === 'object' && PJ_G[c.genre] && PJ_M[c.mood] && PJ_P[c.pub] && PJ_F[c.fmt]) {
+      var ids = {}; S.team.staff.forEach(function (m) { ids[m.id] = 1; });
+      var ph = Math.max(0, Math.min(PJ.phases.length - 1, Math.floor(num(c.phase, 0))));
+      P.cur = { title: String(c.title || 'Projet').slice(0, 40), genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt,
+        sl: [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, Math.round(num(c.sl && c.sl[i], 50)))); }),
+        team: [0, 1, 2].map(function (i) { var id = c.team && c.team[i]; return id && ids[id] ? id : null; }),
+        cost: Math.max(0, num(c.cost, 0)), phase: ph, t: Math.max(0, Math.min(projTime(c.fmt, ph), num(c.t, 0))),
+        fit: [0, 1, 2].slice(0, ph).map(function (i) { return Math.max(0, Math.min(1, num(c.fit && c.fit[i], 0.35))); }) };
+    }
+  }
+  function dismissProject(S) { if (S.proj) S.proj.last = null; }
 
   // ---------- Tournée mondiale (prestige) ----------
   // Points de renommée au total pour un cumul de gains donné.
@@ -842,6 +990,7 @@
       S.acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: s ? s.done : 0 };
     });
     S.ev.cd = T.eventFirst; S.ev.pending = null; S.ev.hold = false;
+    if (S.proj) { S.proj.cur = null; S.proj.last = null; } // un projet en cours est abandonné, le carnet reste
     S.rd.spec = {}; // les recherches restent, les spécialisations se choisissent à nouveau
     // L'équipe part aussi en tournée: ses membres pourront revenir sans prime d'embauche.
     var tm = S.team || newTeam(), al = tm.staff.map(function (m) { return { id: m.id, name: m.name, role: m.role, stars: m.stars, lvl: m.lvl, xp: 0, salary: m.salary, look: m.look }; });
@@ -882,6 +1031,9 @@
       case 'rep': n = S.orders ? S.orders.rep : 0; break;
       case 'chartBest': n = S.charts && S.charts.best ? T.chartSize + 1 - S.charts.best : 0; break;
       case 'rdNodes': n = rdCount(S); break;
+      case 'projects': n = S.proj ? S.proj.done : 0; break;
+      case 'projBest': n = S.proj ? S.proj.best : 0; break;
+      case 'book': n = S.proj ? Object.keys(S.proj.book.c).length : 0; break;
       case 'specs': n = Object.keys((S.rd && S.rd.spec) || {}).length; break;
       case 'staffLvl': (S.team ? S.team.staff : []).forEach(function (m) { n = Math.max(n, m.lvl); }); break;
       case 'outings': Object.keys(S.ev.seen || {}).forEach(function (id) { n += S.ev.seen[id] || 0; }); break;
@@ -1033,7 +1185,10 @@
     chartsOpen: chartsOpen, chartTop: chartTop, rankCharts: rankCharts, release: release, canFreeRelease: canFreeRelease, promoCost: promoCost,
     chartPay: chartPay, weekEnd: weekEnd, tickCharts: tickCharts, tickLive: tickLive, potential: potential,
     RESEARCH: RESEARCH, RD_BY: RD_BY, SPEC_BY: SPEC_BY, rdFx: rdFx, researchCost: researchCost, canResearch: canResearch, research: research,
-    specOpen: specOpen, chooseSpec: chooseSpec, rdCount: rdCount, rdRate: rdRate, orderMax: orderMax, branchNodes: branchNodes, addRp: addRp
+    specOpen: specOpen, chooseSpec: chooseSpec, rdCount: rdCount, rdRate: rdRate, orderMax: orderMax, branchNodes: branchNodes, addRp: addRp,
+    PROJECTS: PJ, PJ_G: PJ_G, PJ_M: PJ_M, PJ_P: PJ_P, PJ_F: PJ_F, projOpen: projOpen, genreOpen: genreOpen, formatOpen: formatOpen, projCost: projCost,
+    projTime: projTime, phaseFit: phaseFit, projBusy: projBusy, startProject: startProject, cancelProject: cancelProject, tickProject: tickProject,
+    finishProject: finishProject, dismissProject: dismissProject, comboGrade: comboGrade, pubGrade: pubGrade
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;

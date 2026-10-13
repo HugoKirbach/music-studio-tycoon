@@ -5,7 +5,7 @@ const G = r.G, S = r.S;
 const miss = G.TROPHIES.filter(t => !S.trophies[t.id]).map(t => t.id + ' (' + (G.trophyProgress(S, t).f * 100).toFixed(0) + '%)');
 console.log('Après 12 h de jeu parfait :', G.trophyCount(S) + '/' + G.TROPHIES.length, 'trophées | manquants:', miss.join(', '));
 // Uniquement les trophées hors sorties de studio doivent être atteints par la simulation (qui ne joue pas les sorties)
-const must = G.TROPHIES.filter(t => !['contacts', 'outings', 'fame', 'tours', 'mixes', 'perfect', 'orders', 'rep', 'chartBest', 'rdNodes'].includes(t.m)).filter(t => !S.trophies[t.id]);
+const must = G.TROPHIES.filter(t => !['contacts', 'outings', 'fame', 'tours', 'mixes', 'perfect', 'orders', 'rep', 'chartBest', 'rdNodes', 'projects', 'projBest', 'book'].includes(t.m)).filter(t => !S.trophies[t.id]);
 assert.deepStrictEqual(must.map(t => t.id), [], 'trophées hors sorties jamais atteints');
 
 // 1. Un état neuf n'a aucun trophée ; le premier beat en donne un et le bonus de gains suit

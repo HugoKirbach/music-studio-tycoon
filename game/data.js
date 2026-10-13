@@ -64,7 +64,9 @@
     rpPer: 0.6,         // points par production terminée, multipliés par le rang de la production (1 à 11)
     rpMix: 6,           // points par étoile d'un mix
     rpOrder: 25,        // points par commande livrée (multipliés par la qualité demandée)
-    rpChart: 0.5        // points par place au-dessus de la 51e, chaque semaine, pour chaque titre classé
+    rpChart: 0.5,       // points par place au-dessus de la 51e, chaque semaine, pour chaque titre classé
+    // Projets de création (bonus facultatif)
+    projLevel: 5, projCostSec: 90, projRefund: 0.5, rpProj: 12, projXp: 4
   };
 
   // dur: secondes, pay: euros, xp: points d'expertise
@@ -347,7 +349,10 @@
     { id: 'chercheur', name: 'Esprit curieux', desc: 'Termine 3 recherches.', m: 'rdNodes', n: 3 },
     { id: 'savant', name: 'Laboratoire du son', desc: 'Termine 12 recherches.', m: 'rdNodes', n: 12 },
     { id: 'encyclopedie', name: 'Tout savoir', desc: 'Termine les 18 recherches.', m: 'rdNodes', n: 18 },
-    { id: 'specialiste', name: 'Une identité', desc: 'Choisis ta première spécialisation.', m: 'specs', n: 1 }
+    { id: 'specialiste', name: 'Une identité', desc: 'Choisis ta première spécialisation.', m: 'specs', n: 1 },
+    { id: 'premier-projet', name: 'Premier projet', desc: 'Termine un projet de création.', m: 'projects', n: 1 },
+    { id: 'chef-oeuvre', name: 'Chef-d’œuvre', desc: 'Obtiens une moyenne de 9/10 auprès des critiques.', m: 'projBest', n: 9 },
+    { id: 'carnet-plein', name: 'Carnet bien rempli', desc: 'Découvre 12 associations genre et ambiance.', m: 'book', n: 12 }
   ];
 
   // Recherche: trois branches de six recherches (chacune demande la précédente de sa branche) et deux paliers de spécialisation.
@@ -394,6 +399,46 @@
     ]
   };
 
+
+  // Projets de création: un bonus facultatif à côté des productions.
+  // Curseurs (0 à 100): Écriture (mélodie → paroles), Enregistrement (instruments → voix), Production (brut → léché).
+  var PROJECTS = {
+    genres: [
+      { id: 'rap', name: 'Rap', ideal: [80, 75, 40], good: ['rue', 'revolte'], bad: ['voyage'], pub: 'ados', badPub: 'fins' },
+      { id: 'pop', name: 'Pop', ideal: [50, 65, 80], good: ['amour', 'fete'], bad: ['revolte'], pub: 'large', badPub: 'fins' },
+      { id: 'electro', name: 'Électro', ideal: [10, 10, 70], good: ['fete', 'voyage'], bad: ['amour'], pub: 'jeunes', badPub: 'large' },
+      { id: 'lofi', name: 'Lo-fi', rd: 'raccourcis', ideal: [20, 25, 20], good: ['nostalgie', 'spleen'], bad: ['fete'], pub: 'jeunes', badPub: 'large' },
+      { id: 'chanson', name: 'Chanson française', rd: 'carnet-idees', ideal: [90, 60, 55], good: ['amour', 'nostalgie'], bad: ['fete'], pub: 'fins', badPub: 'ados' },
+      { id: 'afro', name: 'Afro', rd: 'reseau-pro', ideal: [35, 55, 65], good: ['fete', 'amour'], bad: ['spleen'], pub: 'large', badPub: 'fins' },
+      { id: 'rnb', name: 'R&B', rd: 'ecoute', ideal: [55, 85, 85], good: ['amour', 'spleen'], bad: ['revolte'], pub: 'jeunes', badPub: 'ados' },
+      { id: 'trap', name: 'Trap', rd: 'autotune', ideal: [40, 70, 60], good: ['rue', 'fete'], bad: ['nostalgie'], pub: 'ados', badPub: 'large' },
+      { id: 'rock', name: 'Rock', rd: 'signature', ideal: [45, 30, 20], good: ['revolte', 'spleen'], bad: ['fete'], pub: 'jeunes', badPub: 'ados' },
+      { id: 'jazz', name: 'Jazz', rd: 'residence', ideal: [15, 20, 65], good: ['nostalgie', 'voyage'], bad: ['rue'], pub: 'fins', badPub: 'ados' },
+      { id: 'kpop', name: 'K-pop', rd: 'distribution', ideal: [40, 70, 95], good: ['amour', 'espoir'], bad: ['spleen'], pub: 'ados', badPub: 'fins' },
+      { id: 'bo', name: 'Bande originale', rd: 'genie', ideal: [5, 5, 90], good: ['voyage', 'espoir'], bad: ['fete'], pub: 'large', badPub: 'ados' }
+    ],
+    moods: [
+      { id: 'amour', name: 'Amour' }, { id: 'fete', name: 'Fête' }, { id: 'rue', name: 'La rue' }, { id: 'nostalgie', name: 'Nostalgie' },
+      { id: 'revolte', name: 'Révolte' }, { id: 'voyage', name: 'Voyage' }, { id: 'spleen', name: 'Spleen' }, { id: 'espoir', name: 'Espoir' }
+    ],
+    pubs: [
+      { id: 'ados', name: 'Ados' }, { id: 'jeunes', name: 'Jeunes adultes' }, { id: 'large', name: 'Grand public' }, { id: 'fins', name: 'Connaisseurs' }
+    ],
+    formats: [
+      { id: 'single', name: 'Single', tier: 0, cost: 1, time: 1, roi: 1, chart: 1 },
+      { id: 'ep', name: 'EP', tier: 1, cost: 2.5, time: 1.8, roi: 1.15, chart: 1.05 },
+      { id: 'album', name: 'Album', tier: 2, cost: 6, time: 3, roi: 1.3, chart: 1.1 }
+    ],
+    phases: [
+      { id: 'ecriture', name: 'Écriture', dur: 45, lo: 'Mélodie', hi: 'Paroles', roles: ['compo', 'beatmaker', 'real'] },
+      { id: 'prise', name: 'Enregistrement', dur: 60, lo: 'Instruments', hi: 'Voix', roles: ['vocal', 'preneur', 'real'] },
+      { id: 'prod', name: 'Production', dur: 45, lo: 'Brut', hi: 'Léché', roles: ['mixeur', 'master', 'real'] }
+    ],
+    critics: ['Sono Mag', 'Le Fil Musical', 'Beat Hebdo', 'Radio Néon'],
+    // part des ventes encaissée chaque semaine passée dans le Top 50
+    sales: [0.34, 0.24, 0.16, 0.11, 0.08, 0.07]
+  };
+
   // Commandes: clients par type de production
   var CLIENTS = {
     beat: ['Rappeur', ['Kaïs', 'Lil Néo', 'Sami B', 'Zoya']], mix: ['Groupe', ['Les Rivages', 'Fuzz Club', 'Velvet Garage']],
@@ -423,7 +468,7 @@
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);

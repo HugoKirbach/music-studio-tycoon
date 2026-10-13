@@ -165,6 +165,167 @@
   }
 
 
+
+  // ---------- Projets de création (bonus) ----------
+  var pjv = { key: '', t: 0, wasOpen: null, open: false, opener: null, cfg: { genre: 'rap', mood: null, pub: null, fmt: 'single', sl: [50, 50, 50], team: [null, null, null] }, confirm: false };
+  var GRADE = { top: 'idéal', ok: 'neutre', bad: 'à éviter' };
+  function pjGenreName(id) { return G.PJ_G[id] ? G.PJ_G[id].name : id; }
+  function pjMeta(c) { return G.PJ_F[c.fmt].name + ' · ' + pjGenreName(c.genre) + ' · ' + G.PJ_M[c.mood].name + ' · ' + G.PJ_P[c.pub].name; }
+  function pjNote(n) { return nf1.format(n) + '/10'; }
+  function pjWeek(m) { return m.pj && m.pj.w < D.PROJECTS.sales.length ? m.pj.sales * D.PROJECTS.sales[m.pj.w] : 0; }
+  function renderProj(force) {
+    var open = G.projOpen(S), P = S.proj, c = P.cur, onProd = $('app').getAttribute('data-view') === 'prod';
+    if (pjv.wasOpen === false && open && !quiet) toast('Nouveau : les projets de création. Un bonus facultatif à lancer depuis Productions.', 6500);
+    pjv.wasOpen = open;
+    setHidden($('projBox'), !open);
+    if (!open) return;
+    var now = performance.now();
+    if (!force && (!onProd || now - pjv.t < 200)) return;
+    pjv.t = now;
+    setText($('projChip'), P.done ? P.done + (P.done > 1 ? ' projets · record ' : ' projet · record ') + pjNote(P.best) : 'Bonus');
+    var key = (c ? 'run' + c.phase + c.title : 'idle') + '|' + (P.last ? P.last.title + P.last.avg : '') + '|' + pjv.confirm + '|' + S.team.staff.length;
+    var body = $('projBody');
+    if (key !== pjv.key) {
+      pjv.key = key;
+      var h = '';
+      if (P.last) {
+        var L = P.last, gn = pjGenreName(L.genre);
+        h += '<article class="card proj-card proj-res"><div class="proj-score"><b>' + pjNote(L.avg) + '</b><span>' + esc(L.title) + '</span></div>' +
+          '<p class="proj-meta">' + esc(pjMeta(L)) + '</p>' +
+          '<div class="critics">' + L.notes.map(function (x) { return '<div class="critic"><span>' + esc(x.name) + '</span><b>' + nf1.format(x.n) + '</b></div>'; }).join('') + '</div>' +
+          '<ul class="verdicts">' +
+          '<li class="' + L.combo + '">' + esc(gn) + ' et ' + esc(G.PJ_M[L.mood].name.toLowerCase()) + ' : association ' + (L.combo === 'top' ? 'excellente' : L.combo === 'bad' ? 'ratée' : 'correcte') + '.</li>' +
+          '<li class="' + L.pubG + '">Public ' + esc(G.PJ_P[L.pub].name.toLowerCase()) + ' : ' + (L.pubG === 'top' ? 'la cible idéale.' : L.pubG === 'bad' ? 'pas du tout sa cible.' : 'une cible correcte.') + '</li>' +
+          '<li class="' + (L.acc >= 85 ? 'top' : L.acc < 50 ? 'bad' : 'ok') + '">Réglages des phases justes à ' + L.acc + ' %. Le carnet garde la zone probable.</li>' +
+          '<li class="' + (L.fit >= 75 ? 'top' : L.fit < 45 ? 'bad' : 'ok') + '">Apport de l’équipe : ' + L.fit + ' %.</li>' +
+          (L.fresh < 0 ? '<li class="bad">' + (L.fresh <= -1.5 ? 'Déjà entendu : le public se lasse de cette association.' : 'Encore ce genre : un peu de lassitude.') + '</li>' : '') +
+          '</ul><p class="proj-meta">' + (L.pos ? 'Entré au Top 50 à la place ' + L.pos + '. Ventes attendues : ' + eur(L.sales) + ' sur ' + D.PROJECTS.sales.length + ' semaines s’il reste classé (budget ' + eur(L.cost) + ').' : 'Pas assez fort pour entrer au Top 50 : aucune vente.') + '</p>' +
+          '<button class="btn sm" type="button" data-pj="dismiss">Ranger le compte rendu</button></article>';
+      }
+      if (c) {
+        h += '<article class="card proj-card"><h4>' + esc(c.title) + '</h4><p class="proj-meta">' + esc(pjMeta(c)) + '</p><div class="proj-phases">' +
+          D.PROJECTS.phases.map(function (ph, i) {
+            var m = c.team[i] ? G.findMember(S, c.team[i]) : null;
+            return '<div class="proj-ph' + (i < c.phase ? ' done' : i === c.phase ? ' now' : '') + '"><span>' + esc(ph.name) + '</span><span class="meter"><i data-pjm="' + i + '"></i></span><span>' + (m ? esc(m.name) : 'Personne') + '</span></div>';
+          }).join('') + '</div><p class="proj-meta" id="pjLeft"></p>' +
+          (pjv.confirm ? '<div class="confirm"><span>Abandonner « ' + esc(c.title) + ' » ? La moitié du budget est remboursée.</span><div class="row"><button class="btn sm danger" type="button" data-pj="cancelGo">Abandonner</button><button class="btn sm" type="button" data-pj="cancelNo">Continuer</button></div></div>'
+            : '<div class="proj-row"><button class="btn sm" type="button" data-pj="cancel">Abandonner le projet</button></div>') + '</article>';
+      } else {
+        h += '<article class="card proj-card"><p class="proj-meta" style="font-weight:600">Choisis un genre, une ambiance, un public et règle chaque phase. Tes productions continuent pendant ce temps : c’est un bonus, pas une obligation.</p>' +
+          '<div class="proj-row"><button class="btn primary" type="button" data-pj="new"><span>Nouveau projet</span><small id="pjFrom"></small></button></div></article>';
+      }
+      body.innerHTML = h;
+    }
+    if (c) {
+      var tot = 0, done = 0;
+      D.PROJECTS.phases.forEach(function (ph, i) {
+        var T = G.projTime(c.fmt, i), f = i < c.phase ? 1 : i === c.phase ? c.t / T : 0, el = body.querySelector('[data-pjm="' + i + '"]');
+        if (el) el.style.width = (f * 100).toFixed(1) + '%';
+        tot += T; done += T * f;
+      });
+      var cur = c.team[c.phase] ? G.findMember(S, c.team[c.phase]) : null;
+      setText($('pjLeft'), 'Phase ' + (c.phase + 1) + ' sur 3 · encore ' + dur(tot - done) + '.' + (cur ? ' ' + cur.name + ' quitte son poste pendant cette phase.' : '') + ' Le projet avance quand le jeu est ouvert.');
+    } else if ($('pjFrom')) setText($('pjFrom'), 'dès ' + eur(G.projCost(S, 'single')));
+  }
+
+  function pjGrade(kind, g, x) { var b = S.proj.book; return (kind === 'm' ? b.c : b.p)[g + '|' + x] || ''; }
+  function pickBtn(attr, id, label, on, dis, extra, grade) {
+    return '<button type="button" class="pk" data-' + attr + '="' + id + '" aria-pressed="' + on + '"' + (dis ? ' disabled' : '') + '>' +
+      (grade !== undefined ? '<i class="gd ' + grade + '" aria-hidden="true"></i>' : '') + esc(label) + (extra ? ' <small>' + esc(extra) + '</small>' : '') +
+      (grade ? '<span class="sr-only"> (' + GRADE[grade] + ' d’après ton carnet)</span>' : '') + '</button>';
+  }
+  function renderPjForm() {
+    var cf = pjv.cfg, PR = D.PROJECTS;
+    if (!G.genreOpen(S, cf.genre)) cf.genre = 'rap';
+    if (!G.formatOpen(S, cf.fmt)) cf.fmt = 'single';
+    $('pjFmt').innerHTML = PR.formats.map(function (f) { var ok = G.formatOpen(S, f.id); return pickBtn('fmt', f.id, f.name, cf.fmt === f.id, !ok, ok ? (f.cost > 1 ? '×' + nf1.format(f.cost) + ' budget' : '') : 'dès ' + D.TIERS[f.tier].name.toLowerCase()); }).join('');
+    $('pjGenre').innerHTML = PR.genres.map(function (g) { var ok = G.genreOpen(S, g.id); return pickBtn('genre', g.id, g.name, cf.genre === g.id, !ok, ok ? '' : 'recherche ' + G.RD_BY[g.rd].name); }).join('');
+    $('pjMood').innerHTML = PR.moods.map(function (m) { return pickBtn('mood', m.id, m.name, cf.mood === m.id, false, '', pjGrade('m', cf.genre, m.id)); }).join('');
+    $('pjPub').innerHTML = PR.pubs.map(function (p) { return pickBtn('pub', p.id, p.name, cf.pub === p.id, false, '', pjGrade('p', cf.genre, p.id)); }).join('');
+    var known = Object.keys(S.proj.book.c).length;
+    $('pjLegend').innerHTML = '<span>Carnet du studio, ' + known + ' association' + (known > 1 ? 's' : '') + ' découverte' + (known > 1 ? 's' : '') + ' :</span><span><i class="gd-l top"></i>idéal</span><span><i class="gd-l ok"></i>neutre</span><span><i class="gd-l bad"></i>à éviter</span><span><i class="gd-l"></i>inconnu</span>';
+    var h = S.proj.book.h[cf.genre], staff = S.team.staff;
+    $('pjPhases').innerHTML = PR.phases.map(function (ph, i) {
+      var z = h && h[i], zone = z && z[1] - z[0] < 100 ? '<i class="zone" style="left:' + z[0] + '%;width:' + Math.max(2, z[1] - z[0]) + '%"></i>' : '';
+      var opts = '<option value="">Personne (apport ' + Math.round(G.phaseFit(S, i, null) * 100) + ' %)</option>' + staff.map(function (m) {
+        return '<option value="' + m.id + '"' + (cf.team[i] === m.id ? ' selected' : '') + '>' + esc(m.name) + ' · ' + esc(G.ROLE_BY[m.role].name) + ' (apport ' + Math.round(G.phaseFit(S, i, m.id) * 100) + ' %)</option>';
+      }).join('');
+      return '<div class="pj-phase"><div class="lbl-row"><b>' + (i + 1) + '. ' + esc(ph.name) + '</b><span class="small-note">' + dur(G.projTime(cf.fmt, i)) + '</span></div>' +
+        '<div class="pj-range">' + zone + '<input type="range" min="0" max="100" step="5" value="' + cf.sl[i] + '" data-sl="' + i + '" aria-label="' + esc(ph.name) + ', de ' + esc(ph.lo) + ' à ' + esc(ph.hi) + '"></div>' +
+        '<div class="pj-ends"><span>' + esc(ph.lo) + '</span><span>' + esc(ph.hi) + '</span></div>' +
+        '<select data-team="' + i + '" aria-label="Membre de l’équipe pour ' + esc(ph.name) + '"' + (staff.length ? '' : ' disabled') + '>' + opts + '</select></div>';
+    }).join('');
+    setText($('pjTeamNote'), (h ? 'La bande verte sur un curseur montre la zone probable notée dans le carnet pour ce genre. ' : 'Un premier projet dans ce genre révélera dans le carnet la zone à viser sur chaque curseur. ') +
+      (staff.length ? 'Un membre affecté à une phase quitte son poste de production le temps de cette phase.' : 'Recrute une équipe pour renforcer les phases.'));
+    pjFoot();
+  }
+  function pjFoot() {
+    var cf = pjv.cfg, cost = G.projCost(S, cf.fmt), tot = 0;
+    D.PROJECTS.phases.forEach(function (ph, i) { tot += G.projTime(cf.fmt, i); });
+    setText($('pjCost'), 'Budget ' + eur(cost));
+    setText($('pjInfo'), !cf.mood ? 'Choisis une ambiance.' : !cf.pub ? 'Choisis un public.' : S.money < cost ? 'Budget insuffisant.' : 'Durée ' + dur(tot) + ', jeu ouvert.');
+    setDisabled($('pjGo'), !cf.mood || !cf.pub || S.money < cost || !!S.proj.cur);
+  }
+  var TW = ['Minuit', 'Néon', 'Asphalte', 'Comète', 'Velours', 'Mirage', 'Orage', 'Sirène', 'Cendres', 'Lumière', 'Satellite', 'Rivage'];
+  var TT = ['sur la ville', 'de juillet', 'en boucle', 'sans retour', 'au ralenti', 'dans le noir', 'pour toujours', 'à l’horizon'];
+  function suggestTitle() { return TW[Math.floor(Math.random() * TW.length)] + ' ' + TT[Math.floor(Math.random() * TT.length)]; }
+  function openProj() {
+    if (pjv.open || !G.projOpen(S) || S.proj.cur) return;
+    pjv.open = true; pjv.opener = document.activeElement;
+    var cf = pjv.cfg;
+    cf.team = cf.team.map(function (id) { return id && G.findMember(S, id) ? id : null; });
+    $('pjName').value = ''; $('pjName').placeholder = suggestTitle();
+    renderPjForm();
+    $('projScrim').hidden = false; $('app').inert = true;
+    $('projScrim').querySelector('.sheet').scrollTop = 0;
+    $('pjName').focus();
+  }
+  function closeProj() {
+    if (!pjv.open) return;
+    pjv.open = false;
+    $('projScrim').hidden = true; $('app').inert = false;
+    var o = pjv.opener; pjv.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+    else { var b = $('projBody').querySelector('button'); if (b) b.focus(); }
+  }
+  function bindProj() {
+    $('projBody').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-pj]'); if (!b) return;
+      var a = b.getAttribute('data-pj'), nb;
+      if (a === 'new') openProj();
+      else if (a === 'dismiss') { G.dismissProject(S); saveLocal(); renderProj(true); nb = $('projBody').querySelector('button'); if (nb) nb.focus(); }
+      else if (a === 'cancel') { pjv.confirm = true; renderProj(true); nb = $('projBody').querySelector('[data-pj="cancelNo"]'); if (nb) nb.focus(); }
+      else if (a === 'cancelNo') { pjv.confirm = false; renderProj(true); }
+      else if (a === 'cancelGo') { var back = G.cancelProject(S); pjv.confirm = false; saveLocal(); markCloud(); toast('Projet abandonné, ' + eur(back) + ' remboursés.'); renderProj(true); render(); }
+    });
+    var scrim = $('projScrim'), KS = ['fmt', 'genre', 'mood', 'pub'];
+    scrim.addEventListener('click', function (e) {
+      if (e.target === scrim) { closeProj(); return; }
+      var b = e.target.closest('button.pk'); if (!b || b.disabled) return;
+      var k = KS.filter(function (x) { return b.hasAttribute('data-' + x); })[0]; if (!k) return;
+      var v = b.getAttribute('data-' + k);
+      pjv.cfg[k] = v;
+      renderPjForm();
+      var nb = scrim.querySelector('[data-' + k + '="' + v + '"]'); if (nb) nb.focus();
+    });
+    scrim.addEventListener('input', function (e) {
+      var i = e.target.getAttribute('data-sl'); if (i !== null) pjv.cfg.sl[+i] = Math.max(0, Math.min(100, +e.target.value || 0));
+    });
+    scrim.addEventListener('change', function (e) {
+      var i = e.target.getAttribute('data-team');
+      if (i !== null) { var id = +e.target.value || null; pjv.cfg.team[+i] = id; }
+    });
+    $('pjClose').addEventListener('click', closeProj);
+    $('pjGo').addEventListener('click', function () {
+      var cf = pjv.cfg;
+      var c = G.startProject(S, { genre: cf.genre, mood: cf.mood, pub: cf.pub, fmt: cf.fmt, sl: cf.sl.slice(), team: cf.team.slice(), title: $('pjName').value.trim() || $('pjName').placeholder });
+      if (!c) { pjFoot(); return; }
+      saveLocal(); markCloud();
+      closeProj(); pjv.key = ''; renderProj(true); render();
+    });
+    document.addEventListener('keydown', function (e) { if (pjv.open && e.key === 'Escape') { e.preventDefault(); closeProj(); } });
+  }
+
   // ---------- Recherche ----------
   var rdv = { key: '', t: 0, nodes: {} };
   function fmtPts(n) { return short(Math.floor(n)); }
@@ -321,19 +482,20 @@
       var mine = c.mine.slice().sort(function (a, b) { return a.pos - b.pos; });
       setText($('mineNote'), mine.length ? 'Gains par semaine selon la place. Les titres perdent des places au fil des semaines.' : 'Aucun titre classé pour l’instant.');
       $('mineList').innerHTML = mine.map(function (m) {
-        return '<li class="mine' + (m.pos === 1 ? ' top1' : '') + '"><span class="pos">' + m.pos + '</span>' + moveHtml({ prev: m.p, pos: m.pos }) + '<span class="tt"><b>' + esc(m.t) + '</b><span>' + esc(G.ACT_BY[m.act].name) + ' · ' + starsTxt(m.q) + ' · ' + m.weeks + ' sem.' + (m.best ? ' · record ' + m.best : '') + '</span></span><span class="gain">+' + eur(G.chartPay(S, m.pos)) + '/sem.</span></li>';
+        return '<li class="mine' + (m.pos === 1 ? ' top1' : '') + '"><span class="pos">' + m.pos + '</span>' + moveHtml({ prev: m.p, pos: m.pos }) + '<span class="tt"><b>' + esc(m.t) + '</b><span>' + (m.pj ? '<span class="pjt">' + esc(G.PJ_F[m.pj.f].name + ' ' + pjGenreName(m.pj.g)) + '</span> · ' + pjNote(m.pj.avg) : esc(G.ACT_BY[m.act].name) + ' · ' + starsTxt(m.q)) + ' · ' + m.weeks + ' sem.' + (m.best ? ' · record ' + m.best : '') + '</span></span><span class="gain">+' + eur(G.chartPay(S, m.pos) + pjWeek(m)) + '/sem.</span></li>';
       }).join('');
     }
     var now = performance.now();
     if (now - chs.listT > 2000 || force) {
       chs.listT = now;
       $('chartList').innerHTML = G.chartTop(S).map(function (e) {
-        return '<li class="' + (e.mine ? 'mine' : '') + (e.pos === 1 ? ' top1' : '') + '"><span class="pos">' + e.pos + '</span>' + moveHtml(e) + '<span class="tt"><b>' + esc(e.t) + '</b><span>' + (e.mine ? 'Ta prod · ' + esc(G.ACT_BY[e.act].name) + ' · ' + starsTxt(e.q) : esc(e.a)) + '</span></span><span class="gain">' + (e.mine ? '+' + eur(G.chartPay(S, e.pos)) : '') + '</span></li>';
+        return '<li class="' + (e.mine ? 'mine' : '') + (e.pos === 1 ? ' top1' : '') + '"><span class="pos">' + e.pos + '</span>' + moveHtml(e) + '<span class="tt"><b>' + esc(e.t) + '</b><span>' + (e.mine ? (e.pj ? 'Ton projet · <span class="pjt">' + esc(pjGenreName(e.pj.g)) + '</span> · ' + pjNote(e.pj.avg) : 'Ta prod · ' + esc(G.ACT_BY[e.act].name) + ' · ' + starsTxt(e.q)) : esc(e.a)) + '</span></span><span class="gain">' + (e.mine ? '+' + eur(G.chartPay(S, e.pos) + pjWeek(e)) : '') + '</span></li>';
       }).join('');
     }
   }
 
   function bindFeatures() {
+    bindProj();
     $('rd').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-rd]'), sp = e.target.closest('button[data-spec]');
       if (b && !b.disabled) { if (G.research(S, b.getAttribute('data-rd'))) saveLocal(); renderRd(true); render(); }
@@ -549,6 +711,8 @@
     renderOrders();
     renderCharts();
     renderRd();
+    renderProj();
+    if (pjv.open) pjFoot();
     renderScene();
     var hint = $('hint');
     if (hint) setHidden(hint, S.acts.beat.done >= 6);
@@ -1137,7 +1301,7 @@
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
-    closeMix(); ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
+    closeMix(); closeProj(); pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -1380,6 +1544,14 @@
   };
   G.hooks.research = function (n) { markCloud(); rdv.key = ''; if (!quiet) { toast('Recherche terminée : ' + n.name + '.', 4500); blip(10); } };
   G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
+  G.hooks.projectStart = function (c) { markCloud(); if (!quiet) { toast('« ' + c.title + ' » est lancé : écriture en cours.', 4000); blip(6); } };
+  G.hooks.projectPhase = function (c) { pjv.key = ''; markCloud(); if (!quiet) toast('« ' + c.title + ' » : ' + D.PROJECTS.phases[c.phase].name.toLowerCase() + ' en cours.', 3500); };
+  G.hooks.projectDone = function (r) {
+    pjv.key = ''; chs.key = ''; markCloud(); saveLocal();
+    if (quiet) return;
+    toast('Les critiques ont parlé : « ' + r.title + ' » obtient ' + pjNote(r.avg) + (r.pos ? ' et entre au Top 50 à la place ' + r.pos + '.' : '.'), 7000);
+    blip(r.avg >= 8 ? 12 : 7);
+  };
   G.hooks.orderNew = function (x) { if (!quiet) { toast('Nouvelle commande : ' + x.client + ' (' + x.kind.toLowerCase() + ') te contacte.', 4500); blip(6); } };
   G.hooks.orderDone = function (x) {
     markCloud(); ord.key = '';

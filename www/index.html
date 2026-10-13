@@ -325,6 +325,66 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .chart .tt span { display: block; font-size: 12px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chart .gain { font: 800 12px var(--f-body); color: var(--good); white-space: nowrap; }
 .chart li.top1 .pos { color: var(--gold); }
+/* Projets de création */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.proj-box { margin-top: 18px; }
+.proj-box .orders-head { margin-top: 0; }
+.proj-card { display: grid; gap: 10px; }
+.proj-card > * { min-width: 0; }
+.proj-card h4 { margin: 0; font: 800 17px var(--f-title); overflow-wrap: anywhere; }
+.proj-meta { margin: 0; font-size: 13px; color: var(--ink-soft); font-weight: 700; }
+.proj-phases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.proj-ph { display: grid; gap: 4px; min-width: 0; font: 800 12px var(--f-body); color: var(--ink-soft); }
+.proj-ph > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.proj-ph.now { color: var(--ink); }
+.proj-ph .meter { height: 8px; }
+.proj-ph.done .meter i { background: var(--good); }
+.proj-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.proj-row .btn { flex: 1; min-width: 0; justify-content: center; }
+.proj-res { border-left: 4px solid var(--gold); }
+.proj-score { display: flex; align-items: baseline; gap: 10px; }
+.proj-score b { font: 800 36px var(--f-title); color: var(--gold); line-height: 1; }
+.proj-score span { font-weight: 800; }
+.critics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.critic { display: flex; justify-content: space-between; gap: 6px; padding: 6px 10px; border-radius: 10px; background: var(--panel-2); font-size: 13px; font-weight: 700; min-width: 0; }
+.critic span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.verdicts { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 13.5px; }
+.verdicts li { display: flex; gap: 8px; align-items: baseline; }
+.verdicts li::before { content: '●'; flex: none; font-size: 11px; color: var(--ink-soft); }
+.verdicts li.top::before { color: var(--good); } .verdicts li.bad::before { content: '✕'; color: var(--bad); }
+/* Fenêtre de création */
+.proj-sheet { width: min(620px, 100%); }
+.pf { display: grid; gap: 6px; min-width: 0; }
+.pf input[type="text"] { width: 100%; min-height: 44px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: 700 15px var(--f-body); }
+.pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.pk { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); font: 700 14px var(--f-body); max-width: 100%; }
+.pk[aria-pressed="true"] { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+.pk:disabled { opacity: 0.5; }
+.pk small { font-size: 11.5px; font-weight: 700; opacity: 0.85; }
+.pk .gd { width: 9px; height: 9px; border-radius: 50%; flex: none; border: 2px solid currentColor; opacity: 0.5; }
+.pk .gd.top { background: var(--good); border-color: var(--good); opacity: 1; }
+.pk .gd.ok { background: var(--ink-soft); border-color: var(--ink-soft); opacity: 0.8; }
+.pk .gd.bad { background: var(--bad); border-color: var(--bad); opacity: 1; border-radius: 2px; }
+.pk[aria-pressed="true"] .gd { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9); }
+.pj-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; font-size: 12.5px; color: var(--ink-soft); }
+.pj-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.pj-legend .gd-l { display: inline-block; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--ink-soft); }
+.pj-legend .gd-l.top { background: var(--good); border-color: var(--good); } .pj-legend .gd-l.ok { background: var(--ink-soft); } .pj-legend .gd-l.bad { background: var(--bad); border-color: var(--bad); border-radius: 2px; }
+.pj-phase { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); }
+.pj-phase + .pj-phase { margin-top: 8px; }
+.pj-phase > * { min-width: 0; }
+.pj-phase .lbl-row { justify-content: space-between; }
+.pj-range { position: relative; height: 30px; }
+.pj-range .zone { position: absolute; top: 9px; height: 12px; border-radius: 6px; background: color-mix(in srgb, var(--good) 35%, transparent); pointer-events: none; }
+.pj-range input { position: relative; width: 100%; margin: 0; height: 30px; accent-color: var(--accent); background: transparent; }
+.pj-ends { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); margin-top: -4px; }
+.pj-phase select { width: 100%; min-height: 40px; }
+.pj-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; position: sticky; bottom: -20px; margin: 0 -20px -20px; padding: 12px 20px 16px; background: var(--panel); border-top: 1px solid var(--line); }
+.pj-foot > div { display: grid; min-width: 0; }
+.pj-foot b { font: 800 18px var(--f-title); }
+.pj-foot small { font-size: 12.5px; color: var(--ink-soft); font-weight: 700; }
+.pj-foot .btn { flex: 1 1 160px; justify-content: center; }
+.chart li .pjt { color: var(--purple); font-weight: 800; }
 /* Recherche */
 .rd-points { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
 .rd-points b { display: block; font: 800 26px var(--f-title); color: var(--blue); }
@@ -536,6 +596,10 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <div class="list" id="orderList"></div>
           <p class="small-note" id="orderNote"></p>
         </div>
+        <div class="proj-box" id="projBox" hidden>
+          <div class="orders-head"><h3>Projet de création</h3><span class="rep-chip" id="projChip"></span></div>
+          <div id="projBody"></div>
+        </div>
         <div class="orders-head"><h3>Tes productions</h3></div>
         <div class="list" id="acts"></div>
       </section>
@@ -675,6 +739,22 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   </aside>
 </div>
 
+<div class="scrim" id="projScrim" hidden>
+  <div class="sheet proj-sheet" role="dialog" aria-modal="true" aria-labelledby="pjTitle">
+    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Projet de création</p>
+    <h2 id="pjTitle">Nouveau projet</h2>
+    <p class="ev-text">Un projet à part, en plus de tes productions qui continuent de tourner. Les critiques jugent l’association du genre, de l’ambiance et du public, tes réglages de chaque phase et l’équipe qui y travaille. Le titre entre ensuite au Top 50 et se vend chaque semaine tant qu’il y reste.</p>
+    <label class="pf"><span class="lbl">Titre</span><input type="text" id="pjName" maxlength="40" autocomplete="off" spellcheck="false"></label>
+    <div class="pf"><span class="lbl">Format</span><div class="pick" id="pjFmt" role="group" aria-label="Format"></div></div>
+    <div class="pf"><span class="lbl">Genre</span><div class="pick" id="pjGenre" role="group" aria-label="Genre"></div></div>
+    <div class="pf"><span class="lbl">Ambiance</span><div class="pick" id="pjMood" role="group" aria-label="Ambiance"></div></div>
+    <div class="pf"><span class="lbl">Public</span><div class="pick" id="pjPub" role="group" aria-label="Public"></div></div>
+    <p class="pj-legend" id="pjLegend"></p>
+    <div class="pf"><span class="lbl">Les trois phases</span><div id="pjPhases"></div></div>
+    <p class="small-note" id="pjTeamNote"></p>
+    <div class="pj-foot"><div><b id="pjCost"></b><small id="pjInfo"></small></div><button class="btn sm" id="pjClose" type="button">Fermer</button><button class="btn primary" id="pjGo" type="button">Lancer le projet</button></div>
+  </div>
+</div>
 <div class="scrim" id="mixScrim" hidden>
   <div class="sheet mix-sheet" role="dialog" aria-modal="true" aria-labelledby="mixTitle">
     <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Mixage</p>
@@ -787,7 +867,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     rpPer: 0.6,         // points par production terminée, multipliés par le rang de la production (1 à 11)
     rpMix: 6,           // points par étoile d'un mix
     rpOrder: 25,        // points par commande livrée (multipliés par la qualité demandée)
-    rpChart: 0.5        // points par place au-dessus de la 51e, chaque semaine, pour chaque titre classé
+    rpChart: 0.5,       // points par place au-dessus de la 51e, chaque semaine, pour chaque titre classé
+    // Projets de création (bonus facultatif)
+    projLevel: 5, projCostSec: 90, projRefund: 0.5, rpProj: 12, projXp: 4
   };
 
   // dur: secondes, pay: euros, xp: points d'expertise
@@ -1070,7 +1152,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     { id: 'chercheur', name: 'Esprit curieux', desc: 'Termine 3 recherches.', m: 'rdNodes', n: 3 },
     { id: 'savant', name: 'Laboratoire du son', desc: 'Termine 12 recherches.', m: 'rdNodes', n: 12 },
     { id: 'encyclopedie', name: 'Tout savoir', desc: 'Termine les 18 recherches.', m: 'rdNodes', n: 18 },
-    { id: 'specialiste', name: 'Une identité', desc: 'Choisis ta première spécialisation.', m: 'specs', n: 1 }
+    { id: 'specialiste', name: 'Une identité', desc: 'Choisis ta première spécialisation.', m: 'specs', n: 1 },
+    { id: 'premier-projet', name: 'Premier projet', desc: 'Termine un projet de création.', m: 'projects', n: 1 },
+    { id: 'chef-oeuvre', name: 'Chef-d’œuvre', desc: 'Obtiens une moyenne de 9/10 auprès des critiques.', m: 'projBest', n: 9 },
+    { id: 'carnet-plein', name: 'Carnet bien rempli', desc: 'Découvre 12 associations genre et ambiance.', m: 'book', n: 12 }
   ];
 
   // Recherche: trois branches de six recherches (chacune demande la précédente de sa branche) et deux paliers de spécialisation.
@@ -1117,6 +1202,46 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     ]
   };
 
+
+  // Projets de création: un bonus facultatif à côté des productions.
+  // Curseurs (0 à 100): Écriture (mélodie → paroles), Enregistrement (instruments → voix), Production (brut → léché).
+  var PROJECTS = {
+    genres: [
+      { id: 'rap', name: 'Rap', ideal: [80, 75, 40], good: ['rue', 'revolte'], bad: ['voyage'], pub: 'ados', badPub: 'fins' },
+      { id: 'pop', name: 'Pop', ideal: [50, 65, 80], good: ['amour', 'fete'], bad: ['revolte'], pub: 'large', badPub: 'fins' },
+      { id: 'electro', name: 'Électro', ideal: [10, 10, 70], good: ['fete', 'voyage'], bad: ['amour'], pub: 'jeunes', badPub: 'large' },
+      { id: 'lofi', name: 'Lo-fi', rd: 'raccourcis', ideal: [20, 25, 20], good: ['nostalgie', 'spleen'], bad: ['fete'], pub: 'jeunes', badPub: 'large' },
+      { id: 'chanson', name: 'Chanson française', rd: 'carnet-idees', ideal: [90, 60, 55], good: ['amour', 'nostalgie'], bad: ['fete'], pub: 'fins', badPub: 'ados' },
+      { id: 'afro', name: 'Afro', rd: 'reseau-pro', ideal: [35, 55, 65], good: ['fete', 'amour'], bad: ['spleen'], pub: 'large', badPub: 'fins' },
+      { id: 'rnb', name: 'R&B', rd: 'ecoute', ideal: [55, 85, 85], good: ['amour', 'spleen'], bad: ['revolte'], pub: 'jeunes', badPub: 'ados' },
+      { id: 'trap', name: 'Trap', rd: 'autotune', ideal: [40, 70, 60], good: ['rue', 'fete'], bad: ['nostalgie'], pub: 'ados', badPub: 'large' },
+      { id: 'rock', name: 'Rock', rd: 'signature', ideal: [45, 30, 20], good: ['revolte', 'spleen'], bad: ['fete'], pub: 'jeunes', badPub: 'ados' },
+      { id: 'jazz', name: 'Jazz', rd: 'residence', ideal: [15, 20, 65], good: ['nostalgie', 'voyage'], bad: ['rue'], pub: 'fins', badPub: 'ados' },
+      { id: 'kpop', name: 'K-pop', rd: 'distribution', ideal: [40, 70, 95], good: ['amour', 'espoir'], bad: ['spleen'], pub: 'ados', badPub: 'fins' },
+      { id: 'bo', name: 'Bande originale', rd: 'genie', ideal: [5, 5, 90], good: ['voyage', 'espoir'], bad: ['fete'], pub: 'large', badPub: 'ados' }
+    ],
+    moods: [
+      { id: 'amour', name: 'Amour' }, { id: 'fete', name: 'Fête' }, { id: 'rue', name: 'La rue' }, { id: 'nostalgie', name: 'Nostalgie' },
+      { id: 'revolte', name: 'Révolte' }, { id: 'voyage', name: 'Voyage' }, { id: 'spleen', name: 'Spleen' }, { id: 'espoir', name: 'Espoir' }
+    ],
+    pubs: [
+      { id: 'ados', name: 'Ados' }, { id: 'jeunes', name: 'Jeunes adultes' }, { id: 'large', name: 'Grand public' }, { id: 'fins', name: 'Connaisseurs' }
+    ],
+    formats: [
+      { id: 'single', name: 'Single', tier: 0, cost: 1, time: 1, roi: 1, chart: 1 },
+      { id: 'ep', name: 'EP', tier: 1, cost: 2.5, time: 1.8, roi: 1.15, chart: 1.05 },
+      { id: 'album', name: 'Album', tier: 2, cost: 6, time: 3, roi: 1.3, chart: 1.1 }
+    ],
+    phases: [
+      { id: 'ecriture', name: 'Écriture', dur: 45, lo: 'Mélodie', hi: 'Paroles', roles: ['compo', 'beatmaker', 'real'] },
+      { id: 'prise', name: 'Enregistrement', dur: 60, lo: 'Instruments', hi: 'Voix', roles: ['vocal', 'preneur', 'real'] },
+      { id: 'prod', name: 'Production', dur: 45, lo: 'Brut', hi: 'Léché', roles: ['mixeur', 'master', 'real'] }
+    ],
+    critics: ['Sono Mag', 'Le Fil Musical', 'Beat Hebdo', 'Radio Néon'],
+    // part des ventes encaissée chaque semaine passée dans le Top 50
+    sales: [0.34, 0.24, 0.16, 0.11, 0.08, 0.07]
+  };
+
   // Commandes: clients par type de production
   var CLIENTS = {
     beat: ['Rappeur', ['Kaïs', 'Lil Néo', 'Sami B', 'Zoya']], mix: ['Groupe', ['Les Rivages', 'Fuzz Club', 'Velvet Garage']],
@@ -1146,7 +1271,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1168,6 +1293,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
   var RESEARCH = D.RESEARCH || { branches: [], nodes: [], specs: [], costs: [] }, RD_BY = {}, SPEC_BY = {};
   RESEARCH.nodes.forEach(function (n) { RD_BY[n.id] = n; });
+  var PJ = D.PROJECTS || { genres: [], moods: [], pubs: [], formats: [], phases: [], critics: [], sales: [] }, PJ_G = {}, PJ_M = {}, PJ_P = {}, PJ_F = {};
+  PJ.genres.forEach(function (x) { PJ_G[x.id] = x; }); PJ.moods.forEach(function (x) { PJ_M[x.id] = x; });
+  PJ.pubs.forEach(function (x) { PJ_P[x.id] = x; }); PJ.formats.forEach(function (x) { PJ_F[x.id] = x; });
   RESEARCH.specs.forEach(function (t) { t.options.forEach(function (o) { SPEC_BY[o.id] = { o: o, tier: t.tier }; }); });
   var ROLES = D.ROLES || [], NAMES = D.NAMES || [], CLIENTS = D.CLIENTS || {}, CHART = D.CHART || { words: ['Titre'], tails: [''], artists: ['Artiste'] };
   var ACT_BY = {}, ITEM_BY = {}, EVENT_BY = {}, TROPHY_BY = {}, ROLE_BY = {};
@@ -1191,8 +1319,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd() };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj() };
   }
+  function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newRd() { return { pts: 0, total: 0, nodes: {}, spec: {} }; }
   function newOrders() { return { offers: [], active: [], cd: T.orderFirst, rep: 0, done: 0, failed: 0, nextId: 1 }; }
   function newCharts() { return { week: 1, left: T.weekLen, rivals: [], mine: [], free: 0, best: 0, num1: 0, releases: 0, nextId: 1 }; }
@@ -1255,6 +1384,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       RESEARCH.branches.forEach(function (b) { var ok = true; branchNodes(b.id).forEach(function (n) { if (!ok) delete S.rd.nodes[n.id]; else if (!S.rd.nodes[n.id]) ok = false; }); });
       if (o.rd.spec && typeof o.rd.spec === 'object') RESEARCH.specs.forEach(function (t) { var id = o.rd.spec[t.tier]; if (SPEC_BY[id] && SPEC_BY[id].tier === t.tier) S.rd.spec[t.tier] = id; });
     }
+    if (o.proj && typeof o.proj === 'object') hydrateProj(S, o.proj);
     return S;
   }
 
@@ -1292,7 +1422,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     r.cd = Math.max(0, num(o.cd, T.orderFirst)); r.rep = Math.max(0, Math.min(T.repMax, num(o.rep, 0)));
     r.done = Math.max(0, Math.floor(num(o.done, 0))); r.failed = Math.max(0, Math.floor(num(o.failed, 0)));
     (Array.isArray(o.offers) ? o.offers : []).forEach(function (x) { var c = cleanOrder(x); if (c && r.offers.length < T.orderMaxOffers) r.offers.push(c); });
-    (Array.isArray(o.active) ? o.active : []).forEach(function (x) { var c = cleanOrder(x); if (c && r.active.length < T.orderMaxActive) r.active.push(c); });
+    (Array.isArray(o.active) ? o.active : []).forEach(function (x) { var c = cleanOrder(x); if (c && r.active.length < T.orderMaxActive + 2) r.active.push(c); });
     var mx = 0; r.offers.concat(r.active).forEach(function (x) { mx = Math.max(mx, x.id); });
     r.nextId = Math.max(mx + 1, Math.floor(num(o.nextId, 1)));
   }
@@ -1310,6 +1440,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var e = { id: Math.max(1, Math.floor(num(m.id, 1))), t: String(m.t || 'Titre').slice(0, 40), act: m.act, q: Math.max(1, Math.min(5, Math.floor(num(m.q, 1)))),
         s: Math.max(0, num(m.s, 0)), weeks: Math.max(0, Math.floor(num(m.weeks, 0))), pos: Math.max(0, Math.floor(num(m.pos, 0))), p: Math.max(0, Math.floor(num(m.p, 0))),
         best: Math.max(0, Math.floor(num(m.best, 0))), promo: !!m.promo, earned: Math.max(0, num(m.earned, 0)) };
+      if (m.pj && typeof m.pj === 'object' && PJ_G[m.pj.g] && PJ_F[m.pj.f]) e.pj = { g: m.pj.g, f: m.pj.f, sales: Math.max(0, num(m.pj.sales, 0)), sold: Math.max(0, num(m.pj.sold, 0)), w: Math.max(0, Math.floor(num(m.pj.w, 0))), avg: Math.max(0, Math.min(10, num(m.pj.avg, 0))) };
       mx = Math.max(mx, e.id); c.mine.push(e);
     });
     c.nextId = Math.max(mx + 1, Math.floor(num(o.nextId, 1)));
@@ -1594,7 +1725,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (!st || !st.length) return NOFX;
     for (var i = 0; i < st.length; i++) {
       var m = st[i];
-      if (m.act !== actId || !working(m)) continue;
+      if (m.act !== actId || !working(m) || projBusy(S, m)) continue;
       var eff = (0.5 + m.morale / 200) * (roleFits(m, actId) ? 1 : T.offRole);
       return { sp: 1 + (T.staffSpeedStar * m.stars + T.staffSpeedLvl * m.lvl) * eff, gn: 1 + (T.staffGainStar * m.stars + T.staffGainLvl * m.lvl) * eff, m: m };
     }
@@ -1894,14 +2025,14 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (e.m) { if (pos <= T.chartSize && (!o.best || pos < o.best)) o.best = pos; }
     });
     c.mine.forEach(function (m) { if (m.pos <= T.chartSize && (!c.best || m.pos < c.best)) c.best = m.pos; });
-    return all.slice(0, T.chartSize).map(function (e) { var o = e.r || e.m; return { t: o.t, a: e.r ? o.a : null, mine: !!e.m, id: e.m ? o.id : null, act: e.m ? o.act : null, q: e.m ? o.q : null, pos: o.pos, prev: o.p, weeks: e.m ? o.weeks : null }; });
+    return all.slice(0, T.chartSize).map(function (e) { var o = e.r || e.m; return { t: o.t, a: e.r ? o.a : null, mine: !!e.m, id: e.m ? o.id : null, act: e.m ? o.act : null, q: e.m ? o.q : null, pos: o.pos, prev: o.p, weeks: e.m ? o.weeks : null, pj: e.m && o.pj ? o.pj : null }; });
   }
   function chartTop(S) {
     var c = S.charts, P = potential(S), all = [];
     c.rivals.forEach(function (r) { all.push({ o: r, s: r.f * P }); });
     c.mine.forEach(function (m) { all.push({ o: m, s: m.s, mine: true }); });
     all.sort(function (x, y) { return y.s - x.s; });
-    return all.slice(0, T.chartSize).map(function (e, i) { return { t: e.o.t, a: e.mine ? null : e.o.a, mine: !!e.mine, id: e.mine ? e.o.id : null, act: e.mine ? e.o.act : null, q: e.mine ? e.o.q : null, pos: i + 1, prev: e.o.p || 0, weeks: e.mine ? e.o.weeks : null }; });
+    return all.slice(0, T.chartSize).map(function (e, i) { return { t: e.o.t, a: e.mine ? null : e.o.a, mine: !!e.mine, id: e.mine ? e.o.id : null, act: e.mine ? e.o.act : null, q: e.mine ? e.o.q : null, pos: i + 1, prev: e.o.p || 0, weeks: e.mine ? e.o.weeks : null, pj: e.mine && e.o.pj ? e.o.pj : null }; });
   }
   function promoCost(S) { return incomeRef(S) * T.promoSec * rdFx(S).promoCost; }
   function canFreeRelease(S) { return chartsOpen(S) && S.charts.free !== S.charts.week; }
@@ -1939,6 +2070,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     c.mine.forEach(function (m) {
       if (m.pos > T.chartSize) return;
       var g = chartPay(S, m.pos);
+      if (m.pj && m.pj.w < PJ.sales.length) { var sl = m.pj.sales * PJ.sales[m.pj.w]; m.pj.w++; m.pj.sold += sl; g += sl; }
       pay += g; m.earned += g; m.weeks++;
       entries.push({ t: m.t, pos: m.pos, gain: g });
       if (m.pos === 1) { c.num1++; S.orders.rep = Math.min(T.repMax, S.orders.rep + 3); }
@@ -1966,7 +2098,148 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     c.left -= dt;
     if (c.left <= 0) weekEnd(S);
   }
-  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); }
+  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); }
+
+
+  // ---------- Projets de création (bonus facultatif) ----------
+  function projOpen(S) { return S.level >= T.projLevel && chartsOpen(S); }
+  function genreOpen(S, id) { var g = PJ_G[id]; return !!g && (!g.rd || !!(S.rd && S.rd.nodes[g.rd])); }
+  function formatOpen(S, id) { var f = PJ_F[id]; return !!f && tierIndex(S) >= f.tier; }
+  function projCost(S, fmt) { var f = PJ_F[fmt] || PJ.formats[0]; return incomeRef(S) * T.projCostSec * f.cost; }
+  function projTime(fmt, i) { var f = PJ_F[fmt] || PJ.formats[0]; return PJ.phases[i].dur * f.time; }
+  function comboGrade(g, mood) { return g.good.indexOf(mood) >= 0 ? 'top' : g.bad.indexOf(mood) >= 0 ? 'bad' : 'ok'; }
+  function pubGrade(g, pub) { return g.pub === pub ? 'top' : g.badPub === pub ? 'bad' : 'ok'; }
+  function projBusy(S, m) { var c = S.proj && S.proj.cur; return !!c && c.team[c.phase] === m.id; }
+  // Apport d'un membre de l'équipe à une phase (0,35 sans personne, jusqu'à 1).
+  function phaseFit(S, i, id) {
+    var m = id ? findMember(S, id) : null;
+    if (!m || m.rest > 0 || m.train > 0) return 0.35;
+    var fits = PJ.phases[i].roles.indexOf(m.role) >= 0;
+    return Math.min(1, (0.45 + 0.07 * m.stars + 0.015 * m.lvl) * (fits ? 1 : 0.75) * (0.7 + 0.3 * m.morale / 100));
+  }
+  function sliderAcc(v, ideal) { return Math.max(0, Math.min(1, 1 - Math.max(0, Math.abs(v - ideal) - 8) / 50)); }
+  function cleanCfg(S, c) {
+    if (!c || typeof c !== 'object' || !genreOpen(S, c.genre) || !PJ_M[c.mood] || !PJ_P[c.pub] || !formatOpen(S, c.fmt)) return null;
+    var sl = [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, Math.round(num(c.sl && c.sl[i], 50)))); });
+    var team = [0, 1, 2].map(function (i) { var id = c.team && c.team[i]; return id && findMember(S, id) ? id : null; });
+    var title = String(c.title || '').replace(/\s+/g, ' ').trim().slice(0, 40) || songTitle();
+    return { title: title, genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt, sl: sl, team: team };
+  }
+  function startProject(S, cfg) {
+    if (!projOpen(S) || S.proj.cur) return null;
+    var c = cleanCfg(S, cfg);
+    if (!c) return null;
+    var cost = projCost(S, c.fmt);
+    if (S.money < cost) return null;
+    S.money -= cost;
+    c.cost = cost; c.phase = 0; c.t = 0; c.fit = [];
+    S.proj.cur = c;
+    if (hooks.projectStart) hooks.projectStart(c);
+    return c;
+  }
+  function cancelProject(S) {
+    var c = S.proj && S.proj.cur;
+    if (!c) return 0;
+    var back = c.cost * T.projRefund;
+    S.money += back; S.proj.cur = null;
+    return back;
+  }
+  function tickProject(S, dt) {
+    var c = S.proj && S.proj.cur;
+    if (!c) return;
+    c.t += dt;
+    while (c && c.t >= projTime(c.fmt, c.phase)) {
+      c.t -= projTime(c.fmt, c.phase);
+      c.fit[c.phase] = phaseFit(S, c.phase, c.team[c.phase]);
+      c.phase++;
+      if (c.phase >= PJ.phases.length) { finishProject(S); c = null; }
+      else if (hooks.projectPhase) hooks.projectPhase(c);
+    }
+  }
+  // Note de 0 à 10 et détail, à partir des choix et de l'équipe.
+  function projScore(S, c) {
+    var g = PJ_G[c.genre], cg = comboGrade(g, c.mood), pg = pubGrade(g, c.pub), acc = 0, fit = 0;
+    c.sl.forEach(function (v, i) { acc += sliderAcc(v, g.ideal[i]) / 3; });
+    (c.fit || []).forEach(function (f) { fit += f / 3; });
+    var h = S.proj.hist, same = h.some(function (x) { return x.g === c.genre && x.m === c.mood; }), again = h.length && h[0].g === c.genre;
+    var crea = 0; RESEARCH.nodes.forEach(function (n) { if (n.b === 'crea' && S.rd.nodes[n.id]) crea += 0.1; });
+    var parts = { base: 1, combo: cg === 'top' ? 1.5 : cg === 'bad' ? -2 : 0, pub: pg === 'top' ? 1 : pg === 'bad' ? -1.5 : 0, sliders: 3.5 * acc, team: 3 * fit,
+      studio: Math.min(1, 0.25 * tierIndex(S)) + crea, fresh: same ? -1.5 : again ? -0.5 : 0 };
+    var s = 0; Object.keys(parts).forEach(function (k) { s += parts[k]; });
+    return { score: Math.max(0, Math.min(10, s + (rand() - 0.5) * 0.8)), parts: parts, combo: cg, pubG: pg, acc: acc, fit: fit };
+  }
+  function finishProject(S) {
+    var P = S.proj, c = P.cur, g = PJ_G[c.genre], f = PJ_F[c.fmt], r = projScore(S, c);
+    P.cur = null;
+    var notes = PJ.critics.map(function (name) { return { name: name, n: Math.max(0, Math.min(10, Math.round((r.score + (rand() - 0.5) * 1.6) * 2) / 2)) }; });
+    var avg = 0; notes.forEach(function (x) { avg += x.n / notes.length; });
+    avg = Math.round(avg * 10) / 10;
+    // carnet du studio: associations découvertes et zone probable de chaque curseur
+    var key = c.genre + '|' + c.mood;
+    P.book.c[key] = r.combo; P.book.p[c.genre + '|' + c.pub] = r.pubG;
+    var h = P.book.h[c.genre] || [[0, 100], [0, 100], [0, 100]];
+    c.sl.forEach(function (v, i) {
+      var d = g.ideal[i] - v, z = h[i];
+      if (Math.abs(d) <= 12) { z[0] = Math.max(z[0], v - 12); z[1] = Math.min(z[1], v + 12); }
+      else if (d > 0) z[0] = Math.max(z[0], Math.min(v + 12, 100));
+      else z[1] = Math.min(z[1], Math.max(v - 12, 0));
+      if (z[0] > z[1]) { var mid = (z[0] + z[1]) / 2; z[0] = mid; z[1] = mid; }
+    });
+    P.book.h[c.genre] = h;
+    P.hist.unshift({ g: c.genre, m: c.mood }); P.hist = P.hist.slice(0, 4);
+    P.done++; P.best = Math.max(P.best, avg);
+    // sortie dans le Top 50 et ventes réparties sur les semaines de classement
+    var sales = c.cost * (0.15 + 0.02 * avg * avg) * f.roi;
+    var c2 = S.charts; if (!c2.rivals.length) initRivals(S);
+    var e = { id: c2.nextId++, t: c.title, act: bestAct(S).id, q: Math.max(1, Math.min(5, Math.round(avg / 2))),
+      s: potential(S) * (0.25 + 0.18 * avg) * f.chart * (1 + S.orders.rep / 200) * rdFx(S).chartScore,
+      weeks: 0, pos: 0, p: 0, best: 0, promo: false, earned: 0, pj: { g: c.genre, f: c.fmt, sales: sales, sold: 0, w: 0, avg: avg } };
+    c2.mine.push(e); c2.releases++;
+    rankCharts(S, false); e.p = 0;
+    var inChart = e.pos <= T.chartSize;
+    if (!inChart) c2.mine = c2.mine.filter(function (x) { return x !== e; });
+    addXp(S, xpGain(S, bestAct(S)) * T.projXp * f.time * (0.5 + avg / 10));
+    addRp(S, T.rpProj * avg * f.time);
+    if (avg >= 8) S.orders.rep = Math.min(T.repMax, S.orders.rep + Math.round(avg - 6));
+    var res = { title: c.title, genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt, sl: c.sl.slice(), avg: avg, notes: notes, combo: r.combo, pubG: r.pubG,
+      acc: Math.round(r.acc * 100), fit: Math.round(r.fit * 100), fresh: r.parts.fresh, pos: inChart ? e.pos : 0, sales: sales, cost: c.cost };
+    P.last = res;
+    checkTrophies(S);
+    if (hooks.projectDone) hooks.projectDone(res);
+    return res;
+  }
+  function hydrateProj(S, o) {
+    var P = S.proj;
+    P.done = Math.max(0, Math.floor(num(o.done, 0))); P.best = Math.max(0, Math.min(10, num(o.best, 0)));
+    var b = o.book && typeof o.book === 'object' ? o.book : {}, G3 = ['top', 'ok', 'bad'];
+    if (b.c && typeof b.c === 'object') Object.keys(b.c).forEach(function (k) { var p = k.split('|'); if (PJ_G[p[0]] && PJ_M[p[1]] && G3.indexOf(b.c[k]) >= 0) P.book.c[k] = b.c[k]; });
+    if (b.p && typeof b.p === 'object') Object.keys(b.p).forEach(function (k) { var p = k.split('|'); if (PJ_G[p[0]] && PJ_P[p[1]] && G3.indexOf(b.p[k]) >= 0) P.book.p[k] = b.p[k]; });
+    if (b.h && typeof b.h === 'object') Object.keys(b.h).forEach(function (k) {
+      var h = b.h[k];
+      if (!PJ_G[k] || !Array.isArray(h) || h.length !== 3) return;
+      P.book.h[k] = h.map(function (z) { var lo = Math.max(0, Math.min(100, num(z && z[0], 0))), hi = Math.max(lo, Math.min(100, num(z && z[1], 100))); return [lo, hi]; });
+    });
+    (Array.isArray(o.hist) ? o.hist : []).forEach(function (x) { if (x && PJ_G[x.g] && PJ_M[x.m] && P.hist.length < 4) P.hist.push({ g: x.g, m: x.m }); });
+    var l = o.last;
+    if (l && typeof l === 'object' && PJ_G[l.genre] && PJ_M[l.mood] && PJ_P[l.pub] && PJ_F[l.fmt] && Array.isArray(l.notes)) {
+      P.last = { title: String(l.title || 'Projet').slice(0, 40), genre: l.genre, mood: l.mood, pub: l.pub, fmt: l.fmt,
+        sl: [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, num(l.sl && l.sl[i], 50))); }), avg: Math.max(0, Math.min(10, num(l.avg, 0))),
+        notes: l.notes.slice(0, PJ.critics.length).map(function (x) { return { name: String((x && x.name) || 'Critique').slice(0, 30), n: Math.max(0, Math.min(10, num(x && x.n, 0))) }; }),
+        combo: G3.indexOf(l.combo) >= 0 ? l.combo : 'ok', pubG: G3.indexOf(l.pubG) >= 0 ? l.pubG : 'ok', acc: Math.max(0, Math.min(100, num(l.acc, 0))), fit: Math.max(0, Math.min(100, num(l.fit, 0))),
+        fresh: Math.min(0, num(l.fresh, 0)), pos: Math.max(0, Math.floor(num(l.pos, 0))), sales: Math.max(0, num(l.sales, 0)), cost: Math.max(0, num(l.cost, 0)) };
+    }
+    var c = o.cur;
+    if (c && typeof c === 'object' && PJ_G[c.genre] && PJ_M[c.mood] && PJ_P[c.pub] && PJ_F[c.fmt]) {
+      var ids = {}; S.team.staff.forEach(function (m) { ids[m.id] = 1; });
+      var ph = Math.max(0, Math.min(PJ.phases.length - 1, Math.floor(num(c.phase, 0))));
+      P.cur = { title: String(c.title || 'Projet').slice(0, 40), genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt,
+        sl: [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, Math.round(num(c.sl && c.sl[i], 50)))); }),
+        team: [0, 1, 2].map(function (i) { var id = c.team && c.team[i]; return id && ids[id] ? id : null; }),
+        cost: Math.max(0, num(c.cost, 0)), phase: ph, t: Math.max(0, Math.min(projTime(c.fmt, ph), num(c.t, 0))),
+        fit: [0, 1, 2].slice(0, ph).map(function (i) { return Math.max(0, Math.min(1, num(c.fit && c.fit[i], 0.35))); }) };
+    }
+  }
+  function dismissProject(S) { if (S.proj) S.proj.last = null; }
 
   // ---------- Tournée mondiale (prestige) ----------
   // Points de renommée au total pour un cumul de gains donné.
@@ -1995,6 +2268,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       S.acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: s ? s.done : 0 };
     });
     S.ev.cd = T.eventFirst; S.ev.pending = null; S.ev.hold = false;
+    if (S.proj) { S.proj.cur = null; S.proj.last = null; } // un projet en cours est abandonné, le carnet reste
     S.rd.spec = {}; // les recherches restent, les spécialisations se choisissent à nouveau
     // L'équipe part aussi en tournée: ses membres pourront revenir sans prime d'embauche.
     var tm = S.team || newTeam(), al = tm.staff.map(function (m) { return { id: m.id, name: m.name, role: m.role, stars: m.stars, lvl: m.lvl, xp: 0, salary: m.salary, look: m.look }; });
@@ -2035,6 +2309,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       case 'rep': n = S.orders ? S.orders.rep : 0; break;
       case 'chartBest': n = S.charts && S.charts.best ? T.chartSize + 1 - S.charts.best : 0; break;
       case 'rdNodes': n = rdCount(S); break;
+      case 'projects': n = S.proj ? S.proj.done : 0; break;
+      case 'projBest': n = S.proj ? S.proj.best : 0; break;
+      case 'book': n = S.proj ? Object.keys(S.proj.book.c).length : 0; break;
       case 'specs': n = Object.keys((S.rd && S.rd.spec) || {}).length; break;
       case 'staffLvl': (S.team ? S.team.staff : []).forEach(function (m) { n = Math.max(n, m.lvl); }); break;
       case 'outings': Object.keys(S.ev.seen || {}).forEach(function (id) { n += S.ev.seen[id] || 0; }); break;
@@ -2186,7 +2463,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     chartsOpen: chartsOpen, chartTop: chartTop, rankCharts: rankCharts, release: release, canFreeRelease: canFreeRelease, promoCost: promoCost,
     chartPay: chartPay, weekEnd: weekEnd, tickCharts: tickCharts, tickLive: tickLive, potential: potential,
     RESEARCH: RESEARCH, RD_BY: RD_BY, SPEC_BY: SPEC_BY, rdFx: rdFx, researchCost: researchCost, canResearch: canResearch, research: research,
-    specOpen: specOpen, chooseSpec: chooseSpec, rdCount: rdCount, rdRate: rdRate, orderMax: orderMax, branchNodes: branchNodes, addRp: addRp
+    specOpen: specOpen, chooseSpec: chooseSpec, rdCount: rdCount, rdRate: rdRate, orderMax: orderMax, branchNodes: branchNodes, addRp: addRp,
+    PROJECTS: PJ, PJ_G: PJ_G, PJ_M: PJ_M, PJ_P: PJ_P, PJ_F: PJ_F, projOpen: projOpen, genreOpen: genreOpen, formatOpen: formatOpen, projCost: projCost,
+    projTime: projTime, phaseFit: phaseFit, projBusy: projBusy, startProject: startProject, cancelProject: cancelProject, tickProject: tickProject,
+    finishProject: finishProject, dismissProject: dismissProject, comboGrade: comboGrade, pubGrade: pubGrade
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;
@@ -3483,6 +3763,167 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
 
 
+
+  // ---------- Projets de création (bonus) ----------
+  var pjv = { key: '', t: 0, wasOpen: null, open: false, opener: null, cfg: { genre: 'rap', mood: null, pub: null, fmt: 'single', sl: [50, 50, 50], team: [null, null, null] }, confirm: false };
+  var GRADE = { top: 'idéal', ok: 'neutre', bad: 'à éviter' };
+  function pjGenreName(id) { return G.PJ_G[id] ? G.PJ_G[id].name : id; }
+  function pjMeta(c) { return G.PJ_F[c.fmt].name + ' · ' + pjGenreName(c.genre) + ' · ' + G.PJ_M[c.mood].name + ' · ' + G.PJ_P[c.pub].name; }
+  function pjNote(n) { return nf1.format(n) + '/10'; }
+  function pjWeek(m) { return m.pj && m.pj.w < D.PROJECTS.sales.length ? m.pj.sales * D.PROJECTS.sales[m.pj.w] : 0; }
+  function renderProj(force) {
+    var open = G.projOpen(S), P = S.proj, c = P.cur, onProd = $('app').getAttribute('data-view') === 'prod';
+    if (pjv.wasOpen === false && open && !quiet) toast('Nouveau : les projets de création. Un bonus facultatif à lancer depuis Productions.', 6500);
+    pjv.wasOpen = open;
+    setHidden($('projBox'), !open);
+    if (!open) return;
+    var now = performance.now();
+    if (!force && (!onProd || now - pjv.t < 200)) return;
+    pjv.t = now;
+    setText($('projChip'), P.done ? P.done + (P.done > 1 ? ' projets · record ' : ' projet · record ') + pjNote(P.best) : 'Bonus');
+    var key = (c ? 'run' + c.phase + c.title : 'idle') + '|' + (P.last ? P.last.title + P.last.avg : '') + '|' + pjv.confirm + '|' + S.team.staff.length;
+    var body = $('projBody');
+    if (key !== pjv.key) {
+      pjv.key = key;
+      var h = '';
+      if (P.last) {
+        var L = P.last, gn = pjGenreName(L.genre);
+        h += '<article class="card proj-card proj-res"><div class="proj-score"><b>' + pjNote(L.avg) + '</b><span>' + esc(L.title) + '</span></div>' +
+          '<p class="proj-meta">' + esc(pjMeta(L)) + '</p>' +
+          '<div class="critics">' + L.notes.map(function (x) { return '<div class="critic"><span>' + esc(x.name) + '</span><b>' + nf1.format(x.n) + '</b></div>'; }).join('') + '</div>' +
+          '<ul class="verdicts">' +
+          '<li class="' + L.combo + '">' + esc(gn) + ' et ' + esc(G.PJ_M[L.mood].name.toLowerCase()) + ' : association ' + (L.combo === 'top' ? 'excellente' : L.combo === 'bad' ? 'ratée' : 'correcte') + '.</li>' +
+          '<li class="' + L.pubG + '">Public ' + esc(G.PJ_P[L.pub].name.toLowerCase()) + ' : ' + (L.pubG === 'top' ? 'la cible idéale.' : L.pubG === 'bad' ? 'pas du tout sa cible.' : 'une cible correcte.') + '</li>' +
+          '<li class="' + (L.acc >= 85 ? 'top' : L.acc < 50 ? 'bad' : 'ok') + '">Réglages des phases justes à ' + L.acc + ' %. Le carnet garde la zone probable.</li>' +
+          '<li class="' + (L.fit >= 75 ? 'top' : L.fit < 45 ? 'bad' : 'ok') + '">Apport de l’équipe : ' + L.fit + ' %.</li>' +
+          (L.fresh < 0 ? '<li class="bad">' + (L.fresh <= -1.5 ? 'Déjà entendu : le public se lasse de cette association.' : 'Encore ce genre : un peu de lassitude.') + '</li>' : '') +
+          '</ul><p class="proj-meta">' + (L.pos ? 'Entré au Top 50 à la place ' + L.pos + '. Ventes attendues : ' + eur(L.sales) + ' sur ' + D.PROJECTS.sales.length + ' semaines s’il reste classé (budget ' + eur(L.cost) + ').' : 'Pas assez fort pour entrer au Top 50 : aucune vente.') + '</p>' +
+          '<button class="btn sm" type="button" data-pj="dismiss">Ranger le compte rendu</button></article>';
+      }
+      if (c) {
+        h += '<article class="card proj-card"><h4>' + esc(c.title) + '</h4><p class="proj-meta">' + esc(pjMeta(c)) + '</p><div class="proj-phases">' +
+          D.PROJECTS.phases.map(function (ph, i) {
+            var m = c.team[i] ? G.findMember(S, c.team[i]) : null;
+            return '<div class="proj-ph' + (i < c.phase ? ' done' : i === c.phase ? ' now' : '') + '"><span>' + esc(ph.name) + '</span><span class="meter"><i data-pjm="' + i + '"></i></span><span>' + (m ? esc(m.name) : 'Personne') + '</span></div>';
+          }).join('') + '</div><p class="proj-meta" id="pjLeft"></p>' +
+          (pjv.confirm ? '<div class="confirm"><span>Abandonner « ' + esc(c.title) + ' » ? La moitié du budget est remboursée.</span><div class="row"><button class="btn sm danger" type="button" data-pj="cancelGo">Abandonner</button><button class="btn sm" type="button" data-pj="cancelNo">Continuer</button></div></div>'
+            : '<div class="proj-row"><button class="btn sm" type="button" data-pj="cancel">Abandonner le projet</button></div>') + '</article>';
+      } else {
+        h += '<article class="card proj-card"><p class="proj-meta" style="font-weight:600">Choisis un genre, une ambiance, un public et règle chaque phase. Tes productions continuent pendant ce temps : c’est un bonus, pas une obligation.</p>' +
+          '<div class="proj-row"><button class="btn primary" type="button" data-pj="new"><span>Nouveau projet</span><small id="pjFrom"></small></button></div></article>';
+      }
+      body.innerHTML = h;
+    }
+    if (c) {
+      var tot = 0, done = 0;
+      D.PROJECTS.phases.forEach(function (ph, i) {
+        var T = G.projTime(c.fmt, i), f = i < c.phase ? 1 : i === c.phase ? c.t / T : 0, el = body.querySelector('[data-pjm="' + i + '"]');
+        if (el) el.style.width = (f * 100).toFixed(1) + '%';
+        tot += T; done += T * f;
+      });
+      var cur = c.team[c.phase] ? G.findMember(S, c.team[c.phase]) : null;
+      setText($('pjLeft'), 'Phase ' + (c.phase + 1) + ' sur 3 · encore ' + dur(tot - done) + '.' + (cur ? ' ' + cur.name + ' quitte son poste pendant cette phase.' : '') + ' Le projet avance quand le jeu est ouvert.');
+    } else if ($('pjFrom')) setText($('pjFrom'), 'dès ' + eur(G.projCost(S, 'single')));
+  }
+
+  function pjGrade(kind, g, x) { var b = S.proj.book; return (kind === 'm' ? b.c : b.p)[g + '|' + x] || ''; }
+  function pickBtn(attr, id, label, on, dis, extra, grade) {
+    return '<button type="button" class="pk" data-' + attr + '="' + id + '" aria-pressed="' + on + '"' + (dis ? ' disabled' : '') + '>' +
+      (grade !== undefined ? '<i class="gd ' + grade + '" aria-hidden="true"></i>' : '') + esc(label) + (extra ? ' <small>' + esc(extra) + '</small>' : '') +
+      (grade ? '<span class="sr-only"> (' + GRADE[grade] + ' d’après ton carnet)</span>' : '') + '</button>';
+  }
+  function renderPjForm() {
+    var cf = pjv.cfg, PR = D.PROJECTS;
+    if (!G.genreOpen(S, cf.genre)) cf.genre = 'rap';
+    if (!G.formatOpen(S, cf.fmt)) cf.fmt = 'single';
+    $('pjFmt').innerHTML = PR.formats.map(function (f) { var ok = G.formatOpen(S, f.id); return pickBtn('fmt', f.id, f.name, cf.fmt === f.id, !ok, ok ? (f.cost > 1 ? '×' + nf1.format(f.cost) + ' budget' : '') : 'dès ' + D.TIERS[f.tier].name.toLowerCase()); }).join('');
+    $('pjGenre').innerHTML = PR.genres.map(function (g) { var ok = G.genreOpen(S, g.id); return pickBtn('genre', g.id, g.name, cf.genre === g.id, !ok, ok ? '' : 'recherche ' + G.RD_BY[g.rd].name); }).join('');
+    $('pjMood').innerHTML = PR.moods.map(function (m) { return pickBtn('mood', m.id, m.name, cf.mood === m.id, false, '', pjGrade('m', cf.genre, m.id)); }).join('');
+    $('pjPub').innerHTML = PR.pubs.map(function (p) { return pickBtn('pub', p.id, p.name, cf.pub === p.id, false, '', pjGrade('p', cf.genre, p.id)); }).join('');
+    var known = Object.keys(S.proj.book.c).length;
+    $('pjLegend').innerHTML = '<span>Carnet du studio, ' + known + ' association' + (known > 1 ? 's' : '') + ' découverte' + (known > 1 ? 's' : '') + ' :</span><span><i class="gd-l top"></i>idéal</span><span><i class="gd-l ok"></i>neutre</span><span><i class="gd-l bad"></i>à éviter</span><span><i class="gd-l"></i>inconnu</span>';
+    var h = S.proj.book.h[cf.genre], staff = S.team.staff;
+    $('pjPhases').innerHTML = PR.phases.map(function (ph, i) {
+      var z = h && h[i], zone = z && z[1] - z[0] < 100 ? '<i class="zone" style="left:' + z[0] + '%;width:' + Math.max(2, z[1] - z[0]) + '%"></i>' : '';
+      var opts = '<option value="">Personne (apport ' + Math.round(G.phaseFit(S, i, null) * 100) + ' %)</option>' + staff.map(function (m) {
+        return '<option value="' + m.id + '"' + (cf.team[i] === m.id ? ' selected' : '') + '>' + esc(m.name) + ' · ' + esc(G.ROLE_BY[m.role].name) + ' (apport ' + Math.round(G.phaseFit(S, i, m.id) * 100) + ' %)</option>';
+      }).join('');
+      return '<div class="pj-phase"><div class="lbl-row"><b>' + (i + 1) + '. ' + esc(ph.name) + '</b><span class="small-note">' + dur(G.projTime(cf.fmt, i)) + '</span></div>' +
+        '<div class="pj-range">' + zone + '<input type="range" min="0" max="100" step="5" value="' + cf.sl[i] + '" data-sl="' + i + '" aria-label="' + esc(ph.name) + ', de ' + esc(ph.lo) + ' à ' + esc(ph.hi) + '"></div>' +
+        '<div class="pj-ends"><span>' + esc(ph.lo) + '</span><span>' + esc(ph.hi) + '</span></div>' +
+        '<select data-team="' + i + '" aria-label="Membre de l’équipe pour ' + esc(ph.name) + '"' + (staff.length ? '' : ' disabled') + '>' + opts + '</select></div>';
+    }).join('');
+    setText($('pjTeamNote'), (h ? 'La bande verte sur un curseur montre la zone probable notée dans le carnet pour ce genre. ' : 'Un premier projet dans ce genre révélera dans le carnet la zone à viser sur chaque curseur. ') +
+      (staff.length ? 'Un membre affecté à une phase quitte son poste de production le temps de cette phase.' : 'Recrute une équipe pour renforcer les phases.'));
+    pjFoot();
+  }
+  function pjFoot() {
+    var cf = pjv.cfg, cost = G.projCost(S, cf.fmt), tot = 0;
+    D.PROJECTS.phases.forEach(function (ph, i) { tot += G.projTime(cf.fmt, i); });
+    setText($('pjCost'), 'Budget ' + eur(cost));
+    setText($('pjInfo'), !cf.mood ? 'Choisis une ambiance.' : !cf.pub ? 'Choisis un public.' : S.money < cost ? 'Budget insuffisant.' : 'Durée ' + dur(tot) + ', jeu ouvert.');
+    setDisabled($('pjGo'), !cf.mood || !cf.pub || S.money < cost || !!S.proj.cur);
+  }
+  var TW = ['Minuit', 'Néon', 'Asphalte', 'Comète', 'Velours', 'Mirage', 'Orage', 'Sirène', 'Cendres', 'Lumière', 'Satellite', 'Rivage'];
+  var TT = ['sur la ville', 'de juillet', 'en boucle', 'sans retour', 'au ralenti', 'dans le noir', 'pour toujours', 'à l’horizon'];
+  function suggestTitle() { return TW[Math.floor(Math.random() * TW.length)] + ' ' + TT[Math.floor(Math.random() * TT.length)]; }
+  function openProj() {
+    if (pjv.open || !G.projOpen(S) || S.proj.cur) return;
+    pjv.open = true; pjv.opener = document.activeElement;
+    var cf = pjv.cfg;
+    cf.team = cf.team.map(function (id) { return id && G.findMember(S, id) ? id : null; });
+    $('pjName').value = ''; $('pjName').placeholder = suggestTitle();
+    renderPjForm();
+    $('projScrim').hidden = false; $('app').inert = true;
+    $('projScrim').querySelector('.sheet').scrollTop = 0;
+    $('pjName').focus();
+  }
+  function closeProj() {
+    if (!pjv.open) return;
+    pjv.open = false;
+    $('projScrim').hidden = true; $('app').inert = false;
+    var o = pjv.opener; pjv.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+    else { var b = $('projBody').querySelector('button'); if (b) b.focus(); }
+  }
+  function bindProj() {
+    $('projBody').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-pj]'); if (!b) return;
+      var a = b.getAttribute('data-pj'), nb;
+      if (a === 'new') openProj();
+      else if (a === 'dismiss') { G.dismissProject(S); saveLocal(); renderProj(true); nb = $('projBody').querySelector('button'); if (nb) nb.focus(); }
+      else if (a === 'cancel') { pjv.confirm = true; renderProj(true); nb = $('projBody').querySelector('[data-pj="cancelNo"]'); if (nb) nb.focus(); }
+      else if (a === 'cancelNo') { pjv.confirm = false; renderProj(true); }
+      else if (a === 'cancelGo') { var back = G.cancelProject(S); pjv.confirm = false; saveLocal(); markCloud(); toast('Projet abandonné, ' + eur(back) + ' remboursés.'); renderProj(true); render(); }
+    });
+    var scrim = $('projScrim'), KS = ['fmt', 'genre', 'mood', 'pub'];
+    scrim.addEventListener('click', function (e) {
+      if (e.target === scrim) { closeProj(); return; }
+      var b = e.target.closest('button.pk'); if (!b || b.disabled) return;
+      var k = KS.filter(function (x) { return b.hasAttribute('data-' + x); })[0]; if (!k) return;
+      var v = b.getAttribute('data-' + k);
+      pjv.cfg[k] = v;
+      renderPjForm();
+      var nb = scrim.querySelector('[data-' + k + '="' + v + '"]'); if (nb) nb.focus();
+    });
+    scrim.addEventListener('input', function (e) {
+      var i = e.target.getAttribute('data-sl'); if (i !== null) pjv.cfg.sl[+i] = Math.max(0, Math.min(100, +e.target.value || 0));
+    });
+    scrim.addEventListener('change', function (e) {
+      var i = e.target.getAttribute('data-team');
+      if (i !== null) { var id = +e.target.value || null; pjv.cfg.team[+i] = id; }
+    });
+    $('pjClose').addEventListener('click', closeProj);
+    $('pjGo').addEventListener('click', function () {
+      var cf = pjv.cfg;
+      var c = G.startProject(S, { genre: cf.genre, mood: cf.mood, pub: cf.pub, fmt: cf.fmt, sl: cf.sl.slice(), team: cf.team.slice(), title: $('pjName').value.trim() || $('pjName').placeholder });
+      if (!c) { pjFoot(); return; }
+      saveLocal(); markCloud();
+      closeProj(); pjv.key = ''; renderProj(true); render();
+    });
+    document.addEventListener('keydown', function (e) { if (pjv.open && e.key === 'Escape') { e.preventDefault(); closeProj(); } });
+  }
+
   // ---------- Recherche ----------
   var rdv = { key: '', t: 0, nodes: {} };
   function fmtPts(n) { return short(Math.floor(n)); }
@@ -3639,19 +4080,20 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var mine = c.mine.slice().sort(function (a, b) { return a.pos - b.pos; });
       setText($('mineNote'), mine.length ? 'Gains par semaine selon la place. Les titres perdent des places au fil des semaines.' : 'Aucun titre classé pour l’instant.');
       $('mineList').innerHTML = mine.map(function (m) {
-        return '<li class="mine' + (m.pos === 1 ? ' top1' : '') + '"><span class="pos">' + m.pos + '</span>' + moveHtml({ prev: m.p, pos: m.pos }) + '<span class="tt"><b>' + esc(m.t) + '</b><span>' + esc(G.ACT_BY[m.act].name) + ' · ' + starsTxt(m.q) + ' · ' + m.weeks + ' sem.' + (m.best ? ' · record ' + m.best : '') + '</span></span><span class="gain">+' + eur(G.chartPay(S, m.pos)) + '/sem.</span></li>';
+        return '<li class="mine' + (m.pos === 1 ? ' top1' : '') + '"><span class="pos">' + m.pos + '</span>' + moveHtml({ prev: m.p, pos: m.pos }) + '<span class="tt"><b>' + esc(m.t) + '</b><span>' + (m.pj ? '<span class="pjt">' + esc(G.PJ_F[m.pj.f].name + ' ' + pjGenreName(m.pj.g)) + '</span> · ' + pjNote(m.pj.avg) : esc(G.ACT_BY[m.act].name) + ' · ' + starsTxt(m.q)) + ' · ' + m.weeks + ' sem.' + (m.best ? ' · record ' + m.best : '') + '</span></span><span class="gain">+' + eur(G.chartPay(S, m.pos) + pjWeek(m)) + '/sem.</span></li>';
       }).join('');
     }
     var now = performance.now();
     if (now - chs.listT > 2000 || force) {
       chs.listT = now;
       $('chartList').innerHTML = G.chartTop(S).map(function (e) {
-        return '<li class="' + (e.mine ? 'mine' : '') + (e.pos === 1 ? ' top1' : '') + '"><span class="pos">' + e.pos + '</span>' + moveHtml(e) + '<span class="tt"><b>' + esc(e.t) + '</b><span>' + (e.mine ? 'Ta prod · ' + esc(G.ACT_BY[e.act].name) + ' · ' + starsTxt(e.q) : esc(e.a)) + '</span></span><span class="gain">' + (e.mine ? '+' + eur(G.chartPay(S, e.pos)) : '') + '</span></li>';
+        return '<li class="' + (e.mine ? 'mine' : '') + (e.pos === 1 ? ' top1' : '') + '"><span class="pos">' + e.pos + '</span>' + moveHtml(e) + '<span class="tt"><b>' + esc(e.t) + '</b><span>' + (e.mine ? (e.pj ? 'Ton projet · <span class="pjt">' + esc(pjGenreName(e.pj.g)) + '</span> · ' + pjNote(e.pj.avg) : 'Ta prod · ' + esc(G.ACT_BY[e.act].name) + ' · ' + starsTxt(e.q)) : esc(e.a)) + '</span></span><span class="gain">' + (e.mine ? '+' + eur(G.chartPay(S, e.pos) + pjWeek(e)) : '') + '</span></li>';
       }).join('');
     }
   }
 
   function bindFeatures() {
+    bindProj();
     $('rd').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-rd]'), sp = e.target.closest('button[data-spec]');
       if (b && !b.disabled) { if (G.research(S, b.getAttribute('data-rd'))) saveLocal(); renderRd(true); render(); }
@@ -3867,6 +4309,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     renderOrders();
     renderCharts();
     renderRd();
+    renderProj();
+    if (pjv.open) pjFoot();
     renderScene();
     var hint = $('hint');
     if (hint) setHidden(hint, S.acts.beat.done >= 6);
@@ -4455,7 +4899,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
-    closeMix(); ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
+    closeMix(); closeProj(); pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -4698,6 +5142,14 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   };
   G.hooks.research = function (n) { markCloud(); rdv.key = ''; if (!quiet) { toast('Recherche terminée : ' + n.name + '.', 4500); blip(10); } };
   G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
+  G.hooks.projectStart = function (c) { markCloud(); if (!quiet) { toast('« ' + c.title + ' » est lancé : écriture en cours.', 4000); blip(6); } };
+  G.hooks.projectPhase = function (c) { pjv.key = ''; markCloud(); if (!quiet) toast('« ' + c.title + ' » : ' + D.PROJECTS.phases[c.phase].name.toLowerCase() + ' en cours.', 3500); };
+  G.hooks.projectDone = function (r) {
+    pjv.key = ''; chs.key = ''; markCloud(); saveLocal();
+    if (quiet) return;
+    toast('Les critiques ont parlé : « ' + r.title + ' » obtient ' + pjNote(r.avg) + (r.pos ? ' et entre au Top 50 à la place ' + r.pos + '.' : '.'), 7000);
+    blip(r.avg >= 8 ? 12 : 7);
+  };
   G.hooks.orderNew = function (x) { if (!quiet) { toast('Nouvelle commande : ' + x.client + ' (' + x.kind.toLowerCase() + ') te contacte.', 4500); blip(6); } };
   G.hooks.orderDone = function (x) {
     markCloud(); ord.key = '';
