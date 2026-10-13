@@ -23,13 +23,35 @@ for (const stage of [0, 0.5, 2, 6]) {
 }
 
 // 2. Tous les scénarios x choix
-for (const x of G.EVENTS) for (let i = 0; i < x.choices.length; i++) {
-  const S = G.newState(0); S.level = 5; S.ev.pending = { id: x.id, left: 50 };
-  const res = G.resolveEvent(S, i);
-  assert(res && res.rewards.length > 0, x.id + i);
-  assert(S.ev.pending === null && S.ev.cd >= 300 && S.ev.cd <= 660);
+function ready() {
+  const S = G.hydrate({ level: 12, money: 1e12, lifetime: 1e12, owned: Object.fromEntries(G.ITEMS.map(i => [i.id, 1])),
+    rd: { nodes: Object.fromEntries(G.RESEARCH.nodes.map(n => [n.id, 1])) }, contacts: Object.fromEntries(G.EVENTS.map(x => [x.id, 1])),
+    team: { staff: G.ROLES.map((r, k) => ({ id: k + 1, role: r.id, stars: 3, lvl: 2, morale: 50, salary: 1 })) } }, 0);
+  return S;
 }
-console.log('OK: 11 scénarios résolus, délais suivants entre 5 et 11 min');
+let locked = 0, paid = 0, risky = 0;
+for (const x of G.EVENTS) for (let i = 0; i < x.choices.length; i++) {
+  const c = x.choices[i];
+  // sans les conditions: refus propre
+  const N = G.newState(0); N.level = 5; N.ev.pending = { id: x.id, left: 50 };
+  if (!G.choiceInfo(N, c).ok) { locked++; assert.strictEqual(G.resolveEvent(N, i), null, 'option verrouillée refusée ' + x.id + i); assert(N.ev.pending); }
+  for (const roll of c.risk ? [0, 0.999] : [0.5]) {
+    const S = ready(); S.ev.pending = { id: x.id, left: 50 };
+    const m0 = S.money, mo0 = S.team.staff[0].morale;
+    const res = G.resolveEvent(S, i, () => roll);
+    assert(res && res.rewards.length > 0, x.id + i);
+    assert(S.ev.pending === null && S.ev.cd >= 300 && S.ev.cd <= 660);
+    if (c.cost) { paid++; assert(res.rewards[0].k === 'spent' && Math.abs(res.rewards[0].v - G.eventRef(S) * c.cost) / res.rewards[0].v < 0.5); }
+    if (c.risk) { risky++; assert.strictEqual(res.win, roll < c.risk.p); assert.strictEqual(res.outcome, res.win ? c.outcome : c.risk.outcome); }
+    res.rewards.forEach(w => { if (w.k === 'morale') assert(S.team.staff[0].morale === Math.min(100, mo0 + w.v)); if (w.k === 'master') assert(S.masters.length >= 1); });
+  }
+}
+console.log('OK:', G.EVENTS.length, 'scénarios résolus |', locked, 'options sous condition refusées |', paid, 'paiements |', risky, 'tirages risqués');
+// suites d'histoires: seulement après avoir rencontré le contact
+const P = G.newState(0); P.owned = { laptop: 1 }; P.level = 30;
+const avail = () => G.EVENTS.filter(x => x.need && x.need.contact).filter(x => { for (let k = 0; k < 200; k++) { const e = G.pickEvent(P, Math.random); if (e && e.id === x.id) return true; } return false; });
+assert.strictEqual(avail().length, 0, 'aucune suite sans contact');
+console.log('OK: suites d’histoires réservées aux contacts rencontrés');
 
 // 3. Contact une seule fois
 let S = G.newState(0); S.ev.pending = { id: 'rappeur', left: 50 };

@@ -99,5 +99,5 @@ console.log('OK: hydrate');
 S.lifetime = 1e14;
 assert.ok(G.tour(S, 1000));
 assert.strictEqual(S.proj.cur, null); assert.ok(Object.keys(S.proj.book.c).length >= 1);
-assert.ok(S.trophies['premier-projet'], 'trophée');
+assert.ok(S.trophies.createur >= 1, 'trophée');
 console.log('OK: tournée, trophées');

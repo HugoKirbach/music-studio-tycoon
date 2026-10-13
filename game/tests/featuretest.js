@@ -99,7 +99,7 @@ console.log('OK: Top 50 | meilleur classement #' + S.charts.best + ' | numéros 
 
 // 4. Trophées et sauvegarde
 G.checkTrophies(S, true);
-assert.ok(S.trophies['premier-mix'] && S.trophies['oreille-or'], 'trophées de mix');
+assert.ok(S.trophies.mixeur >= 1 && S.trophies['oreille-absolue'] >= 1, 'trophées de mix');
 const R = G.hydrate(JSON.parse(JSON.stringify(S)), 0);
 assert.deepStrictEqual(R.charts.rivals.map(r => r.t), S.charts.rivals.map(r => r.t));
 assert.strictEqual(R.orders.rep, S.orders.rep); assert.strictEqual(R.masters.length, S.masters.length);

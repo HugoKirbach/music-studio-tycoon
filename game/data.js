@@ -66,7 +66,9 @@
     rpOrder: 25,        // points par commande livrée (multipliés par la qualité demandée)
     rpChart: 0.5,       // points par place au-dessus de la 51e, chaque semaine, pour chaque titre classé
     // Projets de création (bonus facultatif)
-    projLevel: 5, projCostSec: 90, projRefund: 0.5, rpProj: 12, projXp: 4
+    projLevel: 5, projCostSec: 90, projRefund: 0.5, rpProj: 12, projXp: 4,
+    // Clash de beatmakers (mini-jeu de rythme)
+    battleLevel: 3, battleFirst: 45, battleEvery: 210, battleUp: 3, battleBars: 8, battlePerfect: 0.07, battleGood: 0.14
   };
 
   // dur: secondes, pay: euros, xp: points d'expertise
@@ -282,6 +284,342 @@
         { text: 'Lui demander s’il peut te présenter à ses contacts',
           outcome: 'Il rit, un peu froissé. Il te laisse tout de même deux numéros.',
           rw: [{ k: 'xp', x: 0.15 }] }
+      ] },
+    // ---- Nouvelles sorties : options sous condition (need), payantes (cost), risquées (risk) et suites d'histoires ----
+    { id: 'cypher', tiers: [0, 2], title: 'Le cypher du parc', contact: 'Moussa, beatboxer',
+      intro: 'Dans un parc, un cercle de rappeurs improvise. Le beatboxer s’essouffle et te lance un regard plein d’espoir.',
+      choices: [
+        { text: 'Prendre le relais avec un beat lancé depuis ton téléphone',
+          outcome: 'Le cercle repart de plus belle. Moussa te serre la main : « On remet ça la semaine prochaine. »',
+          rw: [{ k: 'contact' }, { k: 'xp', x: 0.2 }] },
+        { text: 'Te lancer en beatbox sans jamais avoir essayé', risk: { p: 0.5,
+          outcome: 'Tu postillonnes dans le micro. Le cercle te remercie poliment et passe à autre chose.', rw: [{ k: 'xp', x: 0.05 }] },
+          outcome: 'Silence, puis une ovation : ton kick à la bouche est étonnamment propre. La vidéo tourne déjà.',
+          rw: [{ k: 'contact' }, { k: 'boost', m: 2, s: 60 }] },
+        { text: 'Enregistrer l’ambiance pour en faire des samples',
+          outcome: 'Les voix, les rires et les claquements de mains font une banque de sons unique.',
+          rw: [{ k: 'tracks', n: 5 }, { k: 'rp', x: 0.5 }] }
+      ] },
+    { id: 'disquaire', tiers: [0, 3], title: 'Le disquaire en liquidation', contact: 'Odile, disquaire',
+      intro: 'Le disquaire de ton enfance ferme ses portes. Odile brade tout, y compris des caisses de vinyles jamais triées.',
+      choices: [
+        { text: 'Racheter un lot entier de vinyles rares pour les sampler', cost: 0.8,
+          outcome: 'Des pépites oubliées, des breaks de batterie introuvables. Odile est ravie que ses disques revivent.',
+          rw: [{ k: 'contact' }, { k: 'tracks', n: 15 }, { k: 'rp', x: 1 }] },
+        { text: 'Aider Odile à inventorier le stock toute la journée',
+          outcome: 'Elle te raconte quarante ans de musique, disque après disque. Tu repars avec une culture énorme.',
+          rw: [{ k: 'contact' }, { k: 'xp', x: 0.25 }] },
+        { text: 'Repartir avec un seul disque choisi au hasard',
+          outcome: 'Un pressage original qui vaut trois fois son prix.',
+          rw: [{ k: 'cash', x: 0.8 }] }
+      ] },
+    { id: 'voisin', tiers: [0, 1], title: 'Le voisin excédé', contact: 'M. Garnier, voisin',
+      intro: 'Il est 23 h. Ton voisin tambourine à la porte : les basses traversent le mur de sa chambre.',
+      choices: [
+        { text: 'Lui proposer d’écouter le morceau au casque',
+          outcome: 'Il hoche la tête, puis sourit : il jouait de la basse dans les années 80. Il passera t’en prêter une.',
+          rw: [{ k: 'contact' }, { k: 'xp', x: 0.15 }] },
+        { text: 'Baisser le son et continuer au casque',
+          outcome: 'Le calme revenu, tu te concentres comme jamais.',
+          rw: [{ k: 'boost', m: 1.5, s: 120 }] },
+        { text: 'Faire semblant de ne pas entendre',
+          outcome: 'Le syndic t’envoie un courrier. Tu perds la soirée à rédiger des excuses.',
+          rw: [{ k: 'xp', x: 0.05 }] }
+      ] },
+    { id: 'concours', tiers: [0, 3], title: 'Le concours de remix', contact: 'Studio Pulse, organisateur',
+      intro: 'Un concours de remix en ligne ferme ce soir à minuit. Le premier prix : une belle somme et une mise en avant.',
+      choices: [
+        { text: 'Envoyer un remix audacieux qui change tout le tempo', risk: { p: 0.4,
+          outcome: 'Le jury trouve ça trop loin de l’original. Tu apprends beaucoup de leurs retours.', rw: [{ k: 'xp', x: 0.2 }] },
+          outcome: 'Le jury adore la prise de risque : premier prix ! Studio Pulse veut retravailler avec toi.',
+          rw: [{ k: 'contact' }, { k: 'cash', x: 3 }] },
+        { text: 'Envoyer un remix fidèle et soigné',
+          outcome: 'Troisième place, et une jolie mention sur leur page.',
+          rw: [{ k: 'cash', x: 1 }, { k: 'rep', n: 3 }] },
+        { text: 'Écouter les remix des autres pour apprendre',
+          outcome: 'Tu notes des dizaines d’astuces de production.',
+          rw: [{ k: 'rp', x: 1 }] }
+      ] },
+    { id: 'fan', tiers: [1, 6], title: 'La lettre d’un fan', contact: 'Théo, fan de la première heure',
+      intro: 'Une lettre manuscrite arrive au studio. Théo raconte comment un de tes morceaux l’a aidé à traverser une année difficile.',
+      choices: [
+        { text: 'Lui répondre et l’inviter à visiter le studio',
+          outcome: 'Théo passe une après-midi avec vous. L’équipe en parle encore le soir.',
+          rw: [{ k: 'contact' }, { k: 'morale', n: 10 }, { k: 'boost', m: 1.5, s: 120 }] },
+        { text: 'Partager sa lettre sur les réseaux, avec son accord',
+          outcome: 'Des centaines de messages similaires affluent.',
+          rw: [{ k: 'rep', n: 3 }] },
+        { text: 'La ranger précieusement dans un tiroir',
+          outcome: 'Tu la reliras les jours de doute.',
+          rw: [{ k: 'xp', x: 0.05 }] }
+      ] },
+    { id: 'stagiaire', tiers: [1, 4], title: 'L’étudiante en son', contact: 'Romane, étudiante en son',
+      intro: 'Romane, étudiante en école de son, cherche un stage. Elle a apporté un mix étonnamment propre.',
+      choices: [
+        { text: 'L’intégrer à une vraie session avec ton équipe', need: { staff: 1 },
+          outcome: 'Elle pose mille questions et l’équipe adore transmettre. Tout le monde ressort motivé.',
+          rw: [{ k: 'contact' }, { k: 'morale', n: 20 }, { k: 'xp', x: 0.1 }] },
+        { text: 'La former toi-même pendant un après-midi',
+          outcome: 'Expliquer ta méthode t’oblige à la clarifier. Tu progresses autant qu’elle.',
+          rw: [{ k: 'contact' }, { k: 'xp', x: 0.2 }] },
+        { text: 'Lui dire de repasser l’année prochaine',
+          outcome: 'Elle trouvera un autre studio. Dommage.',
+          rw: [{ k: 'xp', x: 0.05 }] }
+      ] },
+    { id: 'tendance', tiers: [1, 4], title: 'Le son qui tourne en boucle', contact: 'Léo, créateur de contenu',
+      intro: 'Un créateur de vidéos te demande un son de quinze secondes pour lancer une tendance.',
+      choices: [
+        { text: 'Créer un gimmick absurde et entêtant', risk: { p: 0.55,
+          outcome: 'La tendance ne prend pas. Léo te remercie quand même.', rw: [{ k: 'cash', x: 0.5 }] },
+          outcome: 'Des millions de vidéos l’utilisent. Ton nom circule partout.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 8 }, { k: 'boost', m: 3, s: 60 }] },
+        { text: 'Livrer une boucle propre et passe-partout',
+          outcome: 'Elle sert dans quelques vidéos. Un travail honnête, payé correctement.',
+          rw: [{ k: 'cash', x: 1.2 }] },
+        { text: 'Refuser : ce n’est pas ton style',
+          outcome: 'Tu gardes ta ligne. Personne n’en saura rien.',
+          rw: [{ k: 'xp', x: 0.1 }] }
+      ] },
+    { id: 'mariage', tiers: [1, 4], title: 'Le mariage sans DJ', contact: 'Claire et Yanis, jeunes mariés',
+      intro: 'Un couple d’amis t’appelle en panique : leur DJ a annulé, la soirée commence dans deux heures.',
+      choices: [
+        { text: 'Installer tes enceintes et mixer toute la soirée', need: { item: 'moniteurs' },
+          outcome: 'La piste ne désemplit pas jusqu’à l’aube. La moitié des invités te demandent ta carte.',
+          rw: [{ k: 'contact' }, { k: 'cash', x: 2 }] },
+        { text: 'Lancer une longue playlist depuis ton téléphone',
+          outcome: 'Ça tient la soirée, sans plus.',
+          rw: [{ k: 'cash', x: 0.8 }] },
+        { text: 'Leur recommander un ami DJ',
+          outcome: 'Ton ami assure. Il t’en doit une.',
+          rw: [{ k: 'xp', x: 0.15 }] }
+      ] },
+    { id: 'chorale', tiers: [1, 5], title: 'La chorale du quartier', contact: 'La chorale Saint-Michel',
+      intro: 'La chorale du quartier fête ses cinquante ans et rêve d’un vrai enregistrement.',
+      choices: [
+        { text: 'Les enregistrer dans ton studio avec ton micro', need: { item: 'micro' },
+          outcome: 'Trente voix dans une pièce, un frisson à chaque prise. Le disque se vend à la sortie de la messe… et au-delà.',
+          rw: [{ k: 'contact' }, { k: 'tracks', n: 10 }, { k: 'master', q: 3 }] },
+        { text: 'Leur écrire un arrangement',
+          outcome: 'Ils le chantent à leur concert anniversaire. Tu progresses en écriture vocale.',
+          rw: [{ k: 'xp', x: 0.2 }] },
+        { text: 'Les orienter vers une église à l’acoustique parfaite',
+          outcome: 'Ils te remercient du conseil.',
+          rw: [{ k: 'rep', n: 2 }] }
+      ] },
+    { id: 'rappeur2', tiers: [1, 5], need: { contact: 'rappeur' }, title: 'Kaïs revient', contact: 'Le crew de Kaïs',
+      intro: 'Kaïs, le rappeur du café, a percé. Il débarque au studio : il veut que tu réalises son premier album.',
+      choices: [
+        { text: 'Avancer les frais de studio pour lui', cost: 1,
+          outcome: 'L’album sort et cartonne. Kaïs te reverse une belle part et te remercie dans chaque interview.',
+          rw: [{ k: 'contact' }, { k: 'cash', x: 3 }, { k: 'master', q: 4 }] },
+        { text: 'Lui faire un tarif ami',
+          outcome: 'L’album est solide. Le quartier sait qui l’a produit.',
+          rw: [{ k: 'master', q: 3 }, { k: 'rep', n: 4 }] },
+        { text: 'Le présenter à un autre producteur',
+          outcome: 'Il comprend, mais il est déçu.',
+          rw: [{ k: 'xp', x: 0.2 }] }
+      ] },
+    { id: 'pianiste', tiers: [2, 6], title: 'Le pianiste du métro', contact: 'Anatole, pianiste',
+      intro: 'Dans un couloir du métro, un pianiste joue sur un vieux piano droit. Les passants s’arrêtent tous.',
+      choices: [
+        { text: 'Le présenter à ton compositeur', need: { role: 'compo' },
+          outcome: 'Ils improvisent pendant des heures. Un thème naît dans la nuit.',
+          rw: [{ k: 'contact' }, { k: 'master', q: 4 }, { k: 'morale', n: 10 }] },
+        { text: 'L’enregistrer sur place avec ton micro', need: { item: 'micro' },
+          outcome: 'La réverbération du couloir est magique. Tu tiens un son unique.',
+          rw: [{ k: 'contact' }, { k: 'tracks', n: 15 }] },
+        { text: 'Lui laisser un billet',
+          outcome: 'Il te remercie d’un signe de tête sans s’arrêter de jouer.',
+          rw: [{ k: 'xp', x: 0.1 }] }
+      ] },
+    { id: 'pub', tiers: [2, 5], title: 'La publicité télé', contact: 'Agence Lumen',
+      intro: 'Une agence cherche une musique pour la publicité d’une grande marque. Le brief tient en une ligne : « Que ça reste en tête. »',
+      choices: [
+        { text: 'Composer un thème original sur mesure',
+          outcome: 'Le client signe à la première écoute. L’agence te met sur sa liste.',
+          rw: [{ k: 'contact' }, { k: 'cash', x: 2.5 }] },
+        { text: 'Proposer de reprendre un classique', risk: { p: 0.6,
+          outcome: 'Les droits sont refusés au dernier moment. L’agence paie quand même tes heures.', rw: [{ k: 'cash', x: 0.6 }] },
+          outcome: 'Les droits passent, la pub est diffusée partout.',
+          rw: [{ k: 'cash', x: 3 }, { k: 'rep', n: 3 }] },
+        { text: 'Envoyer un morceau de ton catalogue',
+          outcome: 'Ils le prennent en version courte.',
+          rw: [{ k: 'cash', x: 1 }] }
+      ] },
+    { id: 'pirate', tiers: [2, 5], title: 'La radio pirate', contact: 'DJ Nox, radio pirate',
+      intro: 'Une radio pirate émet chaque nuit depuis un toit. DJ Nox cherche des inédits pour son émission.',
+      choices: [
+        { text: 'Lui confier tes inédits', risk: { p: 0.6,
+          outcome: 'Les inédits fuitent sur internet. Au moins, ça fait parler de toi.', rw: [{ k: 'tracks', n: 5 }] },
+          outcome: 'L’émission devient culte et tes titres avec. Les auditeurs cherchent qui se cache derrière.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 6 }] },
+        { text: 'Animer une émission de nuit avec lui',
+          outcome: 'Trois heures de direct, des appels d’auditeurs, une énergie folle.',
+          rw: [{ k: 'contact' }, { k: 'xp', x: 0.25 }] },
+        { text: 'Lui conseiller de passer en podcast',
+          outcome: 'Il réfléchit. Tu y gagnes une discussion passionnante sur la diffusion.',
+          rw: [{ k: 'rp', x: 1 }] }
+      ] },
+    { id: 'openmic2', tiers: [2, 5], need: { contact: 'openmic' }, title: 'La tournée d’Inès', contact: 'Les musiciens d’Inès',
+      intro: 'Inès, la chanteuse du micro ouvert, part en tournée. Elle n’a pas oublié la sono de secours.',
+      choices: [
+        { text: 'Envoyer ton preneur de son assurer ses concerts', need: { role: 'preneur' },
+          outcome: 'Chaque date sonne parfaitement. Ton preneur de son revient fier comme jamais.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 6 }, { k: 'morale', n: 15 }] },
+        { text: 'Enregistrer un concert en live',
+          outcome: 'Un live brut et vibrant, prêt à sortir.',
+          rw: [{ k: 'tracks', n: 20 }, { k: 'master', q: 3 }] },
+        { text: 'Lui souhaiter bonne route',
+          outcome: 'Elle t’enverra une carte postale de chaque ville.',
+          rw: [{ k: 'xp', x: 0.15 }] }
+      ] },
+    { id: 'groupe2', tiers: [2, 5], need: { contact: 'groupe' }, title: 'Les Marées se déchirent', contact: 'Lou, chanteuse des Marées',
+      intro: 'Le groupe que tu avais réconcilié avec son mix se dispute en pleine session. La chanteuse menace de partir en solo.',
+      choices: [
+        { text: 'Organiser une médiation autour d’une écoute',
+          outcome: 'Réécouter leur premier titre ensemble apaise tout le monde. Le morceau suivant est le meilleur de leur carrière.',
+          rw: [{ k: 'contact' }, { k: 'master', q: 4 }] },
+        { text: 'Proposer à la chanteuse un projet solo',
+          outcome: 'Le groupe t’en veut, mais son premier single solo est superbe.',
+          rw: [{ k: 'master', q: 3 }, { k: 'rep', n: 3 }] },
+        { text: 'Rester neutre et finir la session',
+          outcome: 'La session se termine dans un silence glacial.',
+          rw: [{ k: 'xp', x: 0.15 }] }
+      ] },
+    { id: 'critique', tiers: [3, 6], title: 'Le critique influent', contact: 'Bastien Roux, critique',
+      intro: 'Le critique le plus lu du pays prépare un dossier sur les studios qui montent. Ton nom est sur sa liste.',
+      choices: [
+        { text: 'L’inviter pendant une vraie session de travail',
+          outcome: 'Il reste quatre heures et écrit un portrait élogieux.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 6 }] },
+        { text: 'Lui offrir un dîner luxueux', cost: 1.5,
+          outcome: 'Il apprécie le dîner… et écrit un article tiède. L’argent n’achète pas tout.',
+          rw: [{ k: 'rep', n: 2 }] },
+        { text: 'Lui envoyer un disque avec un mot manuscrit',
+          outcome: 'Il cite ton mot dans son article.',
+          rw: [{ k: 'rep', n: 3 }, { k: 'xp', x: 0.1 }] }
+      ] },
+    { id: 'ecole', tiers: [3, 6], title: 'L’école de musique', contact: 'Mme Bensaïd, directrice d’école',
+      intro: 'L’école de musique du quartier n’a plus de quoi faire enregistrer ses élèves. La directrice frappe à ta porte.',
+      choices: [
+        { text: 'Ouvrir le studio aux élèves avec toute ton équipe', need: { staff: 3 },
+          outcome: 'Une journée joyeuse et bruyante. L’équipe en ressort transformée.',
+          rw: [{ k: 'contact' }, { k: 'morale', n: 25 }, { k: 'rep', n: 4 }] },
+        { text: 'Donner une masterclass gratuite',
+          outcome: 'Les questions des élèves te poussent dans tes retranchements.',
+          rw: [{ k: 'contact' }, { k: 'rp', x: 2 }] },
+        { text: 'Leur vendre des sessions au prix fort',
+          outcome: 'L’école paie, sans enthousiasme.',
+          rw: [{ k: 'cash', x: 1.5 }] }
+      ] },
+    { id: 'sample', tiers: [3, 6], title: 'Le sample non déclaré', contact: 'Maître Lefort, avocate',
+      intro: 'Un titre produit chez toi contient un sample non déclaré. Les ayants droit menacent de faire retirer le morceau.',
+      choices: [
+        { text: 'Négocier les droits honnêtement', cost: 1,
+          outcome: 'Accord trouvé. Le titre reste en ligne et l’avocate retient ton sérieux.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 5 }, { k: 'tracks', n: 10 }] },
+        { text: 'Rejouer la partie samplée avec un vrai clavier', need: { item: 'clavier' },
+          outcome: 'Ta version jouée est encore meilleure que l’originale.',
+          rw: [{ k: 'master', q: 4 }, { k: 'rp', x: 1 }] },
+        { text: 'Faire le mort et attendre', risk: { p: 0.35,
+          outcome: 'Le titre est retiré. Toutes ses ventes s’arrêtent.', rw: [{ k: 'xp', x: 0.05 }] },
+          outcome: 'Les ayants droit finissent par abandonner.',
+          rw: [{ k: 'cash', x: 1 }] }
+      ] },
+    { id: 'festival2', tiers: [3, 6], need: { contact: 'festival' }, title: 'La grande scène', contact: 'La régie du festival',
+      intro: 'Hélène, la régisseuse du festival, t’appelle : l’ingénieur de la grande scène est malade, le concert commence dans une heure.',
+      choices: [
+        { text: 'Mixer la grande scène sur ta console analogique', need: { item: 'console' },
+          outcome: 'Quarante mille personnes, un son énorme. Ton nom apparaît dans tous les comptes rendus.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 8 }, { k: 'boost', m: 2, s: 120 }] },
+        { text: 'Monter sur scène pour un set surprise', risk: { p: 0.5,
+          outcome: 'Le public attendait la tête d’affiche. Tu tiens bon, sans plus.', rw: [{ k: 'xp', x: 0.15 }] },
+          outcome: 'Le public ne t’attendait pas et repart en parlant de toi.',
+          rw: [{ k: 'rep', n: 10 }, { k: 'cash', x: 2 }] },
+        { text: 'Tenir le stand du studio',
+          outcome: 'Tu vends des disques toute la soirée.',
+          rw: [{ k: 'cash', x: 1.2 }] }
+      ] },
+    { id: 'hackathon', tiers: [3, 6], title: 'Le hackathon audio', contact: 'Lina, développeuse',
+      intro: 'Un week-end entier pour inventer des outils audio. Une développeuse cherche un producteur pour son équipe.',
+      choices: [
+        { text: 'Coder avec elle un plugin maison',
+          outcome: 'Votre plugin gagne le prix du public. Tu l’utilises depuis tous les jours.',
+          rw: [{ k: 'contact' }, { k: 'rp', x: 3 }] },
+        { text: 'Montrer ton réglage d’Auto-Tune secret', need: { rd: 'autotune' },
+          outcome: 'La salle entière prend des notes. On te cite dans trois conférences.',
+          rw: [{ k: 'rp', x: 4 }, { k: 'rep', n: 3 }] },
+        { text: 'Venir surtout pour le buffet',
+          outcome: 'Le buffet était excellent.',
+          rw: [{ k: 'xp', x: 0.05 }] }
+      ] },
+    { id: 'documentaire', tiers: [4, 6], title: 'Le documentaire', contact: 'Nadia, réalisatrice',
+      intro: 'Une réalisatrice prépare un documentaire sur les studios d’enregistrement. Elle veut filmer le tien.',
+      choices: [
+        { text: 'Laisser les caméras filmer une vraie journée',
+          outcome: 'Le film montre le travail tel qu’il est. Le public adore ton équipe.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 6 }, { k: 'morale', n: 10 }] },
+        { text: 'Composer la musique du documentaire avec ta banque orchestrale', need: { item: 'orchestre' },
+          outcome: 'La bande originale est saluée à sa diffusion.',
+          rw: [{ k: 'cash', x: 3 }, { k: 'tracks', n: 20 }] },
+        { text: 'Refuser pour protéger la tranquillité de tes artistes',
+          outcome: 'L’équipe apprécie que tu la protèges.',
+          rw: [{ k: 'morale', n: 15 }] }
+      ] },
+    { id: 'investisseur', tiers: [4, 6], title: 'L’investisseuse pressée', contact: 'Sophie Marchal, investisseuse',
+      intro: 'Une investisseuse te donne cinq minutes entre deux avions. Elle a deux projets à te proposer.',
+      choices: [
+        { text: 'Co-investir dans un studio de quartier', cost: 3,
+          outcome: 'Le studio de quartier tourne à plein et te reverse rapidement de beaux dividendes.',
+          rw: [{ k: 'contact' }, { k: 'cash', x: 6 }] },
+        { text: 'Parier sur une jeune pousse de la musique assistée', cost: 2, risk: { p: 0.4,
+          outcome: 'L’entreprise ferme au bout de six mois. Une leçon chère payée.', rw: [{ k: 'xp', x: 0.1 }] },
+          outcome: 'L’entreprise est rachetée. Ta part est multipliée.',
+          rw: [{ k: 'cash', x: 8 }, { k: 'rp', x: 2 }] },
+        { text: 'Décliner poliment',
+          outcome: 'Elle te laisse sa carte « pour plus tard ».',
+          rw: [{ k: 'xp', x: 0.1 }] }
+      ] },
+    { id: 'jury', tiers: [4, 6], title: 'Le jury télé', contact: 'Production Starlight',
+      intro: 'Une émission de télé-crochet cherche un nouveau juré. Le tournage commence demain.',
+      choices: [
+        { text: 'Accepter et rester bienveillant',
+          outcome: 'Les candidats t’adorent. Les téléspectateurs aussi.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 8 }] },
+        { text: 'Jouer le juré impitoyable', risk: { p: 0.5,
+          outcome: 'Le public te trouve odieux. L’émission ne te réinvite pas.', rw: [{ k: 'rep', n: 1 }] },
+          outcome: 'Tes répliques font le tour du web. Tout le monde veut savoir qui tu es.',
+          rw: [{ k: 'rep', n: 12 }, { k: 'cash', x: 2 }] },
+        { text: 'Refuser pour rester au studio',
+          outcome: 'Tu passes la soirée à produire, l’esprit tranquille.',
+          rw: [{ k: 'boost', m: 2, s: 120 }] }
+      ] },
+    { id: 'artiste2', tiers: [4, 6], need: { contact: 'artiste' }, title: 'Le duo de Maya Lorent', contact: 'L’équipe de Maya Lorent',
+      intro: 'Maya Lorent n’a pas oublié votre discussion au bar de l’hôtel. Elle veut enregistrer un duo dans ton studio.',
+      choices: [
+        { text: 'Préparer la session avec ton coach vocal', need: { role: 'vocal' },
+          outcome: 'Les voix se marient parfaitement dès la deuxième prise. Le duo est immédiatement un classique.',
+          rw: [{ k: 'contact' }, { k: 'master', q: 5 }, { k: 'rep', n: 6 }] },
+        { text: 'Produire le duo toi-même, en une seule nuit', risk: { p: 0.5,
+          outcome: 'Le résultat est bon, mais tu sens qu’il manque quelque chose.', rw: [{ k: 'master', q: 3 }] },
+          outcome: 'Une nuit de grâce. Au matin, le morceau est parfait.',
+          rw: [{ k: 'master', q: 5 }, { k: 'boost', m: 3, s: 90 }] },
+        { text: 'Proposer de garder l’idée pour plus tard',
+          outcome: 'Elle comprend. L’occasion ne se représentera peut-être pas.',
+          rw: [{ k: 'xp', x: 0.15 }] }
+      ] },
+    { id: 'legende2', tiers: [5, 6], need: { contact: 'legende' }, title: 'Le dernier album de Jean-Paul Sorel', contact: 'Les héritiers de Jean-Paul Sorel',
+      intro: 'Jean-Paul Sorel, le producteur légendaire, revient avec des bandes inachevées. Il veut que ce soit toi qui les termines.',
+      choices: [
+        { text: 'Les terminer sur ta console légendaire', need: { item: 'neve' },
+          outcome: 'Sa signature sonore et la tienne se rejoignent. L’album est salué comme un testament.',
+          rw: [{ k: 'contact' }, { k: 'master', q: 5 }, { k: 'rp', x: 4 }] },
+        { text: 'Lui demander de t’enseigner sa méthode de mixage',
+          outcome: 'Trois jours d’enseignement qui valent dix ans de pratique.',
+          rw: [{ k: 'contact' }, { k: 'xp', x: 0.4 }] },
+        { text: 'Lui conseiller de les publier telles quelles',
+          outcome: 'Les bandes brutes ont leur charme. Il te remercie de ta franchise.',
+          rw: [{ k: 'rep', n: 4 }] }
       ] }
   ];
 
@@ -289,71 +627,45 @@
   // Palmarès: trophées à décrocher. m = mesure suivie (voir trophyMetric dans engine.js), n = seuil à atteindre.
   // Mesures: done (productions réalisées, ou done:<voie>), lifetime, level, items (équipements hors portable),
   // own:<équipement>, tier, income (revenu continu par seconde, hors boost), autos, rank (plus haut rang), contacts, outings, fame, tours.
+  // Palmarès à plusieurs niveaux. Chaque niveau décroché ajoute trophyBonus aux gains.
+  // desc: {n} est remplacé par le seuil (formaté selon fmt), descs[i] remplace la phrase d'un niveau.
+  // old: anciens trophées à niveau unique, dans l'ordre des niveaux (null si aucun), pour reprendre les sauvegardes.
+  var TROPHY_LEVELS = ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var TROPHIES = [
-    { id: 'premier-beat', name: 'Premier beat', desc: 'Réalise ton premier beat.', m: 'done:beat', n: 1 },
-    { id: 'clients', name: 'Premiers clients', desc: 'Réalise 25 productions.', m: 'done', n: 25 },
-    { id: 'commandes', name: 'Carnet de commandes', desc: 'Réalise 250 productions.', m: 'done', n: 250 },
-    { id: 'chaine', name: 'Chaîne de montage', desc: 'Réalise 2 500 productions.', m: 'done', n: 2500 },
-
-    { id: 'poche', name: 'Argent de poche', desc: 'Gagne 100 € au total.', m: 'lifetime', n: 100 },
-    { id: 'salaire', name: 'Premier salaire', desc: 'Gagne 10 000 € au total.', m: 'lifetime', n: 1e4 },
-    { id: 'million', name: 'Cap du million', desc: 'Gagne un million d’euros au total.', m: 'lifetime', n: 1e6 },
-    { id: 'cent-millions', name: 'Cent millions', desc: 'Gagne cent millions d’euros au total.', m: 'lifetime', n: 1e8 },
-    { id: 'fortune', name: 'Fortune de la scène', desc: 'Gagne dix milliards d’euros au total.', m: 'lifetime', n: 1e10 },
-
-    { id: 'oreille', name: 'Oreille formée', desc: 'Atteins le niveau d’expertise 5.', m: 'level', n: 5 },
-    { id: 'inge', name: 'Ingé son confirmé', desc: 'Atteins le niveau d’expertise 12.', m: 'level', n: 12 },
-    { id: 'maitre', name: 'Maître du mix', desc: 'Atteins le niveau d’expertise 20.', m: 'level', n: 20 },
-    { id: 'hitmaker', name: 'Faiseur de hits', desc: 'Atteins le niveau d’expertise 26.', m: 'level', n: 26 },
-
-    { id: 'achat', name: 'Premier achat', desc: 'Achète ton premier équipement.', m: 'items', n: 1 },
-    { id: 'rack', name: 'Le rack se remplit', desc: 'Possède 8 équipements.', m: 'items', n: 8 },
-    { id: 'complet', name: 'Studio au complet', desc: 'Possède tous les équipements.', m: 'items', n: ITEMS.length - 1 },
-    { id: 'console', name: 'Table de mixage', desc: 'Installe la console analogique.', m: 'own:console', n: 1 },
-    { id: 'grande-salle', name: 'Grande salle', desc: 'Ouvre le Studio A.', m: 'own:studioA', n: 1 },
-
-    { id: 'home', name: 'Home studio', desc: 'Transforme ta chambre en vrai home studio.', m: 'tier', n: 1 },
-    { id: 'semi-pro', name: 'Pignon sur rue', desc: 'Installe ton studio dans un local en ville.', m: 'tier', n: 3 },
-    { id: 'legendaire', name: 'Studio légendaire', desc: 'Ouvre ton complexe légendaire, le dernier palier.', m: 'tier', n: 6 },
-
-    { id: 'compteur', name: 'Le compteur tourne', desc: 'Atteins 1 € de revenu continu par seconde.', m: 'income', n: 1 },
-    { id: 'entrees', name: 'Les entrées s’enchaînent', desc: 'Atteins 100 € de revenu continu par seconde.', m: 'income', n: 100 },
-    { id: 'pluie', name: 'Pluie continue', desc: 'Atteins 10 000 € de revenu continu par seconde.', m: 'income', n: 1e4 },
-    { id: 'maree', name: 'Marée de billets', desc: 'Atteins un million d’euros de revenu continu par seconde.', m: 'income', n: 1e6 },
-
-    { id: 'stagiaire', name: 'Un stagiaire motivé', desc: 'Automatise une première production.', m: 'autos', n: 1 },
-    { id: 'pilote', name: 'Pilote automatique', desc: 'Automatise toutes les productions.', m: 'autos', n: ACTS.length },
-
-    { id: 'palier-double', name: 'Palier doublé', desc: 'Amène une production au rang 10.', m: 'rank', n: 10 },
-    { id: 'perfectionniste', name: 'Perfectionniste', desc: 'Amène une production au rang 40.', m: 'rank', n: 40 },
-
-    { id: 'carnet', name: 'Carnet d’adresses ouvert', desc: 'Rencontre ton premier contact.', m: 'contacts', n: 1 },
-    { id: 'reseau', name: 'Réseau solide', desc: 'Rencontre 6 contacts.', m: 'contacts', n: 6 },
-    { id: 'gotha', name: 'Tout le gotha', desc: 'Rencontre tous les contacts.', m: 'contacts', n: EVENTS.length },
-    { id: 'tournee', name: 'Première tournée', desc: 'Pars en tournée mondiale pour la première fois.', m: 'tours', n: 1 },
-    { id: 'tete-affiche', name: 'Tête d’affiche', desc: 'Atteins 25 points de renommée.', m: 'fame', n: 25 },
-    { id: 'grande-tournee', name: 'Grande tournée', desc: 'Pars quatre fois en tournée mondiale.', m: 'tours', n: 4 },
-    { id: 'sortie', name: 'Première sortie', desc: 'Fais ta première sortie de studio.', m: 'outings', n: 1 },
-    { id: 'noctambule', name: 'Noctambule', desc: 'Fais 15 sorties de studio.', m: 'outings', n: 15 },
-    { id: 'recrue', name: 'Première recrue', desc: 'Recrute un premier membre dans ton équipe.', m: 'staff', n: 1 },
-    { id: 'equipe', name: 'Une vraie équipe', desc: 'Fais travailler cinq personnes en même temps.', m: 'staff', n: 5 },
-    { id: 'talent', name: 'Talent maison', desc: 'Fais monter un membre de l’équipe au niveau 5.', m: 'staffLvl', n: 5 },
-    { id: 'pilier', name: 'Pilier du studio', desc: 'Fais monter un membre de l’équipe au niveau 10.', m: 'staffLvl', n: 10 },
-    { id: 'premier-mix', name: 'Premier mix', desc: 'Mixe une production toi-même.', m: 'mixes', n: 1 },
-    { id: 'oreille-or', name: 'Oreille d’or', desc: 'Réussis un mix parfait (5 étoiles).', m: 'perfect', n: 1 },
-    { id: 'client', name: 'Premier client', desc: 'Livre une commande à temps.', m: 'orders', n: 1 },
-    { id: 'carnet-commandes', name: 'Carnet de commandes', desc: 'Livre 15 commandes à temps.', m: 'orders', n: 15 },
-    { id: 'reputation', name: 'Réputation en or', desc: 'Atteins 60 points de réputation.', m: 'rep', n: 60 },
-    { id: 'top10', name: 'Top 10', desc: 'Place un titre dans le Top 10.', m: 'chartBest', n: 41 },
-    { id: 'numero-un', name: 'Numéro un', desc: 'Place un titre en tête du Top 50.', m: 'chartBest', n: 50 },
-    { id: 'chercheur', name: 'Esprit curieux', desc: 'Termine 3 recherches.', m: 'rdNodes', n: 3 },
-    { id: 'savant', name: 'Laboratoire du son', desc: 'Termine 12 recherches.', m: 'rdNodes', n: 12 },
-    { id: 'encyclopedie', name: 'Tout savoir', desc: 'Termine les 18 recherches.', m: 'rdNodes', n: 18 },
-    { id: 'specialiste', name: 'Une identité', desc: 'Choisis ta première spécialisation.', m: 'specs', n: 1 },
-    { id: 'premier-projet', name: 'Premier projet', desc: 'Termine un projet de création.', m: 'projects', n: 1 },
-    { id: 'chef-oeuvre', name: 'Chef-d’œuvre', desc: 'Obtiens une moyenne de 9/10 auprès des critiques.', m: 'projBest', n: 9 },
-    { id: 'carnet-plein', name: 'Carnet bien rempli', desc: 'Découvre 12 associations genre et ambiance.', m: 'book', n: 12 }
+    { id: 'production', name: 'Producteur', m: 'done', levels: [1, 25, 250, 2500, 25000, 250000], desc: 'Termine {n} productions.', descs: ['Termine ta toute première production.'], old: ['premier-beat', 'clients', 'commandes', 'chaine'] },
+    { id: 'gains', name: 'Fortune', m: 'lifetime', fmt: 'eur', levels: [100, 1e4, 1e6, 1e8, 1e10, 1e13], desc: 'Gagne {n} au total.', old: ['poche', 'salaire', 'million', 'cent-millions', 'fortune'] },
+    { id: 'savoir', name: 'Expertise', m: 'level', levels: [5, 12, 20, 26, 30, 35], desc: 'Atteins le niveau d’expertise {n}.', old: ['oreille', 'inge', 'maitre', 'hitmaker'] },
+    { id: 'equipement', name: 'Collectionneur', m: 'items', levels: [1, 8, 16, 24], desc: 'Installe {n} équipements.', descs: ['Achète ton premier équipement.'], old: ['achat', 'rack', null, 'complet'] },
+    { id: 'analogique', name: 'Son analogique', m: 'own:console', levels: [1], descs: ['Installe une console analogique.'], old: ['console'] },
+    { id: 'studio-a', name: 'Grande salle', m: 'own:studioA', levels: [1], descs: ['Ouvre la grande salle (Studio A).'], old: ['grande-salle'] },
+    { id: 'batisseur', name: 'Bâtisseur', m: 'tier', levels: [1, 3, 5, 6], descs: ['Transforme ta chambre en chambre-studio.', 'Emménage dans un local en ville.', 'Deviens un studio de référence.', 'Ouvre le complexe légendaire.'], old: ['home', 'semi-pro', null, 'legendaire'] },
+    { id: 'revenus', name: 'Revenus', m: 'income', fmt: 'eurs', levels: [1, 100, 1e4, 1e6, 1e8], desc: 'Gagne {n} en continu.', old: ['compteur', 'entrees', 'pluie', 'maree'] },
+    { id: 'auto', name: 'Pilote automatique', m: 'autos', levels: [1, 5, 11], desc: 'Automatise {n} productions.', descs: ['Automatise une première production.', null, 'Automatise les 11 productions.'], old: ['stagiaire', null, 'pilote'] },
+    { id: 'rangs', name: 'Perfectionniste', m: 'rank', levels: [10, 40, 100, 200], desc: 'Monte une production au rang {n}.', old: ['palier-double', 'perfectionniste'] },
+    { id: 'contacts', name: 'Carnet d’adresses', m: 'contacts', levels: [1, 6, 12, 24, 36], desc: 'Rencontre {n} contacts en sortie de studio.', descs: ['Rencontre ton premier contact.'], old: ['carnet', 'reseau', 'gotha'] },
+    { id: 'monde', name: 'Globe-trotter', m: 'tours', levels: [1, 4, 10], desc: 'Pars {n} fois en tournée mondiale.', descs: ['Pars en tournée mondiale.'], old: ['tournee', 'grande-tournee'] },
+    { id: 'renommee', name: 'Renommée', m: 'fame', levels: [25, 100, 400], desc: 'Cumule {n} points de renommée.', old: ['tete-affiche'] },
+    { id: 'nuits', name: 'Noctambule', m: 'outings', levels: [1, 15, 50, 150], desc: 'Vis {n} sorties de studio.', descs: ['Accepte ta première sortie de studio.'], old: ['sortie', 'noctambule'] },
+    { id: 'histoires', name: 'Fil rouge', m: 'chains', levels: [1, 3, 6], desc: 'Vis {n} suites d’histoires en sortie de studio.', descs: ['Retrouve une connaissance dans une suite d’histoire.'] },
+    { id: 'poker', name: 'Coup de poker', m: 'gambles', levels: [1, 10, 30], desc: 'Réussis {n} choix risqués en sortie de studio.', descs: ['Réussis un choix risqué en sortie de studio.'] },
+    { id: 'chef', name: 'Chef d’équipe', m: 'staff', levels: [1, 5, 8], desc: 'Réunis {n} membres dans ton équipe.', descs: ['Recrute ton premier membre.'], old: ['recrue', 'equipe'] },
+    { id: 'mentor', name: 'Formateur', m: 'staffLvl', levels: [5, 10], desc: 'Fais monter un membre au niveau {n}.', old: ['talent', 'pilier'] },
+    { id: 'mixeur', name: 'Ingé mix', m: 'mixes', levels: [1, 25, 100, 500], desc: 'Mixe {n} morceaux toi-même.', descs: ['Mixe ton premier morceau.'], old: ['premier-mix'] },
+    { id: 'oreille-absolue', name: 'Oreille d’or', m: 'perfect', levels: [1, 10, 50], desc: 'Réussis {n} mix parfaits.', descs: ['Réussis un mix parfait.'], old: ['oreille-or'] },
+    { id: 'service', name: 'Service client', m: 'orders', levels: [1, 15, 50, 150], desc: 'Livre {n} commandes à temps.', descs: ['Livre une commande à temps.'], old: ['client', 'carnet-commandes'] },
+    { id: 'estime', name: 'Réputation', m: 'rep', levels: [30, 60, 100], desc: 'Atteins {n} points de réputation.', old: [null, 'reputation'] },
+    { id: 'classement', name: 'Top 50', m: 'chartBest', levels: [26, 41, 50], descs: ['Classe un titre dans le top 25.', 'Classe un titre dans le top 10.', 'Classe un titre numéro 1.'], old: [null, 'top10', 'numero-un'] },
+    { id: 'tubes', name: 'Machine à tubes', m: 'num1', levels: [3, 10, 25], desc: 'Passe {n} semaines à la première place du Top 50.' },
+    { id: 'labo', name: 'Chercheur', m: 'rdNodes', levels: [3, 12, 18], desc: 'Termine {n} recherches.', old: ['chercheur', 'savant', 'encyclopedie'] },
+    { id: 'identite', name: 'Identité', m: 'specs', levels: [1, 2], descs: ['Choisis ta première spécialisation.', 'Choisis les deux spécialisations d’une même carrière.'], old: ['specialiste'] },
+    { id: 'createur', name: 'Créateur', m: 'projects', levels: [1, 10, 30], desc: 'Termine {n} projets de création.', descs: ['Termine un projet de création.'], old: ['premier-projet'] },
+    { id: 'critiques', name: 'Chouchou des critiques', m: 'projBest', fmt: 'note', levels: [7, 9, 9.8], desc: 'Obtiens une moyenne de {n} auprès des critiques.', old: [null, 'chef-oeuvre'] },
+    { id: 'carnet-studio', name: 'Carnet du studio', m: 'book', levels: [4, 12, 30], desc: 'Découvre {n} associations genre et ambiance.', old: [null, 'carnet-plein'] },
+    { id: 'clash', name: 'Clash', m: 'battles', levels: [1, 10, 50, 150], desc: 'Remporte {n} clashs de beatmakers.', descs: ['Remporte ton premier clash de beatmakers.'] },
+    { id: 'ligue', name: 'Ligue des beatmakers', m: 'league', levels: [2, 3, 4, 5], descs: ['Monte en ligue Régionale.', 'Monte en ligue Nationale.', 'Monte en ligue Internationale.', 'Atteins la ligue Légende.'] },
+    { id: 'combo', name: 'Main sûre', m: 'combo', levels: [20, 50, 100], desc: 'Enchaîne {n} frappes réussies d’affilée dans un clash.' }
   ];
+
 
   // Recherche: trois branches de six recherches (chacune demande la précédente de sa branche) et deux paliers de spécialisation.
   // fx multiplicatifs: gain, speed, xp, roy, mixZone, mixMul, chartScore, chartPay, promoCost, event, orderReward, orderEvery, rep, salary, trainCost, trainTime
@@ -439,6 +751,24 @@
     sales: [0.34, 0.24, 0.16, 0.11, 0.08, 0.07]
   };
 
+
+  // Clash de beatmakers: ligues, rivaux et pistes du mini-jeu de rythme.
+  var BATTLE = {
+    leagues: [
+      { name: 'Quartier', bpm: 86, target: 0.5, dens: 0 },
+      { name: 'Régionale', bpm: 94, target: 0.58, dens: 1 },
+      { name: 'Nationale', bpm: 102, target: 0.65, dens: 2 },
+      { name: 'Internationale', bpm: 110, target: 0.72, dens: 3 },
+      { name: 'Légende', bpm: 118, target: 0.8, dens: 4 }
+    ],
+    lanes: [
+      { id: 'kick', name: 'Kick', key: 'D' }, { id: 'snare', name: 'Caisse claire', key: 'F' },
+      { id: 'hat', name: 'Charleston', key: 'J' }, { id: 'clap', name: 'Clap', key: 'K' }
+    ],
+    rivals: ['MC Gravier', 'Lil Boucle', 'DJ Sablier', 'Kenza Kick', 'Le Baron du 808', 'Nina Snare', 'Yo-Yo Loop', 'Big Tempo', 'Sœur Sampler', 'Rico Groove',
+      'La Machine', 'Prince Charley', 'Mamadou Bass', 'Capitaine Clap', 'Zélie Swing', 'Oscar Offbeat', 'Duchesse Dub', 'Toto Trap']
+  };
+
   // Commandes: clients par type de production
   var CLIENTS = {
     beat: ['Rappeur', ['Kaïs', 'Lil Néo', 'Sami B', 'Zoya']], mix: ['Groupe', ['Les Rivages', 'Fuzz Club', 'Velvet Garage']],
@@ -468,7 +798,7 @@
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);

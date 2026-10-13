@@ -26,7 +26,10 @@
   ACTS.forEach(function (a) { ACT_BY[a.id] = a; });
   ITEMS.forEach(function (i) { ITEM_BY[i.id] = i; });
   EVENTS.forEach(function (x) { EVENT_BY[x.id] = x; });
-  TROPHIES.forEach(function (t) { TROPHY_BY[t.id] = t; });
+  var OLD_TROPHY = {}; // ancien trophée à niveau unique -> [famille, niveau]
+  TROPHIES.forEach(function (t) { TROPHY_BY[t.id] = t; (t.old || []).forEach(function (o, i) { if (o) OLD_TROPHY[o] = [t.id, i + 1]; }); });
+  var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
+  var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
 
   var hooks = {};
   var cache = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
@@ -40,10 +43,11 @@
     ACTS.forEach(function (a) { acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: 0, hold: false, mix: null }; });
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
-      boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj() };
+      boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle() };
   }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
+  function newBattle() { return { league: 1, pts: 0, wins: 0, losses: 0, best: 0, cd: T.battleFirst, rival: null }; }
   function newRd() { return { pts: 0, total: 0, nodes: {}, spec: {} }; }
   function newOrders() { return { offers: [], active: [], cd: T.orderFirst, rep: 0, done: 0, failed: 0, nextId: 1 }; }
   function newCharts() { return { week: 1, left: T.weekLen, rivals: [], mine: [], free: 0, best: 0, num1: 0, releases: 0, nextId: 1 }; }
@@ -84,10 +88,11 @@
       S.boost = { m: Math.max(1, num(o.boost.m, 1)), left: bl, t: bl > 0 ? Math.max(bl, num(o.boost.t, bl)) : 0 };
     }
     if (o.contacts && typeof o.contacts === 'object') EVENTS.forEach(function (x) { if (o.contacts[x.id]) S.contacts[x.id] = x.contact; });
-    if (o.trophies && typeof o.trophies === 'object') TROPHIES.forEach(function (t) { if (o.trophies[t.id]) S.trophies[t.id] = 1; });
+    if (o.trophies && typeof o.trophies === 'object') hydrateTrophies(S, o.trophies);
     if (o.ev && typeof o.ev === 'object') {
       S.ev.cd = Math.max(0, num(o.ev.cd, T.eventFirst));
       EVENTS.forEach(function (x) { S.ev.seen[x.id] = Math.max(0, Math.floor(num(o.ev.seen && o.ev.seen[x.id], 0))); });
+      S.ev.won = Math.max(0, Math.floor(num(o.ev.won, 0)));
       var p = o.ev.pending;
       if (p && EVENT_BY[p.id] && num(p.left, 0) > 0) S.ev.pending = { id: p.id, left: Math.min(num(p.left, 0), T.eventWindow) };
     }
@@ -107,6 +112,15 @@
       if (o.rd.spec && typeof o.rd.spec === 'object') RESEARCH.specs.forEach(function (t) { var id = o.rd.spec[t.tier]; if (SPEC_BY[id] && SPEC_BY[id].tier === t.tier) S.rd.spec[t.tier] = id; });
     }
     if (o.proj && typeof o.proj === 'object') hydrateProj(S, o.proj);
+    if (o.battle && typeof o.battle === 'object') {
+      var b = o.battle, B = S.battle, L = BT.leagues.length;
+      B.league = Math.max(1, Math.min(L, Math.floor(num(b.league, 1)))); B.pts = Math.max(0, Math.min(T.battleUp - 1, Math.floor(num(b.pts, 0))));
+      B.wins = Math.max(0, Math.floor(num(b.wins, 0))); B.losses = Math.max(0, Math.floor(num(b.losses, 0))); B.best = Math.max(0, Math.floor(num(b.best, 0)));
+      B.cd = Math.max(0, num(b.cd, T.battleFirst));
+      var r = b.rival;
+      if (r && typeof r === 'object') B.rival = { name: String(r.name || 'Rival').slice(0, 30), league: Math.max(1, Math.min(L, Math.floor(num(r.league, B.league)))),
+        target: Math.max(0.3, Math.min(0.95, num(r.target, 0.5))), seed: Math.floor(num(r.seed, 1)) >>> 0 };
+    }
     return S;
   }
 
@@ -202,7 +216,7 @@
       if (f.act) Object.keys(f.act).forEach(function (k) { g.act[k] = (g.act[k] || 1) * f.act[k]; });
     });
     g.gain *= 1 + T.contactBonus * Object.keys(S.contacts || {}).length;
-    g.gain *= 1 + T.trophyBonus * Object.keys(S.trophies || {}).length;
+    g.gain *= 1 + T.trophyBonus * trophyCount(S);
     g.gain *= 1 + T.fameBonus * (S.fame || 0);
     g.xp *= 1 + T.fameXp * (S.fame || 0);
     var rf = computeRd(S);
@@ -837,7 +851,7 @@
     c.left -= dt;
     if (c.left <= 0) weekEnd(S);
   }
-  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); }
+  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); tickBattle(S, dt); }
 
 
   // ---------- Projets de création (bonus facultatif) ----------
@@ -980,6 +994,82 @@
   }
   function dismissProject(S) { if (S.proj) S.proj.last = null; }
 
+
+  // ---------- Clash de beatmakers ----------
+  function battleOpen(S) { return S.level >= T.battleLevel; }
+  function league(S) { return BT.leagues[S.battle.league - 1]; }
+  function makeRival(S) {
+    var L = league(S), used = S.battle.rival ? S.battle.rival.name : '';
+    var names = BT.rivals.filter(function (n) { return n !== used; });
+    return { name: names[Math.floor(rand() * names.length)], league: S.battle.league, target: Math.min(0.95, L.target + (rand() - 0.5) * 0.08), seed: Math.floor(rand() * 4294967295) >>> 0 };
+  }
+  function tickBattle(S, dt) {
+    if (!battleOpen(S)) return;
+    var B = S.battle;
+    if (B.rival) return;
+    B.cd -= dt;
+    if (B.cd <= 0) { B.rival = makeRival(S); B.cd = 0; if (hooks.battleNew) hooks.battleNew(B.rival); }
+  }
+  function declineBattle(S) { var B = S.battle; if (!B.rival) return false; B.rival = null; B.cd = T.battleEvery / 2; return true; }
+  // Générateur pseudo-aléatoire déterministe: une même graine donne toujours le même beat.
+  function seeded(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  // Partition du clash en doubles-croches: [{ s: pas (16 par mesure), l: piste 0 kick, 1 caisse claire, 2 charleston, 3 clap }].
+  function battlePattern(seed, dens, bars) {
+    var r = seeded(seed), out = [], has = {};
+    function add(s, l) { var k = s + ':' + l; if (!has[k]) { has[k] = 1; out.push({ s: s, l: l }); } }
+    for (var b = 0; b < bars; b++) {
+      var o = b * 16, intro = b === 0, last = b === bars - 1, hits = {};
+      var kicks = [0, 8], snares = [4, 12], hats = [];
+      if (!intro) {
+        var extra = [3, 6, 10, 11, 14];
+        for (var i = 0; i < dens; i++) if (r() < 0.55) kicks.push(extra[Math.floor(r() * extra.length)]);
+        if (dens >= 3 && r() < 0.5) snares.push(r() < 0.5 ? 7 : 15);
+        if (dens === 0) hats = [2, 6, 10, 14];
+        else if (dens <= 2) hats = [0, 2, 4, 6, 8, 10, 12, 14];
+        else { hats = [0, 2, 4, 6, 8, 10, 12, 14]; for (var h = 1; h < 16; h += 2) if (r() < (dens === 3 ? 0.12 : 0.28)) hats.push(h); }
+      }
+      kicks.forEach(function (s) { hits[s] = 1; add(o + s, 0); });
+      snares.forEach(function (s) { hits[s] = 1; add(o + s, 1); });
+      // sans accords dans la première ligue: pas de charleston sur un kick ou une caisse claire
+      hats.forEach(function (s) { if (dens > 0 && dens < 2 && hits[s]) return; if (dens === 0 && hits[s]) return; add(o + s, 2); });
+      if (dens >= 1 && !intro && b % 2 === 1) add(o + 12, 3);
+      if (dens >= 2 && last) [13, 14, 15].forEach(function (s) { add(o + s, 3); });
+    }
+    out.sort(function (x, y) { return x.s - y.s || x.l - y.l; });
+    return out;
+  }
+  function startBattle(S) {
+    var B = S.battle, R = B.rival;
+    if (!battleOpen(S) || !R) return null;
+    var L = BT.leagues[R.league - 1];
+    return { rival: R, league: R.league, leagueName: L.name, bpm: L.bpm, bars: T.battleBars, notes: battlePattern(R.seed, L.dens, T.battleBars) };
+  }
+  // res: { score 0 à 1, combo }. Renvoie le résultat et applique les récompenses.
+  function finishBattle(S, res) {
+    var B = S.battle, R = B.rival;
+    if (!R || !res) return null;
+    var score = Math.max(0, Math.min(1, num(res.score, 0))), combo = Math.max(0, Math.floor(num(res.combo, 0)));
+    var win = score >= R.target, L = BT.leagues.length, ref = eventRef(S), promo = false, demo = false, out = { win: win, score: score, target: R.target, rival: R.name, league: R.league };
+    B.best = Math.max(B.best, combo);
+    if (win) {
+      B.wins++;
+      var cash = ref * (0.8 + 0.4 * R.league) * (0.75 + score * 0.5) * rdFx(S).event, xp = xpNeeded(S.level) * 0.08 * R.league;
+      S.money += cash; S.lifetime += cash; addXp(S, xp); addRp(S, Math.max(30, rdRate(S) * 120) * R.league);
+      S.orders.rep = Math.min(T.repMax, S.orders.rep + 1 + Math.floor(R.league / 2));
+      out.cash = cash; out.xp = xp;
+      if (B.league < L && R.league === B.league) { B.pts++; if (B.pts >= T.battleUp) { B.league++; B.pts = 0; promo = true; } }
+    } else {
+      B.losses++;
+      var x2 = xpNeeded(S.level) * 0.02; addXp(S, x2); out.xp = x2;
+      if (B.pts > 0) B.pts--;
+    }
+    out.promo = promo; out.demo = demo; out.newLeague = B.league; out.pts = B.pts;
+    B.rival = null; B.cd = T.battleEvery;
+    checkTrophies(S);
+    if (hooks.battleDone) hooks.battleDone(out);
+    return out;
+  }
+
   // ---------- Tournée mondiale (prestige) ----------
   // Points de renommée au total pour un cumul de gains donné.
   function fameAt(n) { return Math.pow(n, 1 / T.fameExp) * T.fameBase; } // cumul de gains qui donne n points
@@ -1021,7 +1111,19 @@
   }
 
   // ---------- Palmarès ----------
-  function trophyCount(S) { return Object.keys(S.trophies || {}).length; }
+  // Nombre total de niveaux décrochés (chaque niveau compte pour le bonus).
+  function trophyCount(S) { var n = 0, t = S.trophies || {}; Object.keys(t).forEach(function (k) { n += t[k] || 0; }); return n; }
+  function trophyTotal() { var n = 0; TROPHIES.forEach(function (t) { n += t.levels.length; }); return n; }
+  function trophyLevel(S, id) { return (S.trophies && S.trophies[id]) || 0; }
+  function levelName(t, lvl) { return t.levels.length === 1 ? 'Décroché' : TLV[Math.min(TLV.length - 1, lvl - 1)]; }
+  // Accepte le nouveau format { famille: niveau } et les anciens trophées { id: 1 }.
+  function hydrateTrophies(S, o) {
+    Object.keys(o).forEach(function (k) {
+      var v = o[k];
+      if (TROPHY_BY[k] && typeof v === 'number' && isFinite(v) && v > 0) S.trophies[k] = Math.max(S.trophies[k] || 0, Math.min(TROPHY_BY[k].levels.length, Math.floor(v)));
+      else if (OLD_TROPHY[k] && v) { var m = OLD_TROPHY[k]; S.trophies[m[0]] = Math.max(S.trophies[m[0]] || 0, m[1]); }
+    });
+  }
   function trophyMetric(S, key, memo) {
     if (memo && memo[key] !== undefined) return memo[key];
     var p = key.indexOf(':'), k = p < 0 ? key : key.slice(0, p), a = p < 0 ? null : key.slice(p + 1), n = 0, v;
@@ -1051,6 +1153,12 @@
       case 'projects': n = S.proj ? S.proj.done : 0; break;
       case 'projBest': n = S.proj ? S.proj.best : 0; break;
       case 'book': n = S.proj ? Object.keys(S.proj.book.c).length : 0; break;
+      case 'num1': n = S.charts ? S.charts.num1 : 0; break;
+      case 'chains': EVENTS.forEach(function (x) { if (x.need && x.need.contact && S.ev.seen[x.id]) n++; }); break;
+      case 'gambles': n = S.ev.won || 0; break;
+      case 'battles': n = S.battle ? S.battle.wins : 0; break;
+      case 'league': n = S.battle ? S.battle.league : 1; break;
+      case 'combo': n = S.battle ? S.battle.best : 0; break;
       case 'specs': n = Object.keys((S.rd && S.rd.spec) || {}).length; break;
       case 'staffLvl': (S.team ? S.team.staff : []).forEach(function (m) { n = Math.max(n, m.lvl); }); break;
       case 'outings': Object.keys(S.ev.seen || {}).forEach(function (id) { n += S.ev.seen[id] || 0; }); break;
@@ -1058,31 +1166,40 @@
     if (memo) memo[key] = n;
     return n;
   }
+  // Progression vers le prochain niveau d'une famille (ou le dernier si tout est décroché).
   function trophyProgress(S, t) {
-    var v = trophyMetric(S, t.m), base = t.m === 'level' ? 1 : 0; // le niveau d'expertise commence à 1
-    return { v: Math.min(v, t.n), n: t.n, f: Math.max(0, Math.min(1, (v - base) / (t.n - base))) };
+    var lvl = trophyLevel(S, t.id), max = t.levels.length, k = Math.min(lvl, max - 1), n = t.levels[k];
+    var v = trophyMetric(S, t.m), base = k > 0 ? t.levels[k - 1] : (t.m === 'level' ? 1 : t.m === 'league' ? 1 : 0);
+    return { v: Math.min(v, n), n: n, f: lvl >= max ? 1 : Math.max(0, Math.min(1, (v - base) / (n - base))), lvl: lvl, max: max, done: lvl >= max };
   }
+
   // Débloque les trophées dont le seuil est atteint. Renvoie ceux qui viennent de l'être.
   function checkTrophies(S, silent) {
     if (!S.trophies) S.trophies = {};
     var got = [], memo = {};
     for (var i = 0; i < TROPHIES.length; i++) {
-      var t = TROPHIES[i];
-      if (S.trophies[t.id]) continue;
-      if (trophyMetric(S, t.m, memo) >= t.n) { S.trophies[t.id] = 1; got.push(t); }
+      var t = TROPHIES[i], lvl = S.trophies[t.id] || 0, v = null;
+      while (lvl < t.levels.length) {
+        if (v === null) v = trophyMetric(S, t.m, memo);
+        if (v < t.levels[lvl]) break;
+        lvl++;
+        S.trophies[t.id] = lvl;
+        got.push({ id: t.id, fam: t, lvl: lvl, name: t.name, level: levelName(t, lvl) });
+      }
     }
     if (got.length) {
       touch(S);
-      if (!silent && hooks.trophy) got.forEach(function (t) { hooks.trophy(t); });
+      if (!silent && hooks.trophy) got.forEach(function (g) { hooks.trophy(g); });
     }
     return got;
   }
-  // Les trophées les plus proches d'être décrochés, du plus avancé au moins avancé.
+  // Prochains niveaux les plus proches d'être décrochés. g.t décrit le niveau visé (nom, seuil, famille).
   function nextGoals(S, k) {
     var out = [];
     TROPHIES.forEach(function (t, i) {
-      if (S.trophies && S.trophies[t.id]) return;
-      var p = trophyProgress(S, t); out.push({ t: t, p: p, i: i });
+      var p = trophyProgress(S, t);
+      if (p.done) return;
+      out.push({ t: { id: t.id, fam: t, name: t.name + ' · ' + levelName(t, p.lvl + 1), m: t.m, n: p.n, lvl: p.lvl + 1 }, p: p, i: i });
     });
     out.sort(function (a, b) { return b.p.f - a.p.f || a.i - b.i; });
     return out.slice(0, k);
@@ -1101,7 +1218,7 @@
   }
   function pickEvent(S, rnd) {
     var ti = tierIndex(S), min = Infinity;
-    var pool = EVENTS.filter(function (x) { return ti >= x.tiers[0] && ti <= x.tiers[1]; });
+    var pool = EVENTS.filter(function (x) { return ti >= x.tiers[0] && ti <= x.tiers[1] && (!x.need || !x.need.contact || !!S.contacts[x.need.contact]); });
     if (!pool.length) return null;
     pool.forEach(function (x) { min = Math.min(min, S.ev.seen[x.id] || 0); });
     var fresh = pool.filter(function (x) { return (S.ev.seen[x.id] || 0) === min; });
@@ -1130,9 +1247,37 @@
   function dismissEvent(S, rnd) {
     S.ev.pending = null; S.ev.hold = false; S.ev.cd = nextCd(rnd);
   }
+  // Une option de sortie est-elle accessible ? Renvoie { ok, need (texte), cost }.
+  function choiceInfo(S, c) {
+    var n = c.need, ok = true, label = null, cost = c.cost ? eventRef(S) * c.cost : 0;
+    if (n) {
+      if (n.item) { ok = !!S.owned[n.item]; label = ITEM_BY[n.item].name; }
+      else if (n.role) { ok = S.team.staff.some(function (m) { return m.role === n.role && m.rest <= 0 && m.train <= 0; }); label = 'un membre ' + ROLE_BY[n.role].name.toLowerCase(); }
+      else if (n.staff) { ok = S.team.staff.length >= n.staff; label = n.staff > 1 ? n.staff + ' membres dans l’équipe' : 'un membre dans l’équipe'; }
+      else if (n.rd) { ok = !!S.rd.nodes[n.rd]; label = 'recherche ' + RD_BY[n.rd].name; }
+      else if (n.contact) { ok = !!S.contacts[n.contact]; label = EVENT_BY[n.contact].contact; }
+      else if (n.level) { ok = S.level >= n.level; label = 'expertise niveau ' + n.level; }
+    }
+    return { ok: ok && S.money >= cost, need: label, needOk: ok, cost: cost, risk: c.risk ? c.risk.p : null };
+  }
   function applyReward(S, x, r, ref) {
     var m, a;
     switch (r.k) {
+      case 'rp':
+        m = r.x * Math.max(60, rdRate(S) * 300); addRp(S, m);
+        return { k: 'rp', v: m };
+      case 'rep':
+        m = Math.min(T.repMax - S.orders.rep, r.n); S.orders.rep = Math.min(T.repMax, S.orders.rep + r.n);
+        return { k: 'rep', v: Math.max(0, m) };
+      case 'morale':
+        if (!S.team.staff.length) return null;
+        S.team.staff.forEach(function (s) { s.morale = Math.min(100, s.morale + r.n); });
+        return { k: 'morale', v: r.n };
+      case 'master':
+        a = bestAct(S);
+        if (S.masters.length >= T.mastersMax) { m = ref; S.money += m; S.lifetime += m; return { k: 'cash', v: m }; }
+        S.masters.push({ id: S.charts.nextId++, act: a.id, q: r.q });
+        return { k: 'master', q: r.q, act: a.id };
       case 'cash':
         m = ref * r.x * rdFx(S).event; S.money += m; S.lifetime += m;
         return { k: 'cash', v: m };
@@ -1161,12 +1306,21 @@
   function resolveEvent(S, i, rnd) {
     var p = S.ev.pending, x = p && EVENT_BY[p.id], c = x && x.choices[i];
     if (!c) return null;
-    var ref = eventRef(S), out = [];
-    c.rw.forEach(function (r) { var g = applyReward(S, x, r, ref); if (g) out.push(g); });
+    var info = choiceInfo(S, c);
+    if (!info.ok) return null;
+    var ref = eventRef(S), out = [], rw = c.rw, outcome = c.outcome, win = null;
+    if (info.cost) { S.money -= info.cost; out.push({ k: 'spent', v: info.cost }); }
+    if (c.risk) {
+      win = (rnd || rand)() < c.risk.p;
+      if (win) S.ev.won = (S.ev.won || 0) + 1;
+      else { rw = c.risk.rw; outcome = c.risk.outcome; }
+    }
+    rw.forEach(function (r) { var g = applyReward(S, x, r, ref); if (g) out.push(g); });
     S.ev.seen[x.id] = (S.ev.seen[x.id] || 0) + 1;
     S.ev.pending = null; S.ev.hold = false; S.ev.cd = nextCd(rnd);
-    return { event: x, choice: c, rewards: out };
+    return { event: x, choice: c, rewards: out, outcome: outcome, win: win };
   }
+
 
   // Progression pendant l'absence. Renvoie un résumé.
   function offline(S, now) {
@@ -1205,7 +1359,9 @@
     specOpen: specOpen, chooseSpec: chooseSpec, rdCount: rdCount, rdRate: rdRate, orderMax: orderMax, branchNodes: branchNodes, addRp: addRp,
     PROJECTS: PJ, PJ_G: PJ_G, PJ_M: PJ_M, PJ_P: PJ_P, PJ_F: PJ_F, projOpen: projOpen, genreOpen: genreOpen, formatOpen: formatOpen, projCost: projCost,
     projTime: projTime, phaseFit: phaseFit, projBusy: projBusy, startProject: startProject, cancelProject: cancelProject, tickProject: tickProject,
-    finishProject: finishProject, dismissProject: dismissProject, comboGrade: comboGrade, pubGrade: pubGrade
+    finishProject: finishProject, dismissProject: dismissProject, comboGrade: comboGrade, pubGrade: pubGrade,
+    TROPHY_LEVELS: TLV, trophyTotal: trophyTotal, trophyLevel: trophyLevel, levelName: levelName, choiceInfo: choiceInfo,
+    BATTLE: BT, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;

@@ -259,9 +259,19 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .tro { position: relative; display: grid; gap: 3px; align-content: start; padding: 10px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); }
 .tro h3 { font-size: 14.5px; padding-right: 26px; }
 .tro p { margin: 0; font-size: 12.5px; color: var(--ink-soft); }
-.tro .disc { position: absolute; top: 9px; right: 9px; width: 20px; height: 20px; border-radius: 50%; background: var(--panel-2); border: 2px solid var(--line); }
-.tro.got { border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); background: color-mix(in srgb, var(--gold) 9%, var(--card)); }
-.tro.got .disc { background: radial-gradient(circle at 35% 35%, #fff3c4, var(--gold)); border-color: var(--gold); }
+.tro { --mc: var(--line); }
+.tro.lv-1 { --mc: #c4834d; } .tro.lv-2 { --mc: #a8b3c4; } .tro.lv-3 { --mc: var(--gold); } .tro.lv-4 { --mc: #5cc8c2; } .tro.lv-5 { --mc: #7ea8ff; } .tro.lv-6 { --mc: var(--purple); }
+.tro.solo.got { --mc: var(--gold); }
+.tro .medal { position: absolute; top: 9px; right: 9px; width: 22px; height: 22px; border-radius: 50%; background: var(--panel-2); border: 2px solid var(--line); }
+.tro.got .medal { background: radial-gradient(circle at 35% 35%, #fff, var(--mc) 70%); border-color: var(--mc); }
+.tro.got { border-color: color-mix(in srgb, var(--mc) 60%, var(--line)); background: color-mix(in srgb, var(--mc) 9%, var(--card)); }
+.tro .tro-lv { margin: 0; font: 800 12px var(--f-body); color: var(--mc); text-transform: uppercase; letter-spacing: 0.05em; }
+.tro:not(.got) .tro-lv { color: var(--ink-soft); }
+.tro .tro-d { margin: 0; font-size: 12.5px; color: var(--ink-soft); }
+.tro .pips { display: flex; gap: 3px; margin-top: 2px; }
+.tro .pips i { flex: 1; height: 4px; border-radius: 3px; background: var(--line); }
+.tro .pips i.on { background: var(--mc); }
+.tro.solo .pips { display: none; }
 .tro.fresh { box-shadow: 0 0 0 2px var(--gold); }
 .tro.fresh::before { content: 'Nouveau'; position: absolute; top: -8px; left: 10px; font: 800 10px var(--f-body); text-transform: uppercase; letter-spacing: 0.08em; padding: 1px 7px; border-radius: 8px; background: var(--gold); color: #2b2000; }
 .tro-prog { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
@@ -331,6 +341,34 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .buyn span { padding: 0 6px 0 5px; font: 800 11px var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
 .buyn button { min-width: 44px; min-height: 34px; padding: 4px 8px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: 800 13.5px var(--f-body); }
 .buyn button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-s); }
+/* Clash de beatmakers */
+.clash-card { display: grid; gap: 8px; }
+.clash-card > * { min-width: 0; }
+.clash-card .who-r { font: 800 17px var(--f-title); overflow-wrap: anywhere; }
+.clash-card .proj-meta b { color: var(--ink); }
+.clash-card.hot { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 8%, var(--card)); }
+.league-bar { display: flex; gap: 4px; }
+.league-bar i { flex: 1; height: 5px; border-radius: 3px; background: var(--line); }
+.league-bar i.on { background: var(--accent); }
+.clash-sheet { width: min(560px, 100%); }
+.cl-intro, .cl-play, .cl-done { display: grid; gap: 10px; }
+.cl-keys { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13.5px; font-weight: 700; color: var(--ink-soft); }
+.cl-keys kbd { display: inline-grid; place-items: center; min-width: 24px; height: 24px; margin-right: 5px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); box-shadow: 0 2px 0 var(--line); font: 800 13px var(--f-body); color: var(--ink); }
+.cl-hud { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+.cl-hud span { display: grid; padding: 6px 10px; border-radius: 10px; background: var(--panel-2); }
+.cl-hud b { font: 800 18px var(--f-title); color: var(--ink); }
+.cl-stage { position: relative; height: min(46vh, 360px); border-radius: 14px; overflow: hidden; background: #12151c; }
+.cl-stage canvas { display: block; width: 100%; height: 100%; }
+.cl-pads { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.clpad { display: grid; place-items: center; gap: 0; min-height: 64px; padding: 6px 2px; border-radius: 14px; border: 0; background: var(--lc); color: #fff; font: 800 14px var(--f-body); box-shadow: 0 4px 0 color-mix(in srgb, var(--lc) 60%, #000); touch-action: none; user-select: none; -webkit-user-select: none; }
+.clpad small { font-size: 11px; opacity: 0.8; }
+.clpad.down { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--lc) 60%, #000); filter: brightness(1.15); }
+.clpad[data-l="0"] { --lc: #ff7a2f; } .clpad[data-l="1"] { --lc: #3d7be0; } .clpad[data-l="2"] { --lc: #24a066; } .clpad[data-l="3"] { --lc: #7a5cd6; }
+.cl-final { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.cl-final > div { display: grid; gap: 2px; padding: 8px 10px; border-radius: 12px; background: var(--panel-2); min-width: 0; }
+.cl-final b { font: 800 22px var(--f-title); }
+@media (max-width: 999px) { .cl-stage { height: min(40vh, 320px); } .clpad { min-height: 72px; } }
+@media (hover: none) { .clpad small, .cl-keys { display: none; } }
 /* Projets de création */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .proj-box { margin-top: 18px; }
@@ -473,6 +511,16 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .mystery { display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 10px; background: var(--panel-2); font-weight: 700; font-size: 13px; color: var(--ink-soft); }
 .choices { display: grid; gap: 8px; }
 .choice { justify-content: flex-start; gap: 10px; }
+.choice .cw { display: grid; gap: 5px; min-width: 0; }
+.choice .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.choice .tag { font: 800 11.5px var(--f-body); padding: 2px 8px; border-radius: 9px; background: var(--panel-2); color: var(--ink-soft); border: 1px solid var(--line); }
+.choice .tag.need.ok { background: color-mix(in srgb, var(--good) 14%, var(--card)); color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, var(--line)); }
+.choice .tag.cost { color: var(--blue); }
+.choice .tag.cost.short { color: var(--bad); }
+.choice .tag.risk { background: color-mix(in srgb, var(--warn) 14%, var(--card)); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); }
+.choice:disabled { opacity: 0.55; }
+.ev-verdict { margin: 0; font: 800 20px var(--f-title); }
+.ev-verdict.win { color: var(--good); } .ev-verdict.loss { color: var(--bad); }
 .choice .k { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; background: var(--accent); color: #fff; font: 800 14px var(--f-title); }
 .reveal { display: grid; gap: 6px; }
 .rw { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, var(--good) 12%, var(--card)); opacity: 0; animation: rwIn 0.4s ease-out var(--d) forwards; }
@@ -603,6 +651,10 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <div class="orders-head"><h3>Commandes clients</h3><span class="rep-chip" id="repChip"></span></div>
           <div class="list" id="orderList"></div>
           <p class="small-note" id="orderNote"></p>
+        </div>
+        <div class="proj-box" id="clashBox" hidden>
+          <div class="orders-head"><h3>Clash de beatmakers</h3><span class="rep-chip" id="clashChip"></span></div>
+          <div id="clashBody"></div>
         </div>
         <div class="proj-box" id="projBox" hidden>
           <div class="orders-head"><h3>Projet de création</h3><span class="rep-chip" id="projChip"></span></div>
@@ -763,6 +815,38 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <div class="pj-foot"><div><b id="pjCost"></b><small id="pjInfo"></small></div><button class="btn sm" id="pjClose" type="button">Fermer</button><button class="btn primary" id="pjGo" type="button">Lancer le projet</button></div>
   </div>
 </div>
+<div class="scrim" id="clashScrim" hidden>
+  <div class="sheet clash-sheet" role="dialog" aria-modal="true" aria-labelledby="clTitle">
+    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Clash de beatmakers · <span id="clLeague"></span></p>
+    <h2 id="clTitle"></h2>
+    <div id="clIntro" class="cl-intro">
+      <p class="ev-text">Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.</p>
+      <div class="cl-keys" aria-hidden="true"><span><kbd>D</kbd>Kick</span><span><kbd>F</kbd>Caisse claire</span><span><kbd>J</kbd>Charleston</span><span><kbd>K</kbd>Clap</span></div>
+      <p class="small-note" id="clTip"></p>
+      <button class="btn sm" id="clSoundOn" type="button" hidden>Activer le son du jeu</button>
+      <button class="pad" id="clGo" type="button"><b>C’est parti</b><small id="clGoSub"></small></button>
+      <button class="btn sm" id="clLater" type="button">Plus tard</button>
+    </div>
+    <div id="clPlay" class="cl-play" hidden>
+      <div class="cl-hud"><span>Score <b id="clScore">0 %</b></span><span>Combo <b id="clCombo">0</b></span><span>À battre <b id="clTarget"></b></span></div>
+      <div class="cl-stage"><canvas id="clCanvas" aria-label="Pistes du clash : les notes descendent vers la ligne de frappe"></canvas></div>
+      <div class="cl-pads" id="clPads">
+        <button type="button" class="clpad" data-l="0"><b>Kick</b><small>D</small></button>
+        <button type="button" class="clpad" data-l="1"><b>Caisse</b><small>F</small></button>
+        <button type="button" class="clpad" data-l="2"><b>Charley</b><small>J</small></button>
+        <button type="button" class="clpad" data-l="3"><b>Clap</b><small>K</small></button>
+      </div>
+      <p class="sr-only" id="clLive" aria-live="polite"></p>
+      <button class="btn sm" id="clQuit" type="button">Abandonner le clash</button>
+    </div>
+    <div id="clDone" class="cl-done" hidden>
+      <b class="ev-verdict" id="clVerdict"></b>
+      <div class="cl-final"><div><span class="lbl">Ton score</span><b id="clMine"></b></div><div><span class="lbl">Rival</span><b id="clTheirs"></b></div><div><span class="lbl">Meilleur combo</span><b id="clBest"></b></div></div>
+      <p class="ev-text" id="clRes"></p>
+      <button class="pad" id="clClose" type="button"><b>Retour au studio</b></button>
+    </div>
+  </div>
+</div>
 <div class="scrim" id="mixScrim" hidden>
   <div class="sheet mix-sheet" role="dialog" aria-modal="true" aria-labelledby="mixTitle">
     <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Mixage</p>
@@ -793,6 +877,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
       <button class="btn sm" id="evLater" type="button">Plus tard</button>
     </div>
     <div class="ev-done" id="evDone" hidden>
+      <p class="ev-verdict" id="evVerdict" hidden></p>
       <p class="ev-text" id="evOutcome"></p>
       <div class="reveal" id="evReward" aria-live="polite"></div>
       <button class="pad" id="evClose" type="button"><b>Retour au studio</b></button>
@@ -877,7 +962,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     rpOrder: 25,        // points par commande livrée (multipliés par la qualité demandée)
     rpChart: 0.5,       // points par place au-dessus de la 51e, chaque semaine, pour chaque titre classé
     // Projets de création (bonus facultatif)
-    projLevel: 5, projCostSec: 90, projRefund: 0.5, rpProj: 12, projXp: 4
+    projLevel: 5, projCostSec: 90, projRefund: 0.5, rpProj: 12, projXp: 4,
+    // Clash de beatmakers (mini-jeu de rythme)
+    battleLevel: 3, battleFirst: 45, battleEvery: 210, battleUp: 3, battleBars: 8, battlePerfect: 0.07, battleGood: 0.14
   };
 
   // dur: secondes, pay: euros, xp: points d'expertise
@@ -1093,6 +1180,342 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
         { text: 'Lui demander s’il peut te présenter à ses contacts',
           outcome: 'Il rit, un peu froissé. Il te laisse tout de même deux numéros.',
           rw: [{ k: 'xp', x: 0.15 }] }
+      ] },
+    // ---- Nouvelles sorties : options sous condition (need), payantes (cost), risquées (risk) et suites d'histoires ----
+    { id: 'cypher', tiers: [0, 2], title: 'Le cypher du parc', contact: 'Moussa, beatboxer',
+      intro: 'Dans un parc, un cercle de rappeurs improvise. Le beatboxer s’essouffle et te lance un regard plein d’espoir.',
+      choices: [
+        { text: 'Prendre le relais avec un beat lancé depuis ton téléphone',
+          outcome: 'Le cercle repart de plus belle. Moussa te serre la main : « On remet ça la semaine prochaine. »',
+          rw: [{ k: 'contact' }, { k: 'xp', x: 0.2 }] },
+        { text: 'Te lancer en beatbox sans jamais avoir essayé', risk: { p: 0.5,
+          outcome: 'Tu postillonnes dans le micro. Le cercle te remercie poliment et passe à autre chose.', rw: [{ k: 'xp', x: 0.05 }] },
+          outcome: 'Silence, puis une ovation : ton kick à la bouche est étonnamment propre. La vidéo tourne déjà.',
+          rw: [{ k: 'contact' }, { k: 'boost', m: 2, s: 60 }] },
+        { text: 'Enregistrer l’ambiance pour en faire des samples',
+          outcome: 'Les voix, les rires et les claquements de mains font une banque de sons unique.',
+          rw: [{ k: 'tracks', n: 5 }, { k: 'rp', x: 0.5 }] }
+      ] },
+    { id: 'disquaire', tiers: [0, 3], title: 'Le disquaire en liquidation', contact: 'Odile, disquaire',
+      intro: 'Le disquaire de ton enfance ferme ses portes. Odile brade tout, y compris des caisses de vinyles jamais triées.',
+      choices: [
+        { text: 'Racheter un lot entier de vinyles rares pour les sampler', cost: 0.8,
+          outcome: 'Des pépites oubliées, des breaks de batterie introuvables. Odile est ravie que ses disques revivent.',
+          rw: [{ k: 'contact' }, { k: 'tracks', n: 15 }, { k: 'rp', x: 1 }] },
+        { text: 'Aider Odile à inventorier le stock toute la journée',
+          outcome: 'Elle te raconte quarante ans de musique, disque après disque. Tu repars avec une culture énorme.',
+          rw: [{ k: 'contact' }, { k: 'xp', x: 0.25 }] },
+        { text: 'Repartir avec un seul disque choisi au hasard',
+          outcome: 'Un pressage original qui vaut trois fois son prix.',
+          rw: [{ k: 'cash', x: 0.8 }] }
+      ] },
+    { id: 'voisin', tiers: [0, 1], title: 'Le voisin excédé', contact: 'M. Garnier, voisin',
+      intro: 'Il est 23 h. Ton voisin tambourine à la porte : les basses traversent le mur de sa chambre.',
+      choices: [
+        { text: 'Lui proposer d’écouter le morceau au casque',
+          outcome: 'Il hoche la tête, puis sourit : il jouait de la basse dans les années 80. Il passera t’en prêter une.',
+          rw: [{ k: 'contact' }, { k: 'xp', x: 0.15 }] },
+        { text: 'Baisser le son et continuer au casque',
+          outcome: 'Le calme revenu, tu te concentres comme jamais.',
+          rw: [{ k: 'boost', m: 1.5, s: 120 }] },
+        { text: 'Faire semblant de ne pas entendre',
+          outcome: 'Le syndic t’envoie un courrier. Tu perds la soirée à rédiger des excuses.',
+          rw: [{ k: 'xp', x: 0.05 }] }
+      ] },
+    { id: 'concours', tiers: [0, 3], title: 'Le concours de remix', contact: 'Studio Pulse, organisateur',
+      intro: 'Un concours de remix en ligne ferme ce soir à minuit. Le premier prix : une belle somme et une mise en avant.',
+      choices: [
+        { text: 'Envoyer un remix audacieux qui change tout le tempo', risk: { p: 0.4,
+          outcome: 'Le jury trouve ça trop loin de l’original. Tu apprends beaucoup de leurs retours.', rw: [{ k: 'xp', x: 0.2 }] },
+          outcome: 'Le jury adore la prise de risque : premier prix ! Studio Pulse veut retravailler avec toi.',
+          rw: [{ k: 'contact' }, { k: 'cash', x: 3 }] },
+        { text: 'Envoyer un remix fidèle et soigné',
+          outcome: 'Troisième place, et une jolie mention sur leur page.',
+          rw: [{ k: 'cash', x: 1 }, { k: 'rep', n: 3 }] },
+        { text: 'Écouter les remix des autres pour apprendre',
+          outcome: 'Tu notes des dizaines d’astuces de production.',
+          rw: [{ k: 'rp', x: 1 }] }
+      ] },
+    { id: 'fan', tiers: [1, 6], title: 'La lettre d’un fan', contact: 'Théo, fan de la première heure',
+      intro: 'Une lettre manuscrite arrive au studio. Théo raconte comment un de tes morceaux l’a aidé à traverser une année difficile.',
+      choices: [
+        { text: 'Lui répondre et l’inviter à visiter le studio',
+          outcome: 'Théo passe une après-midi avec vous. L’équipe en parle encore le soir.',
+          rw: [{ k: 'contact' }, { k: 'morale', n: 10 }, { k: 'boost', m: 1.5, s: 120 }] },
+        { text: 'Partager sa lettre sur les réseaux, avec son accord',
+          outcome: 'Des centaines de messages similaires affluent.',
+          rw: [{ k: 'rep', n: 3 }] },
+        { text: 'La ranger précieusement dans un tiroir',
+          outcome: 'Tu la reliras les jours de doute.',
+          rw: [{ k: 'xp', x: 0.05 }] }
+      ] },
+    { id: 'stagiaire', tiers: [1, 4], title: 'L’étudiante en son', contact: 'Romane, étudiante en son',
+      intro: 'Romane, étudiante en école de son, cherche un stage. Elle a apporté un mix étonnamment propre.',
+      choices: [
+        { text: 'L’intégrer à une vraie session avec ton équipe', need: { staff: 1 },
+          outcome: 'Elle pose mille questions et l’équipe adore transmettre. Tout le monde ressort motivé.',
+          rw: [{ k: 'contact' }, { k: 'morale', n: 20 }, { k: 'xp', x: 0.1 }] },
+        { text: 'La former toi-même pendant un après-midi',
+          outcome: 'Expliquer ta méthode t’oblige à la clarifier. Tu progresses autant qu’elle.',
+          rw: [{ k: 'contact' }, { k: 'xp', x: 0.2 }] },
+        { text: 'Lui dire de repasser l’année prochaine',
+          outcome: 'Elle trouvera un autre studio. Dommage.',
+          rw: [{ k: 'xp', x: 0.05 }] }
+      ] },
+    { id: 'tendance', tiers: [1, 4], title: 'Le son qui tourne en boucle', contact: 'Léo, créateur de contenu',
+      intro: 'Un créateur de vidéos te demande un son de quinze secondes pour lancer une tendance.',
+      choices: [
+        { text: 'Créer un gimmick absurde et entêtant', risk: { p: 0.55,
+          outcome: 'La tendance ne prend pas. Léo te remercie quand même.', rw: [{ k: 'cash', x: 0.5 }] },
+          outcome: 'Des millions de vidéos l’utilisent. Ton nom circule partout.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 8 }, { k: 'boost', m: 3, s: 60 }] },
+        { text: 'Livrer une boucle propre et passe-partout',
+          outcome: 'Elle sert dans quelques vidéos. Un travail honnête, payé correctement.',
+          rw: [{ k: 'cash', x: 1.2 }] },
+        { text: 'Refuser : ce n’est pas ton style',
+          outcome: 'Tu gardes ta ligne. Personne n’en saura rien.',
+          rw: [{ k: 'xp', x: 0.1 }] }
+      ] },
+    { id: 'mariage', tiers: [1, 4], title: 'Le mariage sans DJ', contact: 'Claire et Yanis, jeunes mariés',
+      intro: 'Un couple d’amis t’appelle en panique : leur DJ a annulé, la soirée commence dans deux heures.',
+      choices: [
+        { text: 'Installer tes enceintes et mixer toute la soirée', need: { item: 'moniteurs' },
+          outcome: 'La piste ne désemplit pas jusqu’à l’aube. La moitié des invités te demandent ta carte.',
+          rw: [{ k: 'contact' }, { k: 'cash', x: 2 }] },
+        { text: 'Lancer une longue playlist depuis ton téléphone',
+          outcome: 'Ça tient la soirée, sans plus.',
+          rw: [{ k: 'cash', x: 0.8 }] },
+        { text: 'Leur recommander un ami DJ',
+          outcome: 'Ton ami assure. Il t’en doit une.',
+          rw: [{ k: 'xp', x: 0.15 }] }
+      ] },
+    { id: 'chorale', tiers: [1, 5], title: 'La chorale du quartier', contact: 'La chorale Saint-Michel',
+      intro: 'La chorale du quartier fête ses cinquante ans et rêve d’un vrai enregistrement.',
+      choices: [
+        { text: 'Les enregistrer dans ton studio avec ton micro', need: { item: 'micro' },
+          outcome: 'Trente voix dans une pièce, un frisson à chaque prise. Le disque se vend à la sortie de la messe… et au-delà.',
+          rw: [{ k: 'contact' }, { k: 'tracks', n: 10 }, { k: 'master', q: 3 }] },
+        { text: 'Leur écrire un arrangement',
+          outcome: 'Ils le chantent à leur concert anniversaire. Tu progresses en écriture vocale.',
+          rw: [{ k: 'xp', x: 0.2 }] },
+        { text: 'Les orienter vers une église à l’acoustique parfaite',
+          outcome: 'Ils te remercient du conseil.',
+          rw: [{ k: 'rep', n: 2 }] }
+      ] },
+    { id: 'rappeur2', tiers: [1, 5], need: { contact: 'rappeur' }, title: 'Kaïs revient', contact: 'Le crew de Kaïs',
+      intro: 'Kaïs, le rappeur du café, a percé. Il débarque au studio : il veut que tu réalises son premier album.',
+      choices: [
+        { text: 'Avancer les frais de studio pour lui', cost: 1,
+          outcome: 'L’album sort et cartonne. Kaïs te reverse une belle part et te remercie dans chaque interview.',
+          rw: [{ k: 'contact' }, { k: 'cash', x: 3 }, { k: 'master', q: 4 }] },
+        { text: 'Lui faire un tarif ami',
+          outcome: 'L’album est solide. Le quartier sait qui l’a produit.',
+          rw: [{ k: 'master', q: 3 }, { k: 'rep', n: 4 }] },
+        { text: 'Le présenter à un autre producteur',
+          outcome: 'Il comprend, mais il est déçu.',
+          rw: [{ k: 'xp', x: 0.2 }] }
+      ] },
+    { id: 'pianiste', tiers: [2, 6], title: 'Le pianiste du métro', contact: 'Anatole, pianiste',
+      intro: 'Dans un couloir du métro, un pianiste joue sur un vieux piano droit. Les passants s’arrêtent tous.',
+      choices: [
+        { text: 'Le présenter à ton compositeur', need: { role: 'compo' },
+          outcome: 'Ils improvisent pendant des heures. Un thème naît dans la nuit.',
+          rw: [{ k: 'contact' }, { k: 'master', q: 4 }, { k: 'morale', n: 10 }] },
+        { text: 'L’enregistrer sur place avec ton micro', need: { item: 'micro' },
+          outcome: 'La réverbération du couloir est magique. Tu tiens un son unique.',
+          rw: [{ k: 'contact' }, { k: 'tracks', n: 15 }] },
+        { text: 'Lui laisser un billet',
+          outcome: 'Il te remercie d’un signe de tête sans s’arrêter de jouer.',
+          rw: [{ k: 'xp', x: 0.1 }] }
+      ] },
+    { id: 'pub', tiers: [2, 5], title: 'La publicité télé', contact: 'Agence Lumen',
+      intro: 'Une agence cherche une musique pour la publicité d’une grande marque. Le brief tient en une ligne : « Que ça reste en tête. »',
+      choices: [
+        { text: 'Composer un thème original sur mesure',
+          outcome: 'Le client signe à la première écoute. L’agence te met sur sa liste.',
+          rw: [{ k: 'contact' }, { k: 'cash', x: 2.5 }] },
+        { text: 'Proposer de reprendre un classique', risk: { p: 0.6,
+          outcome: 'Les droits sont refusés au dernier moment. L’agence paie quand même tes heures.', rw: [{ k: 'cash', x: 0.6 }] },
+          outcome: 'Les droits passent, la pub est diffusée partout.',
+          rw: [{ k: 'cash', x: 3 }, { k: 'rep', n: 3 }] },
+        { text: 'Envoyer un morceau de ton catalogue',
+          outcome: 'Ils le prennent en version courte.',
+          rw: [{ k: 'cash', x: 1 }] }
+      ] },
+    { id: 'pirate', tiers: [2, 5], title: 'La radio pirate', contact: 'DJ Nox, radio pirate',
+      intro: 'Une radio pirate émet chaque nuit depuis un toit. DJ Nox cherche des inédits pour son émission.',
+      choices: [
+        { text: 'Lui confier tes inédits', risk: { p: 0.6,
+          outcome: 'Les inédits fuitent sur internet. Au moins, ça fait parler de toi.', rw: [{ k: 'tracks', n: 5 }] },
+          outcome: 'L’émission devient culte et tes titres avec. Les auditeurs cherchent qui se cache derrière.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 6 }] },
+        { text: 'Animer une émission de nuit avec lui',
+          outcome: 'Trois heures de direct, des appels d’auditeurs, une énergie folle.',
+          rw: [{ k: 'contact' }, { k: 'xp', x: 0.25 }] },
+        { text: 'Lui conseiller de passer en podcast',
+          outcome: 'Il réfléchit. Tu y gagnes une discussion passionnante sur la diffusion.',
+          rw: [{ k: 'rp', x: 1 }] }
+      ] },
+    { id: 'openmic2', tiers: [2, 5], need: { contact: 'openmic' }, title: 'La tournée d’Inès', contact: 'Les musiciens d’Inès',
+      intro: 'Inès, la chanteuse du micro ouvert, part en tournée. Elle n’a pas oublié la sono de secours.',
+      choices: [
+        { text: 'Envoyer ton preneur de son assurer ses concerts', need: { role: 'preneur' },
+          outcome: 'Chaque date sonne parfaitement. Ton preneur de son revient fier comme jamais.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 6 }, { k: 'morale', n: 15 }] },
+        { text: 'Enregistrer un concert en live',
+          outcome: 'Un live brut et vibrant, prêt à sortir.',
+          rw: [{ k: 'tracks', n: 20 }, { k: 'master', q: 3 }] },
+        { text: 'Lui souhaiter bonne route',
+          outcome: 'Elle t’enverra une carte postale de chaque ville.',
+          rw: [{ k: 'xp', x: 0.15 }] }
+      ] },
+    { id: 'groupe2', tiers: [2, 5], need: { contact: 'groupe' }, title: 'Les Marées se déchirent', contact: 'Lou, chanteuse des Marées',
+      intro: 'Le groupe que tu avais réconcilié avec son mix se dispute en pleine session. La chanteuse menace de partir en solo.',
+      choices: [
+        { text: 'Organiser une médiation autour d’une écoute',
+          outcome: 'Réécouter leur premier titre ensemble apaise tout le monde. Le morceau suivant est le meilleur de leur carrière.',
+          rw: [{ k: 'contact' }, { k: 'master', q: 4 }] },
+        { text: 'Proposer à la chanteuse un projet solo',
+          outcome: 'Le groupe t’en veut, mais son premier single solo est superbe.',
+          rw: [{ k: 'master', q: 3 }, { k: 'rep', n: 3 }] },
+        { text: 'Rester neutre et finir la session',
+          outcome: 'La session se termine dans un silence glacial.',
+          rw: [{ k: 'xp', x: 0.15 }] }
+      ] },
+    { id: 'critique', tiers: [3, 6], title: 'Le critique influent', contact: 'Bastien Roux, critique',
+      intro: 'Le critique le plus lu du pays prépare un dossier sur les studios qui montent. Ton nom est sur sa liste.',
+      choices: [
+        { text: 'L’inviter pendant une vraie session de travail',
+          outcome: 'Il reste quatre heures et écrit un portrait élogieux.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 6 }] },
+        { text: 'Lui offrir un dîner luxueux', cost: 1.5,
+          outcome: 'Il apprécie le dîner… et écrit un article tiède. L’argent n’achète pas tout.',
+          rw: [{ k: 'rep', n: 2 }] },
+        { text: 'Lui envoyer un disque avec un mot manuscrit',
+          outcome: 'Il cite ton mot dans son article.',
+          rw: [{ k: 'rep', n: 3 }, { k: 'xp', x: 0.1 }] }
+      ] },
+    { id: 'ecole', tiers: [3, 6], title: 'L’école de musique', contact: 'Mme Bensaïd, directrice d’école',
+      intro: 'L’école de musique du quartier n’a plus de quoi faire enregistrer ses élèves. La directrice frappe à ta porte.',
+      choices: [
+        { text: 'Ouvrir le studio aux élèves avec toute ton équipe', need: { staff: 3 },
+          outcome: 'Une journée joyeuse et bruyante. L’équipe en ressort transformée.',
+          rw: [{ k: 'contact' }, { k: 'morale', n: 25 }, { k: 'rep', n: 4 }] },
+        { text: 'Donner une masterclass gratuite',
+          outcome: 'Les questions des élèves te poussent dans tes retranchements.',
+          rw: [{ k: 'contact' }, { k: 'rp', x: 2 }] },
+        { text: 'Leur vendre des sessions au prix fort',
+          outcome: 'L’école paie, sans enthousiasme.',
+          rw: [{ k: 'cash', x: 1.5 }] }
+      ] },
+    { id: 'sample', tiers: [3, 6], title: 'Le sample non déclaré', contact: 'Maître Lefort, avocate',
+      intro: 'Un titre produit chez toi contient un sample non déclaré. Les ayants droit menacent de faire retirer le morceau.',
+      choices: [
+        { text: 'Négocier les droits honnêtement', cost: 1,
+          outcome: 'Accord trouvé. Le titre reste en ligne et l’avocate retient ton sérieux.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 5 }, { k: 'tracks', n: 10 }] },
+        { text: 'Rejouer la partie samplée avec un vrai clavier', need: { item: 'clavier' },
+          outcome: 'Ta version jouée est encore meilleure que l’originale.',
+          rw: [{ k: 'master', q: 4 }, { k: 'rp', x: 1 }] },
+        { text: 'Faire le mort et attendre', risk: { p: 0.35,
+          outcome: 'Le titre est retiré. Toutes ses ventes s’arrêtent.', rw: [{ k: 'xp', x: 0.05 }] },
+          outcome: 'Les ayants droit finissent par abandonner.',
+          rw: [{ k: 'cash', x: 1 }] }
+      ] },
+    { id: 'festival2', tiers: [3, 6], need: { contact: 'festival' }, title: 'La grande scène', contact: 'La régie du festival',
+      intro: 'Hélène, la régisseuse du festival, t’appelle : l’ingénieur de la grande scène est malade, le concert commence dans une heure.',
+      choices: [
+        { text: 'Mixer la grande scène sur ta console analogique', need: { item: 'console' },
+          outcome: 'Quarante mille personnes, un son énorme. Ton nom apparaît dans tous les comptes rendus.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 8 }, { k: 'boost', m: 2, s: 120 }] },
+        { text: 'Monter sur scène pour un set surprise', risk: { p: 0.5,
+          outcome: 'Le public attendait la tête d’affiche. Tu tiens bon, sans plus.', rw: [{ k: 'xp', x: 0.15 }] },
+          outcome: 'Le public ne t’attendait pas et repart en parlant de toi.',
+          rw: [{ k: 'rep', n: 10 }, { k: 'cash', x: 2 }] },
+        { text: 'Tenir le stand du studio',
+          outcome: 'Tu vends des disques toute la soirée.',
+          rw: [{ k: 'cash', x: 1.2 }] }
+      ] },
+    { id: 'hackathon', tiers: [3, 6], title: 'Le hackathon audio', contact: 'Lina, développeuse',
+      intro: 'Un week-end entier pour inventer des outils audio. Une développeuse cherche un producteur pour son équipe.',
+      choices: [
+        { text: 'Coder avec elle un plugin maison',
+          outcome: 'Votre plugin gagne le prix du public. Tu l’utilises depuis tous les jours.',
+          rw: [{ k: 'contact' }, { k: 'rp', x: 3 }] },
+        { text: 'Montrer ton réglage d’Auto-Tune secret', need: { rd: 'autotune' },
+          outcome: 'La salle entière prend des notes. On te cite dans trois conférences.',
+          rw: [{ k: 'rp', x: 4 }, { k: 'rep', n: 3 }] },
+        { text: 'Venir surtout pour le buffet',
+          outcome: 'Le buffet était excellent.',
+          rw: [{ k: 'xp', x: 0.05 }] }
+      ] },
+    { id: 'documentaire', tiers: [4, 6], title: 'Le documentaire', contact: 'Nadia, réalisatrice',
+      intro: 'Une réalisatrice prépare un documentaire sur les studios d’enregistrement. Elle veut filmer le tien.',
+      choices: [
+        { text: 'Laisser les caméras filmer une vraie journée',
+          outcome: 'Le film montre le travail tel qu’il est. Le public adore ton équipe.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 6 }, { k: 'morale', n: 10 }] },
+        { text: 'Composer la musique du documentaire avec ta banque orchestrale', need: { item: 'orchestre' },
+          outcome: 'La bande originale est saluée à sa diffusion.',
+          rw: [{ k: 'cash', x: 3 }, { k: 'tracks', n: 20 }] },
+        { text: 'Refuser pour protéger la tranquillité de tes artistes',
+          outcome: 'L’équipe apprécie que tu la protèges.',
+          rw: [{ k: 'morale', n: 15 }] }
+      ] },
+    { id: 'investisseur', tiers: [4, 6], title: 'L’investisseuse pressée', contact: 'Sophie Marchal, investisseuse',
+      intro: 'Une investisseuse te donne cinq minutes entre deux avions. Elle a deux projets à te proposer.',
+      choices: [
+        { text: 'Co-investir dans un studio de quartier', cost: 3,
+          outcome: 'Le studio de quartier tourne à plein et te reverse rapidement de beaux dividendes.',
+          rw: [{ k: 'contact' }, { k: 'cash', x: 6 }] },
+        { text: 'Parier sur une jeune pousse de la musique assistée', cost: 2, risk: { p: 0.4,
+          outcome: 'L’entreprise ferme au bout de six mois. Une leçon chère payée.', rw: [{ k: 'xp', x: 0.1 }] },
+          outcome: 'L’entreprise est rachetée. Ta part est multipliée.',
+          rw: [{ k: 'cash', x: 8 }, { k: 'rp', x: 2 }] },
+        { text: 'Décliner poliment',
+          outcome: 'Elle te laisse sa carte « pour plus tard ».',
+          rw: [{ k: 'xp', x: 0.1 }] }
+      ] },
+    { id: 'jury', tiers: [4, 6], title: 'Le jury télé', contact: 'Production Starlight',
+      intro: 'Une émission de télé-crochet cherche un nouveau juré. Le tournage commence demain.',
+      choices: [
+        { text: 'Accepter et rester bienveillant',
+          outcome: 'Les candidats t’adorent. Les téléspectateurs aussi.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 8 }] },
+        { text: 'Jouer le juré impitoyable', risk: { p: 0.5,
+          outcome: 'Le public te trouve odieux. L’émission ne te réinvite pas.', rw: [{ k: 'rep', n: 1 }] },
+          outcome: 'Tes répliques font le tour du web. Tout le monde veut savoir qui tu es.',
+          rw: [{ k: 'rep', n: 12 }, { k: 'cash', x: 2 }] },
+        { text: 'Refuser pour rester au studio',
+          outcome: 'Tu passes la soirée à produire, l’esprit tranquille.',
+          rw: [{ k: 'boost', m: 2, s: 120 }] }
+      ] },
+    { id: 'artiste2', tiers: [4, 6], need: { contact: 'artiste' }, title: 'Le duo de Maya Lorent', contact: 'L’équipe de Maya Lorent',
+      intro: 'Maya Lorent n’a pas oublié votre discussion au bar de l’hôtel. Elle veut enregistrer un duo dans ton studio.',
+      choices: [
+        { text: 'Préparer la session avec ton coach vocal', need: { role: 'vocal' },
+          outcome: 'Les voix se marient parfaitement dès la deuxième prise. Le duo est immédiatement un classique.',
+          rw: [{ k: 'contact' }, { k: 'master', q: 5 }, { k: 'rep', n: 6 }] },
+        { text: 'Produire le duo toi-même, en une seule nuit', risk: { p: 0.5,
+          outcome: 'Le résultat est bon, mais tu sens qu’il manque quelque chose.', rw: [{ k: 'master', q: 3 }] },
+          outcome: 'Une nuit de grâce. Au matin, le morceau est parfait.',
+          rw: [{ k: 'master', q: 5 }, { k: 'boost', m: 3, s: 90 }] },
+        { text: 'Proposer de garder l’idée pour plus tard',
+          outcome: 'Elle comprend. L’occasion ne se représentera peut-être pas.',
+          rw: [{ k: 'xp', x: 0.15 }] }
+      ] },
+    { id: 'legende2', tiers: [5, 6], need: { contact: 'legende' }, title: 'Le dernier album de Jean-Paul Sorel', contact: 'Les héritiers de Jean-Paul Sorel',
+      intro: 'Jean-Paul Sorel, le producteur légendaire, revient avec des bandes inachevées. Il veut que ce soit toi qui les termines.',
+      choices: [
+        { text: 'Les terminer sur ta console légendaire', need: { item: 'neve' },
+          outcome: 'Sa signature sonore et la tienne se rejoignent. L’album est salué comme un testament.',
+          rw: [{ k: 'contact' }, { k: 'master', q: 5 }, { k: 'rp', x: 4 }] },
+        { text: 'Lui demander de t’enseigner sa méthode de mixage',
+          outcome: 'Trois jours d’enseignement qui valent dix ans de pratique.',
+          rw: [{ k: 'contact' }, { k: 'xp', x: 0.4 }] },
+        { text: 'Lui conseiller de les publier telles quelles',
+          outcome: 'Les bandes brutes ont leur charme. Il te remercie de ta franchise.',
+          rw: [{ k: 'rep', n: 4 }] }
       ] }
   ];
 
@@ -1100,71 +1523,45 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   // Palmarès: trophées à décrocher. m = mesure suivie (voir trophyMetric dans engine.js), n = seuil à atteindre.
   // Mesures: done (productions réalisées, ou done:<voie>), lifetime, level, items (équipements hors portable),
   // own:<équipement>, tier, income (revenu continu par seconde, hors boost), autos, rank (plus haut rang), contacts, outings, fame, tours.
+  // Palmarès à plusieurs niveaux. Chaque niveau décroché ajoute trophyBonus aux gains.
+  // desc: {n} est remplacé par le seuil (formaté selon fmt), descs[i] remplace la phrase d'un niveau.
+  // old: anciens trophées à niveau unique, dans l'ordre des niveaux (null si aucun), pour reprendre les sauvegardes.
+  var TROPHY_LEVELS = ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var TROPHIES = [
-    { id: 'premier-beat', name: 'Premier beat', desc: 'Réalise ton premier beat.', m: 'done:beat', n: 1 },
-    { id: 'clients', name: 'Premiers clients', desc: 'Réalise 25 productions.', m: 'done', n: 25 },
-    { id: 'commandes', name: 'Carnet de commandes', desc: 'Réalise 250 productions.', m: 'done', n: 250 },
-    { id: 'chaine', name: 'Chaîne de montage', desc: 'Réalise 2 500 productions.', m: 'done', n: 2500 },
-
-    { id: 'poche', name: 'Argent de poche', desc: 'Gagne 100 € au total.', m: 'lifetime', n: 100 },
-    { id: 'salaire', name: 'Premier salaire', desc: 'Gagne 10 000 € au total.', m: 'lifetime', n: 1e4 },
-    { id: 'million', name: 'Cap du million', desc: 'Gagne un million d’euros au total.', m: 'lifetime', n: 1e6 },
-    { id: 'cent-millions', name: 'Cent millions', desc: 'Gagne cent millions d’euros au total.', m: 'lifetime', n: 1e8 },
-    { id: 'fortune', name: 'Fortune de la scène', desc: 'Gagne dix milliards d’euros au total.', m: 'lifetime', n: 1e10 },
-
-    { id: 'oreille', name: 'Oreille formée', desc: 'Atteins le niveau d’expertise 5.', m: 'level', n: 5 },
-    { id: 'inge', name: 'Ingé son confirmé', desc: 'Atteins le niveau d’expertise 12.', m: 'level', n: 12 },
-    { id: 'maitre', name: 'Maître du mix', desc: 'Atteins le niveau d’expertise 20.', m: 'level', n: 20 },
-    { id: 'hitmaker', name: 'Faiseur de hits', desc: 'Atteins le niveau d’expertise 26.', m: 'level', n: 26 },
-
-    { id: 'achat', name: 'Premier achat', desc: 'Achète ton premier équipement.', m: 'items', n: 1 },
-    { id: 'rack', name: 'Le rack se remplit', desc: 'Possède 8 équipements.', m: 'items', n: 8 },
-    { id: 'complet', name: 'Studio au complet', desc: 'Possède tous les équipements.', m: 'items', n: ITEMS.length - 1 },
-    { id: 'console', name: 'Table de mixage', desc: 'Installe la console analogique.', m: 'own:console', n: 1 },
-    { id: 'grande-salle', name: 'Grande salle', desc: 'Ouvre le Studio A.', m: 'own:studioA', n: 1 },
-
-    { id: 'home', name: 'Home studio', desc: 'Transforme ta chambre en vrai home studio.', m: 'tier', n: 1 },
-    { id: 'semi-pro', name: 'Pignon sur rue', desc: 'Installe ton studio dans un local en ville.', m: 'tier', n: 3 },
-    { id: 'legendaire', name: 'Studio légendaire', desc: 'Ouvre ton complexe légendaire, le dernier palier.', m: 'tier', n: 6 },
-
-    { id: 'compteur', name: 'Le compteur tourne', desc: 'Atteins 1 € de revenu continu par seconde.', m: 'income', n: 1 },
-    { id: 'entrees', name: 'Les entrées s’enchaînent', desc: 'Atteins 100 € de revenu continu par seconde.', m: 'income', n: 100 },
-    { id: 'pluie', name: 'Pluie continue', desc: 'Atteins 10 000 € de revenu continu par seconde.', m: 'income', n: 1e4 },
-    { id: 'maree', name: 'Marée de billets', desc: 'Atteins un million d’euros de revenu continu par seconde.', m: 'income', n: 1e6 },
-
-    { id: 'stagiaire', name: 'Un stagiaire motivé', desc: 'Automatise une première production.', m: 'autos', n: 1 },
-    { id: 'pilote', name: 'Pilote automatique', desc: 'Automatise toutes les productions.', m: 'autos', n: ACTS.length },
-
-    { id: 'palier-double', name: 'Palier doublé', desc: 'Amène une production au rang 10.', m: 'rank', n: 10 },
-    { id: 'perfectionniste', name: 'Perfectionniste', desc: 'Amène une production au rang 40.', m: 'rank', n: 40 },
-
-    { id: 'carnet', name: 'Carnet d’adresses ouvert', desc: 'Rencontre ton premier contact.', m: 'contacts', n: 1 },
-    { id: 'reseau', name: 'Réseau solide', desc: 'Rencontre 6 contacts.', m: 'contacts', n: 6 },
-    { id: 'gotha', name: 'Tout le gotha', desc: 'Rencontre tous les contacts.', m: 'contacts', n: EVENTS.length },
-    { id: 'tournee', name: 'Première tournée', desc: 'Pars en tournée mondiale pour la première fois.', m: 'tours', n: 1 },
-    { id: 'tete-affiche', name: 'Tête d’affiche', desc: 'Atteins 25 points de renommée.', m: 'fame', n: 25 },
-    { id: 'grande-tournee', name: 'Grande tournée', desc: 'Pars quatre fois en tournée mondiale.', m: 'tours', n: 4 },
-    { id: 'sortie', name: 'Première sortie', desc: 'Fais ta première sortie de studio.', m: 'outings', n: 1 },
-    { id: 'noctambule', name: 'Noctambule', desc: 'Fais 15 sorties de studio.', m: 'outings', n: 15 },
-    { id: 'recrue', name: 'Première recrue', desc: 'Recrute un premier membre dans ton équipe.', m: 'staff', n: 1 },
-    { id: 'equipe', name: 'Une vraie équipe', desc: 'Fais travailler cinq personnes en même temps.', m: 'staff', n: 5 },
-    { id: 'talent', name: 'Talent maison', desc: 'Fais monter un membre de l’équipe au niveau 5.', m: 'staffLvl', n: 5 },
-    { id: 'pilier', name: 'Pilier du studio', desc: 'Fais monter un membre de l’équipe au niveau 10.', m: 'staffLvl', n: 10 },
-    { id: 'premier-mix', name: 'Premier mix', desc: 'Mixe une production toi-même.', m: 'mixes', n: 1 },
-    { id: 'oreille-or', name: 'Oreille d’or', desc: 'Réussis un mix parfait (5 étoiles).', m: 'perfect', n: 1 },
-    { id: 'client', name: 'Premier client', desc: 'Livre une commande à temps.', m: 'orders', n: 1 },
-    { id: 'carnet-commandes', name: 'Carnet de commandes', desc: 'Livre 15 commandes à temps.', m: 'orders', n: 15 },
-    { id: 'reputation', name: 'Réputation en or', desc: 'Atteins 60 points de réputation.', m: 'rep', n: 60 },
-    { id: 'top10', name: 'Top 10', desc: 'Place un titre dans le Top 10.', m: 'chartBest', n: 41 },
-    { id: 'numero-un', name: 'Numéro un', desc: 'Place un titre en tête du Top 50.', m: 'chartBest', n: 50 },
-    { id: 'chercheur', name: 'Esprit curieux', desc: 'Termine 3 recherches.', m: 'rdNodes', n: 3 },
-    { id: 'savant', name: 'Laboratoire du son', desc: 'Termine 12 recherches.', m: 'rdNodes', n: 12 },
-    { id: 'encyclopedie', name: 'Tout savoir', desc: 'Termine les 18 recherches.', m: 'rdNodes', n: 18 },
-    { id: 'specialiste', name: 'Une identité', desc: 'Choisis ta première spécialisation.', m: 'specs', n: 1 },
-    { id: 'premier-projet', name: 'Premier projet', desc: 'Termine un projet de création.', m: 'projects', n: 1 },
-    { id: 'chef-oeuvre', name: 'Chef-d’œuvre', desc: 'Obtiens une moyenne de 9/10 auprès des critiques.', m: 'projBest', n: 9 },
-    { id: 'carnet-plein', name: 'Carnet bien rempli', desc: 'Découvre 12 associations genre et ambiance.', m: 'book', n: 12 }
+    { id: 'production', name: 'Producteur', m: 'done', levels: [1, 25, 250, 2500, 25000, 250000], desc: 'Termine {n} productions.', descs: ['Termine ta toute première production.'], old: ['premier-beat', 'clients', 'commandes', 'chaine'] },
+    { id: 'gains', name: 'Fortune', m: 'lifetime', fmt: 'eur', levels: [100, 1e4, 1e6, 1e8, 1e10, 1e13], desc: 'Gagne {n} au total.', old: ['poche', 'salaire', 'million', 'cent-millions', 'fortune'] },
+    { id: 'savoir', name: 'Expertise', m: 'level', levels: [5, 12, 20, 26, 30, 35], desc: 'Atteins le niveau d’expertise {n}.', old: ['oreille', 'inge', 'maitre', 'hitmaker'] },
+    { id: 'equipement', name: 'Collectionneur', m: 'items', levels: [1, 8, 16, 24], desc: 'Installe {n} équipements.', descs: ['Achète ton premier équipement.'], old: ['achat', 'rack', null, 'complet'] },
+    { id: 'analogique', name: 'Son analogique', m: 'own:console', levels: [1], descs: ['Installe une console analogique.'], old: ['console'] },
+    { id: 'studio-a', name: 'Grande salle', m: 'own:studioA', levels: [1], descs: ['Ouvre la grande salle (Studio A).'], old: ['grande-salle'] },
+    { id: 'batisseur', name: 'Bâtisseur', m: 'tier', levels: [1, 3, 5, 6], descs: ['Transforme ta chambre en chambre-studio.', 'Emménage dans un local en ville.', 'Deviens un studio de référence.', 'Ouvre le complexe légendaire.'], old: ['home', 'semi-pro', null, 'legendaire'] },
+    { id: 'revenus', name: 'Revenus', m: 'income', fmt: 'eurs', levels: [1, 100, 1e4, 1e6, 1e8], desc: 'Gagne {n} en continu.', old: ['compteur', 'entrees', 'pluie', 'maree'] },
+    { id: 'auto', name: 'Pilote automatique', m: 'autos', levels: [1, 5, 11], desc: 'Automatise {n} productions.', descs: ['Automatise une première production.', null, 'Automatise les 11 productions.'], old: ['stagiaire', null, 'pilote'] },
+    { id: 'rangs', name: 'Perfectionniste', m: 'rank', levels: [10, 40, 100, 200], desc: 'Monte une production au rang {n}.', old: ['palier-double', 'perfectionniste'] },
+    { id: 'contacts', name: 'Carnet d’adresses', m: 'contacts', levels: [1, 6, 12, 24, 36], desc: 'Rencontre {n} contacts en sortie de studio.', descs: ['Rencontre ton premier contact.'], old: ['carnet', 'reseau', 'gotha'] },
+    { id: 'monde', name: 'Globe-trotter', m: 'tours', levels: [1, 4, 10], desc: 'Pars {n} fois en tournée mondiale.', descs: ['Pars en tournée mondiale.'], old: ['tournee', 'grande-tournee'] },
+    { id: 'renommee', name: 'Renommée', m: 'fame', levels: [25, 100, 400], desc: 'Cumule {n} points de renommée.', old: ['tete-affiche'] },
+    { id: 'nuits', name: 'Noctambule', m: 'outings', levels: [1, 15, 50, 150], desc: 'Vis {n} sorties de studio.', descs: ['Accepte ta première sortie de studio.'], old: ['sortie', 'noctambule'] },
+    { id: 'histoires', name: 'Fil rouge', m: 'chains', levels: [1, 3, 6], desc: 'Vis {n} suites d’histoires en sortie de studio.', descs: ['Retrouve une connaissance dans une suite d’histoire.'] },
+    { id: 'poker', name: 'Coup de poker', m: 'gambles', levels: [1, 10, 30], desc: 'Réussis {n} choix risqués en sortie de studio.', descs: ['Réussis un choix risqué en sortie de studio.'] },
+    { id: 'chef', name: 'Chef d’équipe', m: 'staff', levels: [1, 5, 8], desc: 'Réunis {n} membres dans ton équipe.', descs: ['Recrute ton premier membre.'], old: ['recrue', 'equipe'] },
+    { id: 'mentor', name: 'Formateur', m: 'staffLvl', levels: [5, 10], desc: 'Fais monter un membre au niveau {n}.', old: ['talent', 'pilier'] },
+    { id: 'mixeur', name: 'Ingé mix', m: 'mixes', levels: [1, 25, 100, 500], desc: 'Mixe {n} morceaux toi-même.', descs: ['Mixe ton premier morceau.'], old: ['premier-mix'] },
+    { id: 'oreille-absolue', name: 'Oreille d’or', m: 'perfect', levels: [1, 10, 50], desc: 'Réussis {n} mix parfaits.', descs: ['Réussis un mix parfait.'], old: ['oreille-or'] },
+    { id: 'service', name: 'Service client', m: 'orders', levels: [1, 15, 50, 150], desc: 'Livre {n} commandes à temps.', descs: ['Livre une commande à temps.'], old: ['client', 'carnet-commandes'] },
+    { id: 'estime', name: 'Réputation', m: 'rep', levels: [30, 60, 100], desc: 'Atteins {n} points de réputation.', old: [null, 'reputation'] },
+    { id: 'classement', name: 'Top 50', m: 'chartBest', levels: [26, 41, 50], descs: ['Classe un titre dans le top 25.', 'Classe un titre dans le top 10.', 'Classe un titre numéro 1.'], old: [null, 'top10', 'numero-un'] },
+    { id: 'tubes', name: 'Machine à tubes', m: 'num1', levels: [3, 10, 25], desc: 'Passe {n} semaines à la première place du Top 50.' },
+    { id: 'labo', name: 'Chercheur', m: 'rdNodes', levels: [3, 12, 18], desc: 'Termine {n} recherches.', old: ['chercheur', 'savant', 'encyclopedie'] },
+    { id: 'identite', name: 'Identité', m: 'specs', levels: [1, 2], descs: ['Choisis ta première spécialisation.', 'Choisis les deux spécialisations d’une même carrière.'], old: ['specialiste'] },
+    { id: 'createur', name: 'Créateur', m: 'projects', levels: [1, 10, 30], desc: 'Termine {n} projets de création.', descs: ['Termine un projet de création.'], old: ['premier-projet'] },
+    { id: 'critiques', name: 'Chouchou des critiques', m: 'projBest', fmt: 'note', levels: [7, 9, 9.8], desc: 'Obtiens une moyenne de {n} auprès des critiques.', old: [null, 'chef-oeuvre'] },
+    { id: 'carnet-studio', name: 'Carnet du studio', m: 'book', levels: [4, 12, 30], desc: 'Découvre {n} associations genre et ambiance.', old: [null, 'carnet-plein'] },
+    { id: 'clash', name: 'Clash', m: 'battles', levels: [1, 10, 50, 150], desc: 'Remporte {n} clashs de beatmakers.', descs: ['Remporte ton premier clash de beatmakers.'] },
+    { id: 'ligue', name: 'Ligue des beatmakers', m: 'league', levels: [2, 3, 4, 5], descs: ['Monte en ligue Régionale.', 'Monte en ligue Nationale.', 'Monte en ligue Internationale.', 'Atteins la ligue Légende.'] },
+    { id: 'combo', name: 'Main sûre', m: 'combo', levels: [20, 50, 100], desc: 'Enchaîne {n} frappes réussies d’affilée dans un clash.' }
   ];
+
 
   // Recherche: trois branches de six recherches (chacune demande la précédente de sa branche) et deux paliers de spécialisation.
   // fx multiplicatifs: gain, speed, xp, roy, mixZone, mixMul, chartScore, chartPay, promoCost, event, orderReward, orderEvery, rep, salary, trainCost, trainTime
@@ -1250,6 +1647,24 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     sales: [0.34, 0.24, 0.16, 0.11, 0.08, 0.07]
   };
 
+
+  // Clash de beatmakers: ligues, rivaux et pistes du mini-jeu de rythme.
+  var BATTLE = {
+    leagues: [
+      { name: 'Quartier', bpm: 86, target: 0.5, dens: 0 },
+      { name: 'Régionale', bpm: 94, target: 0.58, dens: 1 },
+      { name: 'Nationale', bpm: 102, target: 0.65, dens: 2 },
+      { name: 'Internationale', bpm: 110, target: 0.72, dens: 3 },
+      { name: 'Légende', bpm: 118, target: 0.8, dens: 4 }
+    ],
+    lanes: [
+      { id: 'kick', name: 'Kick', key: 'D' }, { id: 'snare', name: 'Caisse claire', key: 'F' },
+      { id: 'hat', name: 'Charleston', key: 'J' }, { id: 'clap', name: 'Clap', key: 'K' }
+    ],
+    rivals: ['MC Gravier', 'Lil Boucle', 'DJ Sablier', 'Kenza Kick', 'Le Baron du 808', 'Nina Snare', 'Yo-Yo Loop', 'Big Tempo', 'Sœur Sampler', 'Rico Groove',
+      'La Machine', 'Prince Charley', 'Mamadou Bass', 'Capitaine Clap', 'Zélie Swing', 'Oscar Offbeat', 'Duchesse Dub', 'Toto Trap']
+  };
+
   // Commandes: clients par type de production
   var CLIENTS = {
     beat: ['Rappeur', ['Kaïs', 'Lil Néo', 'Sami B', 'Zoya']], mix: ['Groupe', ['Les Rivages', 'Fuzz Club', 'Velvet Garage']],
@@ -1279,7 +1694,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1312,7 +1727,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   ACTS.forEach(function (a) { ACT_BY[a.id] = a; });
   ITEMS.forEach(function (i) { ITEM_BY[i.id] = i; });
   EVENTS.forEach(function (x) { EVENT_BY[x.id] = x; });
-  TROPHIES.forEach(function (t) { TROPHY_BY[t.id] = t; });
+  var OLD_TROPHY = {}; // ancien trophée à niveau unique -> [famille, niveau]
+  TROPHIES.forEach(function (t) { TROPHY_BY[t.id] = t; (t.old || []).forEach(function (o, i) { if (o) OLD_TROPHY[o] = [t.id, i + 1]; }); });
+  var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
+  var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
 
   var hooks = {};
   var cache = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
@@ -1326,10 +1744,11 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     ACTS.forEach(function (a) { acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: 0, hold: false, mix: null }; });
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
-      boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj() };
+      boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle() };
   }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
+  function newBattle() { return { league: 1, pts: 0, wins: 0, losses: 0, best: 0, cd: T.battleFirst, rival: null }; }
   function newRd() { return { pts: 0, total: 0, nodes: {}, spec: {} }; }
   function newOrders() { return { offers: [], active: [], cd: T.orderFirst, rep: 0, done: 0, failed: 0, nextId: 1 }; }
   function newCharts() { return { week: 1, left: T.weekLen, rivals: [], mine: [], free: 0, best: 0, num1: 0, releases: 0, nextId: 1 }; }
@@ -1370,10 +1789,11 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       S.boost = { m: Math.max(1, num(o.boost.m, 1)), left: bl, t: bl > 0 ? Math.max(bl, num(o.boost.t, bl)) : 0 };
     }
     if (o.contacts && typeof o.contacts === 'object') EVENTS.forEach(function (x) { if (o.contacts[x.id]) S.contacts[x.id] = x.contact; });
-    if (o.trophies && typeof o.trophies === 'object') TROPHIES.forEach(function (t) { if (o.trophies[t.id]) S.trophies[t.id] = 1; });
+    if (o.trophies && typeof o.trophies === 'object') hydrateTrophies(S, o.trophies);
     if (o.ev && typeof o.ev === 'object') {
       S.ev.cd = Math.max(0, num(o.ev.cd, T.eventFirst));
       EVENTS.forEach(function (x) { S.ev.seen[x.id] = Math.max(0, Math.floor(num(o.ev.seen && o.ev.seen[x.id], 0))); });
+      S.ev.won = Math.max(0, Math.floor(num(o.ev.won, 0)));
       var p = o.ev.pending;
       if (p && EVENT_BY[p.id] && num(p.left, 0) > 0) S.ev.pending = { id: p.id, left: Math.min(num(p.left, 0), T.eventWindow) };
     }
@@ -1393,6 +1813,15 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (o.rd.spec && typeof o.rd.spec === 'object') RESEARCH.specs.forEach(function (t) { var id = o.rd.spec[t.tier]; if (SPEC_BY[id] && SPEC_BY[id].tier === t.tier) S.rd.spec[t.tier] = id; });
     }
     if (o.proj && typeof o.proj === 'object') hydrateProj(S, o.proj);
+    if (o.battle && typeof o.battle === 'object') {
+      var b = o.battle, B = S.battle, L = BT.leagues.length;
+      B.league = Math.max(1, Math.min(L, Math.floor(num(b.league, 1)))); B.pts = Math.max(0, Math.min(T.battleUp - 1, Math.floor(num(b.pts, 0))));
+      B.wins = Math.max(0, Math.floor(num(b.wins, 0))); B.losses = Math.max(0, Math.floor(num(b.losses, 0))); B.best = Math.max(0, Math.floor(num(b.best, 0)));
+      B.cd = Math.max(0, num(b.cd, T.battleFirst));
+      var r = b.rival;
+      if (r && typeof r === 'object') B.rival = { name: String(r.name || 'Rival').slice(0, 30), league: Math.max(1, Math.min(L, Math.floor(num(r.league, B.league)))),
+        target: Math.max(0.3, Math.min(0.95, num(r.target, 0.5))), seed: Math.floor(num(r.seed, 1)) >>> 0 };
+    }
     return S;
   }
 
@@ -1488,7 +1917,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (f.act) Object.keys(f.act).forEach(function (k) { g.act[k] = (g.act[k] || 1) * f.act[k]; });
     });
     g.gain *= 1 + T.contactBonus * Object.keys(S.contacts || {}).length;
-    g.gain *= 1 + T.trophyBonus * Object.keys(S.trophies || {}).length;
+    g.gain *= 1 + T.trophyBonus * trophyCount(S);
     g.gain *= 1 + T.fameBonus * (S.fame || 0);
     g.xp *= 1 + T.fameXp * (S.fame || 0);
     var rf = computeRd(S);
@@ -2123,7 +2552,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     c.left -= dt;
     if (c.left <= 0) weekEnd(S);
   }
-  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); }
+  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); tickBattle(S, dt); }
 
 
   // ---------- Projets de création (bonus facultatif) ----------
@@ -2266,6 +2695,82 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
   function dismissProject(S) { if (S.proj) S.proj.last = null; }
 
+
+  // ---------- Clash de beatmakers ----------
+  function battleOpen(S) { return S.level >= T.battleLevel; }
+  function league(S) { return BT.leagues[S.battle.league - 1]; }
+  function makeRival(S) {
+    var L = league(S), used = S.battle.rival ? S.battle.rival.name : '';
+    var names = BT.rivals.filter(function (n) { return n !== used; });
+    return { name: names[Math.floor(rand() * names.length)], league: S.battle.league, target: Math.min(0.95, L.target + (rand() - 0.5) * 0.08), seed: Math.floor(rand() * 4294967295) >>> 0 };
+  }
+  function tickBattle(S, dt) {
+    if (!battleOpen(S)) return;
+    var B = S.battle;
+    if (B.rival) return;
+    B.cd -= dt;
+    if (B.cd <= 0) { B.rival = makeRival(S); B.cd = 0; if (hooks.battleNew) hooks.battleNew(B.rival); }
+  }
+  function declineBattle(S) { var B = S.battle; if (!B.rival) return false; B.rival = null; B.cd = T.battleEvery / 2; return true; }
+  // Générateur pseudo-aléatoire déterministe: une même graine donne toujours le même beat.
+  function seeded(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  // Partition du clash en doubles-croches: [{ s: pas (16 par mesure), l: piste 0 kick, 1 caisse claire, 2 charleston, 3 clap }].
+  function battlePattern(seed, dens, bars) {
+    var r = seeded(seed), out = [], has = {};
+    function add(s, l) { var k = s + ':' + l; if (!has[k]) { has[k] = 1; out.push({ s: s, l: l }); } }
+    for (var b = 0; b < bars; b++) {
+      var o = b * 16, intro = b === 0, last = b === bars - 1, hits = {};
+      var kicks = [0, 8], snares = [4, 12], hats = [];
+      if (!intro) {
+        var extra = [3, 6, 10, 11, 14];
+        for (var i = 0; i < dens; i++) if (r() < 0.55) kicks.push(extra[Math.floor(r() * extra.length)]);
+        if (dens >= 3 && r() < 0.5) snares.push(r() < 0.5 ? 7 : 15);
+        if (dens === 0) hats = [2, 6, 10, 14];
+        else if (dens <= 2) hats = [0, 2, 4, 6, 8, 10, 12, 14];
+        else { hats = [0, 2, 4, 6, 8, 10, 12, 14]; for (var h = 1; h < 16; h += 2) if (r() < (dens === 3 ? 0.12 : 0.28)) hats.push(h); }
+      }
+      kicks.forEach(function (s) { hits[s] = 1; add(o + s, 0); });
+      snares.forEach(function (s) { hits[s] = 1; add(o + s, 1); });
+      // sans accords dans la première ligue: pas de charleston sur un kick ou une caisse claire
+      hats.forEach(function (s) { if (dens > 0 && dens < 2 && hits[s]) return; if (dens === 0 && hits[s]) return; add(o + s, 2); });
+      if (dens >= 1 && !intro && b % 2 === 1) add(o + 12, 3);
+      if (dens >= 2 && last) [13, 14, 15].forEach(function (s) { add(o + s, 3); });
+    }
+    out.sort(function (x, y) { return x.s - y.s || x.l - y.l; });
+    return out;
+  }
+  function startBattle(S) {
+    var B = S.battle, R = B.rival;
+    if (!battleOpen(S) || !R) return null;
+    var L = BT.leagues[R.league - 1];
+    return { rival: R, league: R.league, leagueName: L.name, bpm: L.bpm, bars: T.battleBars, notes: battlePattern(R.seed, L.dens, T.battleBars) };
+  }
+  // res: { score 0 à 1, combo }. Renvoie le résultat et applique les récompenses.
+  function finishBattle(S, res) {
+    var B = S.battle, R = B.rival;
+    if (!R || !res) return null;
+    var score = Math.max(0, Math.min(1, num(res.score, 0))), combo = Math.max(0, Math.floor(num(res.combo, 0)));
+    var win = score >= R.target, L = BT.leagues.length, ref = eventRef(S), promo = false, demo = false, out = { win: win, score: score, target: R.target, rival: R.name, league: R.league };
+    B.best = Math.max(B.best, combo);
+    if (win) {
+      B.wins++;
+      var cash = ref * (0.8 + 0.4 * R.league) * (0.75 + score * 0.5) * rdFx(S).event, xp = xpNeeded(S.level) * 0.08 * R.league;
+      S.money += cash; S.lifetime += cash; addXp(S, xp); addRp(S, Math.max(30, rdRate(S) * 120) * R.league);
+      S.orders.rep = Math.min(T.repMax, S.orders.rep + 1 + Math.floor(R.league / 2));
+      out.cash = cash; out.xp = xp;
+      if (B.league < L && R.league === B.league) { B.pts++; if (B.pts >= T.battleUp) { B.league++; B.pts = 0; promo = true; } }
+    } else {
+      B.losses++;
+      var x2 = xpNeeded(S.level) * 0.02; addXp(S, x2); out.xp = x2;
+      if (B.pts > 0) B.pts--;
+    }
+    out.promo = promo; out.demo = demo; out.newLeague = B.league; out.pts = B.pts;
+    B.rival = null; B.cd = T.battleEvery;
+    checkTrophies(S);
+    if (hooks.battleDone) hooks.battleDone(out);
+    return out;
+  }
+
   // ---------- Tournée mondiale (prestige) ----------
   // Points de renommée au total pour un cumul de gains donné.
   function fameAt(n) { return Math.pow(n, 1 / T.fameExp) * T.fameBase; } // cumul de gains qui donne n points
@@ -2307,7 +2812,19 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
 
   // ---------- Palmarès ----------
-  function trophyCount(S) { return Object.keys(S.trophies || {}).length; }
+  // Nombre total de niveaux décrochés (chaque niveau compte pour le bonus).
+  function trophyCount(S) { var n = 0, t = S.trophies || {}; Object.keys(t).forEach(function (k) { n += t[k] || 0; }); return n; }
+  function trophyTotal() { var n = 0; TROPHIES.forEach(function (t) { n += t.levels.length; }); return n; }
+  function trophyLevel(S, id) { return (S.trophies && S.trophies[id]) || 0; }
+  function levelName(t, lvl) { return t.levels.length === 1 ? 'Décroché' : TLV[Math.min(TLV.length - 1, lvl - 1)]; }
+  // Accepte le nouveau format { famille: niveau } et les anciens trophées { id: 1 }.
+  function hydrateTrophies(S, o) {
+    Object.keys(o).forEach(function (k) {
+      var v = o[k];
+      if (TROPHY_BY[k] && typeof v === 'number' && isFinite(v) && v > 0) S.trophies[k] = Math.max(S.trophies[k] || 0, Math.min(TROPHY_BY[k].levels.length, Math.floor(v)));
+      else if (OLD_TROPHY[k] && v) { var m = OLD_TROPHY[k]; S.trophies[m[0]] = Math.max(S.trophies[m[0]] || 0, m[1]); }
+    });
+  }
   function trophyMetric(S, key, memo) {
     if (memo && memo[key] !== undefined) return memo[key];
     var p = key.indexOf(':'), k = p < 0 ? key : key.slice(0, p), a = p < 0 ? null : key.slice(p + 1), n = 0, v;
@@ -2337,6 +2854,12 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       case 'projects': n = S.proj ? S.proj.done : 0; break;
       case 'projBest': n = S.proj ? S.proj.best : 0; break;
       case 'book': n = S.proj ? Object.keys(S.proj.book.c).length : 0; break;
+      case 'num1': n = S.charts ? S.charts.num1 : 0; break;
+      case 'chains': EVENTS.forEach(function (x) { if (x.need && x.need.contact && S.ev.seen[x.id]) n++; }); break;
+      case 'gambles': n = S.ev.won || 0; break;
+      case 'battles': n = S.battle ? S.battle.wins : 0; break;
+      case 'league': n = S.battle ? S.battle.league : 1; break;
+      case 'combo': n = S.battle ? S.battle.best : 0; break;
       case 'specs': n = Object.keys((S.rd && S.rd.spec) || {}).length; break;
       case 'staffLvl': (S.team ? S.team.staff : []).forEach(function (m) { n = Math.max(n, m.lvl); }); break;
       case 'outings': Object.keys(S.ev.seen || {}).forEach(function (id) { n += S.ev.seen[id] || 0; }); break;
@@ -2344,31 +2867,40 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (memo) memo[key] = n;
     return n;
   }
+  // Progression vers le prochain niveau d'une famille (ou le dernier si tout est décroché).
   function trophyProgress(S, t) {
-    var v = trophyMetric(S, t.m), base = t.m === 'level' ? 1 : 0; // le niveau d'expertise commence à 1
-    return { v: Math.min(v, t.n), n: t.n, f: Math.max(0, Math.min(1, (v - base) / (t.n - base))) };
+    var lvl = trophyLevel(S, t.id), max = t.levels.length, k = Math.min(lvl, max - 1), n = t.levels[k];
+    var v = trophyMetric(S, t.m), base = k > 0 ? t.levels[k - 1] : (t.m === 'level' ? 1 : t.m === 'league' ? 1 : 0);
+    return { v: Math.min(v, n), n: n, f: lvl >= max ? 1 : Math.max(0, Math.min(1, (v - base) / (n - base))), lvl: lvl, max: max, done: lvl >= max };
   }
+
   // Débloque les trophées dont le seuil est atteint. Renvoie ceux qui viennent de l'être.
   function checkTrophies(S, silent) {
     if (!S.trophies) S.trophies = {};
     var got = [], memo = {};
     for (var i = 0; i < TROPHIES.length; i++) {
-      var t = TROPHIES[i];
-      if (S.trophies[t.id]) continue;
-      if (trophyMetric(S, t.m, memo) >= t.n) { S.trophies[t.id] = 1; got.push(t); }
+      var t = TROPHIES[i], lvl = S.trophies[t.id] || 0, v = null;
+      while (lvl < t.levels.length) {
+        if (v === null) v = trophyMetric(S, t.m, memo);
+        if (v < t.levels[lvl]) break;
+        lvl++;
+        S.trophies[t.id] = lvl;
+        got.push({ id: t.id, fam: t, lvl: lvl, name: t.name, level: levelName(t, lvl) });
+      }
     }
     if (got.length) {
       touch(S);
-      if (!silent && hooks.trophy) got.forEach(function (t) { hooks.trophy(t); });
+      if (!silent && hooks.trophy) got.forEach(function (g) { hooks.trophy(g); });
     }
     return got;
   }
-  // Les trophées les plus proches d'être décrochés, du plus avancé au moins avancé.
+  // Prochains niveaux les plus proches d'être décrochés. g.t décrit le niveau visé (nom, seuil, famille).
   function nextGoals(S, k) {
     var out = [];
     TROPHIES.forEach(function (t, i) {
-      if (S.trophies && S.trophies[t.id]) return;
-      var p = trophyProgress(S, t); out.push({ t: t, p: p, i: i });
+      var p = trophyProgress(S, t);
+      if (p.done) return;
+      out.push({ t: { id: t.id, fam: t, name: t.name + ' · ' + levelName(t, p.lvl + 1), m: t.m, n: p.n, lvl: p.lvl + 1 }, p: p, i: i });
     });
     out.sort(function (a, b) { return b.p.f - a.p.f || a.i - b.i; });
     return out.slice(0, k);
@@ -2387,7 +2919,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
   function pickEvent(S, rnd) {
     var ti = tierIndex(S), min = Infinity;
-    var pool = EVENTS.filter(function (x) { return ti >= x.tiers[0] && ti <= x.tiers[1]; });
+    var pool = EVENTS.filter(function (x) { return ti >= x.tiers[0] && ti <= x.tiers[1] && (!x.need || !x.need.contact || !!S.contacts[x.need.contact]); });
     if (!pool.length) return null;
     pool.forEach(function (x) { min = Math.min(min, S.ev.seen[x.id] || 0); });
     var fresh = pool.filter(function (x) { return (S.ev.seen[x.id] || 0) === min; });
@@ -2416,9 +2948,37 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function dismissEvent(S, rnd) {
     S.ev.pending = null; S.ev.hold = false; S.ev.cd = nextCd(rnd);
   }
+  // Une option de sortie est-elle accessible ? Renvoie { ok, need (texte), cost }.
+  function choiceInfo(S, c) {
+    var n = c.need, ok = true, label = null, cost = c.cost ? eventRef(S) * c.cost : 0;
+    if (n) {
+      if (n.item) { ok = !!S.owned[n.item]; label = ITEM_BY[n.item].name; }
+      else if (n.role) { ok = S.team.staff.some(function (m) { return m.role === n.role && m.rest <= 0 && m.train <= 0; }); label = 'un membre ' + ROLE_BY[n.role].name.toLowerCase(); }
+      else if (n.staff) { ok = S.team.staff.length >= n.staff; label = n.staff > 1 ? n.staff + ' membres dans l’équipe' : 'un membre dans l’équipe'; }
+      else if (n.rd) { ok = !!S.rd.nodes[n.rd]; label = 'recherche ' + RD_BY[n.rd].name; }
+      else if (n.contact) { ok = !!S.contacts[n.contact]; label = EVENT_BY[n.contact].contact; }
+      else if (n.level) { ok = S.level >= n.level; label = 'expertise niveau ' + n.level; }
+    }
+    return { ok: ok && S.money >= cost, need: label, needOk: ok, cost: cost, risk: c.risk ? c.risk.p : null };
+  }
   function applyReward(S, x, r, ref) {
     var m, a;
     switch (r.k) {
+      case 'rp':
+        m = r.x * Math.max(60, rdRate(S) * 300); addRp(S, m);
+        return { k: 'rp', v: m };
+      case 'rep':
+        m = Math.min(T.repMax - S.orders.rep, r.n); S.orders.rep = Math.min(T.repMax, S.orders.rep + r.n);
+        return { k: 'rep', v: Math.max(0, m) };
+      case 'morale':
+        if (!S.team.staff.length) return null;
+        S.team.staff.forEach(function (s) { s.morale = Math.min(100, s.morale + r.n); });
+        return { k: 'morale', v: r.n };
+      case 'master':
+        a = bestAct(S);
+        if (S.masters.length >= T.mastersMax) { m = ref; S.money += m; S.lifetime += m; return { k: 'cash', v: m }; }
+        S.masters.push({ id: S.charts.nextId++, act: a.id, q: r.q });
+        return { k: 'master', q: r.q, act: a.id };
       case 'cash':
         m = ref * r.x * rdFx(S).event; S.money += m; S.lifetime += m;
         return { k: 'cash', v: m };
@@ -2447,12 +3007,21 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function resolveEvent(S, i, rnd) {
     var p = S.ev.pending, x = p && EVENT_BY[p.id], c = x && x.choices[i];
     if (!c) return null;
-    var ref = eventRef(S), out = [];
-    c.rw.forEach(function (r) { var g = applyReward(S, x, r, ref); if (g) out.push(g); });
+    var info = choiceInfo(S, c);
+    if (!info.ok) return null;
+    var ref = eventRef(S), out = [], rw = c.rw, outcome = c.outcome, win = null;
+    if (info.cost) { S.money -= info.cost; out.push({ k: 'spent', v: info.cost }); }
+    if (c.risk) {
+      win = (rnd || rand)() < c.risk.p;
+      if (win) S.ev.won = (S.ev.won || 0) + 1;
+      else { rw = c.risk.rw; outcome = c.risk.outcome; }
+    }
+    rw.forEach(function (r) { var g = applyReward(S, x, r, ref); if (g) out.push(g); });
     S.ev.seen[x.id] = (S.ev.seen[x.id] || 0) + 1;
     S.ev.pending = null; S.ev.hold = false; S.ev.cd = nextCd(rnd);
-    return { event: x, choice: c, rewards: out };
+    return { event: x, choice: c, rewards: out, outcome: outcome, win: win };
   }
+
 
   // Progression pendant l'absence. Renvoie un résumé.
   function offline(S, now) {
@@ -2491,7 +3060,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     specOpen: specOpen, chooseSpec: chooseSpec, rdCount: rdCount, rdRate: rdRate, orderMax: orderMax, branchNodes: branchNodes, addRp: addRp,
     PROJECTS: PJ, PJ_G: PJ_G, PJ_M: PJ_M, PJ_P: PJ_P, PJ_F: PJ_F, projOpen: projOpen, genreOpen: genreOpen, formatOpen: formatOpen, projCost: projCost,
     projTime: projTime, phaseFit: phaseFit, projBusy: projBusy, startProject: startProject, cancelProject: cancelProject, tickProject: tickProject,
-    finishProject: finishProject, dismissProject: dismissProject, comboGrade: comboGrade, pubGrade: pubGrade
+    finishProject: finishProject, dismissProject: dismissProject, comboGrade: comboGrade, pubGrade: pubGrade,
+    TROPHY_LEVELS: TLV, trophyTotal: trophyTotal, trophyLevel: trophyLevel, levelName: levelName, choiceInfo: choiceInfo,
+    BATTLE: BT, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;
@@ -3789,6 +4360,253 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
 
 
+
+  // ---------- Clash de beatmakers ----------
+  var LANE_COL = ['#ff7a2f', '#3d7be0', '#24a066', '#7a5cd6'], LANE_KEYS = { d: 0, f: 1, j: 2, k: 3 };
+  var cl = { open: false, playing: false, done: false, cfg: null, notes: [], t0: 0, raf: 0, score: 0, combo: 0, best: 0, opener: null, gain: null, flash: [0, 0, 0, 0], judge: [null, null, null, null], end: 0, lead: 0, step: 0, key: '', wasOpen: null, ctx: null, W: 0, H: 0, dpr: 1 };
+  function clNow() { return performance.now() / 1000; }
+  function renderClash(force) {
+    var open = G.battleOpen(S), B = S.battle, onProd = $('app').getAttribute('data-view') === 'prod';
+    if (cl.wasOpen === false && open && !quiet) toast('Nouveau : les clashs de beatmakers. Des rivaux vont te défier depuis Productions.', 6500);
+    cl.wasOpen = open;
+    setHidden($('clashBox'), !open);
+    if (!open) return;
+    var L = D.BATTLE.leagues[B.league - 1], R = B.rival;
+    setText($('clashChip'), 'Ligue ' + L.name);
+    var key = (R ? 'r' + R.name + R.target : 'w') + '|' + B.league + '|' + B.pts + '|' + B.wins + '|' + B.losses;
+    if (key !== cl.key || force) {
+      cl.key = key;
+      var up = B.league < D.BATTLE.leagues.length;
+      var bar = '<span class="league-bar" aria-hidden="true">' + D.BATTLE.leagues.map(function (x, i) { return '<i class="' + (i < B.league ? 'on' : '') + '"></i>'; }).join('') + '</span>';
+      var prog = up ? B.pts + ' / ' + D.TUNING.battleUp + ' victoires pour monter en ligue ' + D.BATTLE.leagues[B.league].name + '.' : 'Tu es au sommet : ligue Légende.';
+      $('clashBody').innerHTML = R
+        ? '<article class="card clash-card hot"><span class="who-r"></span><p class="proj-meta">Score à battre : <b>' + Math.round(R.target * 100) + ' %</b> · ' + L.bpm + ' BPM · ' + prog + '</p>' + bar +
+          '<div class="proj-row"><button class="btn primary" type="button" data-cl="go">Relever le défi</button><button class="btn sm" type="button" data-cl="no">Décliner</button></div></article>'
+        : '<article class="card clash-card"><p class="proj-meta" id="clWait"></p>' + bar + '<p class="proj-meta">' + prog + ' ' + B.wins + ' victoire' + (B.wins > 1 ? 's' : '') + ', ' + B.losses + ' défaite' + (B.losses > 1 ? 's' : '') + (B.best ? ', meilleur combo ' + B.best : '') + '.</p></article>';
+      var w = $('clashBody').querySelector('.who-r'); if (w) w.textContent = R.name + ' te défie !';
+    }
+    if (!R && $('clWait')) setText($('clWait'), 'Prochain défi dans ' + clock(B.cd) + ' (le compte à rebours avance quand le jeu est ouvert).');
+    if (R && !onProd) setClass($('tabProd'), 'has', true);
+  }
+  // Sons de batterie synthétisés (aucun fichier audio).
+  function drum(l, at, gainMul) {
+    if (!cl.gain || !ac) return;
+    var t = Math.max(ac.currentTime, at || ac.currentTime), g = ac.createGain(), m = gainMul || 1;
+    g.connect(cl.gain);
+    if (l === 0) { // kick
+      var o = ac.createOscillator(); o.type = 'sine';
+      o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.16);
+      g.gain.setValueAtTime(0.9 * m, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      o.connect(g); o.start(t); o.stop(t + 0.4); return;
+    }
+    var len = l === 2 ? 0.05 : l === 3 ? 0.18 : 0.2, buf = ac.createBuffer(1, Math.ceil(ac.sampleRate * len), ac.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    var n = ac.createBufferSource(); n.buffer = buf;
+    var f = ac.createBiquadFilter();
+    if (l === 1) { f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = 0.7; g.gain.setValueAtTime(0.55 * m, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      var o2 = ac.createOscillator(), g2 = ac.createGain(); o2.type = 'triangle'; o2.frequency.setValueAtTime(220, t); g2.gain.setValueAtTime(0.3 * m, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.1); o2.connect(g2); g2.connect(cl.gain); o2.start(t); o2.stop(t + 0.12); }
+    else if (l === 2) { f.type = 'highpass'; f.frequency.value = 7000; g.gain.setValueAtTime(0.28 * m, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.05); }
+    else { f.type = 'bandpass'; f.frequency.value = 1200; f.Q.value = 1.2; g.gain.setValueAtTime(0.0001, t);
+      [0, 0.012, 0.024].forEach(function (dt) { g.gain.setValueAtTime(0.5 * m, t + dt); g.gain.exponentialRampToValueAtTime(0.05 * m, t + dt + 0.01); });
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.18); }
+    n.connect(f); f.connect(g); n.start(t); n.stop(t + len);
+  }
+  function tone(freq, at, len, vol, type) {
+    if (!cl.gain || !ac) return;
+    var o = ac.createOscillator(), g = ac.createGain(), t = Math.max(ac.currentTime, at);
+    o.type = type || 'triangle'; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    o.connect(g); g.connect(cl.gain); o.start(t); o.stop(t + len + 0.02);
+  }
+  function clAudioOn() {
+    if (!S.sound || vol.sfx <= 0) return false;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      cl.gain = ac.createGain(); cl.gain.gain.value = 0.55 * volMul(vol.sfx); cl.gain.connect(ac.destination);
+      return true;
+    } catch (e) { cl.gain = null; return false; }
+  }
+  function clAudioOff() { if (cl.gain) { try { cl.gain.gain.cancelScheduledValues(0); cl.gain.disconnect(); } catch (e) { /* déjà coupé */ } cl.gain = null; } }
+  function openClash() {
+    var cfg = G.startBattle(S);
+    if (!cfg || cl.open) return;
+    cl.open = true; cl.playing = false; cl.done = false; cl.cfg = cfg; cl.opener = document.activeElement;
+    setText($('clLeague'), 'Ligue ' + cfg.leagueName);
+    $('clTitle').textContent = cfg.rival.name + ' te défie';
+    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + ' % à battre · ' + cfg.bpm + ' BPM');
+    var snd = S.sound && vol.sfx > 0;
+    setText($('clTip'), snd ? 'Le son est activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.' : 'Le son est coupé : tu peux jouer quand même, mais le clash est bien plus amusant en musique.');
+    $('clSoundOn').hidden = snd;
+    $('clIntro').hidden = false; $('clPlay').hidden = true; $('clDone').hidden = true;
+    $('clashScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    $('clGo').focus();
+  }
+  function closeClash() {
+    if (!cl.open) return;
+    if (cl.playing) return; // pendant la partie, il faut abandonner explicitement
+    cl.open = false; cancelAnimationFrame(cl.raf); clAudioOff();
+    $('clashScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    var o = cl.opener; cl.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+    cl.key = ''; render();
+  }
+  function clSize() {
+    var c = $('clCanvas'), r = c.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    cl.W = r.width; cl.H = r.height; cl.dpr = dpr;
+    c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+    cl.ctx = c.getContext('2d'); cl.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function startClash() {
+    var cfg = cl.cfg;
+    $('clIntro').hidden = true; $('clPlay').hidden = false;
+    clSize();
+    var beat = 60 / cfg.bpm; cl.step = beat / 4; cl.lead = beat * 4 + 0.4;
+    cl.notes = cfg.notes.map(function (n) { return { t: cl.lead + n.s * cl.step, l: n.l, hit: 0 }; });
+    cl.end = cl.lead + cfg.bars * 16 * cl.step + 0.8;
+    cl.score = 0; cl.combo = 0; cl.best = 0; cl.pts = 0; cl.flash = [0, 0, 0, 0]; cl.judge = [null, null, null, null];
+    setText($('clTarget'), Math.round(cfg.rival.target * 100) + ' %'); setText($('clScore'), '0 %'); setText($('clCombo'), '0');
+    cl.t0 = clNow() + 0.1;
+    if (clAudioOn()) {
+      var a0 = ac.currentTime + 0.1, BASS = [55, 43.65, 65.41, 49];
+      for (var k = 0; k < 4; k++) tone(k === 0 ? 1320 : 880, a0 + 0.4 + k * beat, 0.08, 0.12, 'square');
+      for (var b = 0; b < cfg.bars; b++) for (var q = 0; q < 4; q++) {
+        var at = a0 + cl.lead + (b * 4 + q) * beat, f = BASS[Math.floor(b / 2) % 4];
+        tone(f, at, beat * 0.9, 0.22, 'triangle'); if (q % 2 === 1) tone(f * 2, at + beat / 2, beat * 0.4, 0.08, 'sawtooth');
+      }
+    }
+    cl.playing = true; cl.done = false;
+    $('clPads').querySelector('.clpad').focus();
+    cancelAnimationFrame(cl.raf); cl.raf = requestAnimationFrame(clLoop);
+  }
+  var JUDGE = { p: 'Parfait', g: 'Bien', m: 'Raté' };
+  function clHit(l) {
+    if (!cl.playing) return;
+    var now = clNow() - cl.t0, T = D.TUNING, best = null, bd = 1;
+    drum(l);
+    cl.flash[l] = now;
+    for (var i = 0; i < cl.notes.length; i++) {
+      var n = cl.notes[i];
+      if (n.hit || n.l !== l) continue;
+      var d = Math.abs(n.t - now);
+      if (n.t - now > T.battleGood) break;
+      if (d < bd) { bd = d; best = n; }
+    }
+    if (best && bd <= T.battleGood) {
+      var perfect = bd <= T.battlePerfect;
+      best.hit = perfect ? 2 : 1; cl.pts += perfect ? 1 : 0.6; cl.combo++; cl.best = Math.max(cl.best, cl.combo);
+      cl.judge[l] = { k: perfect ? 'p' : 'g', t: now };
+    } else { cl.combo = 0; cl.judge[l] = { k: 'm', t: now }; }
+    clHud();
+  }
+  function clHud() { setText($('clScore'), Math.round(cl.pts / cl.notes.length * 100) + ' %'); setText($('clCombo'), String(cl.combo)); }
+  function clLoop() {
+    if (!cl.playing) return;
+    var now = clNow() - cl.t0, T = D.TUNING;
+    cl.notes.forEach(function (n) { if (!n.hit && now - n.t > T.battleGood) { n.hit = -1; cl.combo = 0; clHud(); } });
+    clDraw(now);
+    if (now >= cl.end) { finishClash(false); return; }
+    cl.raf = requestAnimationFrame(clLoop);
+  }
+  function clDraw(now) {
+    var c = cl.ctx, W = cl.W, H = cl.H, lw = W / 4, hy = H - 46, travel = 1.6, sp = hy / travel;
+    c.clearRect(0, 0, W, H);
+    for (var l = 0; l < 4; l++) {
+      c.fillStyle = l % 2 ? 'rgba(255,255,255,0.035)' : 'rgba(255,255,255,0.015)'; c.fillRect(l * lw, 0, lw, H);
+      var fl = Math.max(0, 1 - (now - cl.flash[l]) / 0.18);
+      if (fl > 0) { c.fillStyle = LANE_COL[l]; c.globalAlpha = 0.25 * fl; c.fillRect(l * lw, 0, lw, H); c.globalAlpha = 1; }
+    }
+    // lignes de temps (une par temps)
+    var beat = cl.step * 4, first = Math.ceil((now - 0.2 - cl.lead) / beat);
+    c.strokeStyle = 'rgba(255,255,255,0.08)'; c.lineWidth = 1;
+    for (var b = first; ; b++) { var bt = cl.lead + b * beat, y = hy - (bt - now) * sp; if (y < 0) break; if (b >= 0 && y <= H) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); } }
+    // ligne de frappe
+    c.fillStyle = 'rgba(255,255,255,0.85)'; c.fillRect(0, hy - 1.5, W, 3);
+    for (var k = 0; k < 4; k++) { c.strokeStyle = LANE_COL[k]; c.lineWidth = 3; c.beginPath(); c.arc(k * lw + lw / 2, hy, Math.min(lw * 0.3, 18), 0, Math.PI * 2); c.stroke(); }
+    // notes
+    cl.notes.forEach(function (n) {
+      if (n.hit > 0) return;
+      var y = hy - (n.t - now) * sp;
+      if (y < -20 || y > H + 20) return;
+      var x = n.l * lw + lw / 2, r = Math.min(lw * 0.28, 16);
+      c.globalAlpha = n.hit < 0 ? 0.3 : 1;
+      c.fillStyle = LANE_COL[n.l]; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+      c.fillStyle = 'rgba(255,255,255,0.55)'; c.beginPath(); c.arc(x - r * 0.3, y - r * 0.3, r * 0.3, 0, Math.PI * 2); c.fill();
+      c.globalAlpha = 1;
+    });
+    // jugements
+    c.textAlign = 'center'; c.font = '800 14px system-ui, sans-serif';
+    for (var j = 0; j < 4; j++) {
+      var jd = cl.judge[j]; if (!jd) continue;
+      var a = 1 - (now - jd.t) / 0.5; if (a <= 0) continue;
+      c.globalAlpha = a; c.fillStyle = jd.k === 'p' ? '#ffd166' : jd.k === 'g' ? '#9be7c4' : '#ff8a80';
+      c.fillText(JUDGE[jd.k], j * lw + lw / 2, hy - 30 - (1 - a) * 14); c.globalAlpha = 1;
+    }
+    // décompte
+    if (now < cl.lead - 0.4) {
+      var cnt = 4 - Math.floor((now - 0.4) / (cl.step * 4));
+      if (now >= 0.4 && cnt >= 1 && cnt <= 4) { c.fillStyle = '#fff'; c.font = '800 64px system-ui, sans-serif'; c.fillText(String(cnt), W / 2, H / 2); }
+      else if (now < 0.4) { c.fillStyle = '#fff'; c.font = '800 22px system-ui, sans-serif'; c.fillText('Prêt ?', W / 2, H / 2); }
+    }
+    // progression
+    c.fillStyle = 'rgba(255,255,255,0.15)'; c.fillRect(0, 0, W, 4);
+    c.fillStyle = '#ff7a2f'; c.fillRect(0, 0, W * Math.max(0, Math.min(1, now / cl.end)), 4);
+  }
+  function finishClash(quit) {
+    if (!cl.playing) return;
+    cl.playing = false; cancelAnimationFrame(cl.raf);
+    if (quit) clAudioOff(); else setTimeout(clAudioOff, 1200);
+    var score = cl.notes.length ? cl.pts / cl.notes.length : 0;
+    var res = G.finishBattle(S, { score: score, combo: cl.best });
+    cl.done = true;
+    $('clPlay').hidden = true; $('clDone').hidden = false;
+    if (!res) { closeClash(); return; }
+    var v = $('clVerdict');
+    v.textContent = quit ? 'Abandon' : res.win ? 'Victoire !' : 'Défaite';
+    v.className = 'ev-verdict ' + (res.win ? 'win' : 'loss');
+    setText($('clMine'), Math.round(res.score * 100) + ' %'); setText($('clTheirs'), Math.round(res.target * 100) + ' %'); setText($('clBest'), String(cl.best));
+    var L = D.BATTLE.leagues;
+    $('clRes').textContent = res.win
+      ? 'Tu remportes ' + eur(res.cash) + ' et ta réputation grimpe.' + (res.promo ? ' Promotion : bienvenue en ligue ' + L[res.newLeague - 1].name + ' !' : res.newLeague < L.length ? ' Encore ' + (D.TUNING.battleUp - res.pts) + ' victoire' + (D.TUNING.battleUp - res.pts > 1 ? 's' : '') + ' pour monter en ligue ' + L[res.newLeague].name + '.' : '')
+      : res.rival + ' garde la couronne cette fois. Tu gagnes un peu d’expérience. Un nouveau rival se présentera bientôt.';
+    setText($('clLive'), v.textContent + '. ' + $('clRes').textContent);
+    blip(res.win ? 12 : 3);
+    saveLocal(); markCloud();
+    $('clClose').focus();
+  }
+  function bindClash() {
+    $('clashBody').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-cl]'); if (!b) return;
+      if (b.getAttribute('data-cl') === 'go') openClash();
+      else { G.declineBattle(S); saveLocal(); toast('Défi décliné. Un autre rival se présentera bientôt.'); cl.key = ''; render(); }
+    });
+    $('clGo').addEventListener('click', startClash);
+    $('clLater').addEventListener('click', closeClash);
+    $('clClose').addEventListener('click', closeClash);
+    $('clQuit').addEventListener('click', function () { finishClash(true); });
+    $('clSoundOn').addEventListener('click', function () {
+      S.sound = true; if (vol.sfx <= 0) { vol.sfx = VDEF; saveVol(); }
+      markCloud(); saveLocal(); $('clSoundOn').hidden = true; setText($('clTip'), 'Son activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.'); blip(8);
+      if (bind.syncSound) bind.syncSound(); if (bind.syncVol) bind.syncVol();
+      $('clGo').focus();
+    });
+    $('clPads').addEventListener('pointerdown', function (e) {
+      var p = e.target.closest('.clpad'); if (!p) return;
+      e.preventDefault(); p.classList.add('down'); clHit(+p.getAttribute('data-l'));
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev2) { $('clPads').addEventListener(ev2, function (e) { var p = e.target.closest('.clpad'); if (p) p.classList.remove('down'); }); });
+    // pads au clavier (Entrée / Espace sur le pad sélectionné)
+    $('clPads').addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) { var p = e.target.closest('.clpad'); if (p) { e.preventDefault(); clHit(+p.getAttribute('data-l')); } } });
+    document.addEventListener('keydown', function (e) {
+      if (!cl.open) return;
+      var k = LANE_KEYS[(e.key || '').toLowerCase()];
+      if (cl.playing && k !== undefined) { e.preventDefault(); if (!e.repeat) { clHit(k); var pd = $('clPads').children[k]; pd.classList.add('down'); setTimeout(function () { pd.classList.remove('down'); }, 90); } return; }
+      if (e.key === 'Escape' && !cl.playing) { e.preventDefault(); closeClash(); }
+    });
+    window.addEventListener('resize', function () { if (cl.playing) clSize(); });
+    document.addEventListener('visibilitychange', function () { if (document.hidden && cl.playing) finishClash(true); });
+  }
+
   // ---------- Projets de création (bonus) ----------
   var pjv = { key: '', t: 0, wasOpen: null, open: false, opener: null, cfg: { genre: 'rap', mood: null, pub: null, fmt: 'single', sl: [50, 50, 50], team: [null, null, null] }, confirm: false };
   var GRADE = { top: 'idéal', ok: 'neutre', bad: 'à éviter' };
@@ -4119,6 +4937,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
   function bindFeatures() {
     bindProj();
+    bindClash();
     $('rd').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-rd]'), sp = e.target.closest('button[data-spec]');
       if (b && !b.disabled) { if (G.research(S, b.getAttribute('data-rd'))) saveLocal(); renderRd(true); render(); }
@@ -4337,6 +5156,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     renderCharts();
     renderRd();
     renderProj();
+    renderClash();
     if (pjv.open) pjFoot();
     renderScene();
     var hint = $('hint');
@@ -4351,7 +5171,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
   // ---------- Sorties de studio ----------
   var ev = { slot: 0, shownId: null, open: false, resolved: false, opener: null, ckey: null };
-  var RW_LABEL = { cash: 'Argent', xp: 'Expertise', boost: 'Boost', rank: 'Perfectionnement', tracks: 'Catalogue', contact: 'Nouveau contact' };
+  var RW_LABEL = { cash: 'Argent', xp: 'Expertise', boost: 'Boost', rank: 'Perfectionnement', tracks: 'Catalogue', contact: 'Nouveau contact',
+    rp: 'Recherche', rep: 'Réputation', morale: 'Équipe', master: 'Titre mixé', spent: 'Investissement' };
   function rewardText(r) {
     switch (r.k) {
       case 'cash': return '+' + eur(r.v) + (r.again ? ' (cachet de retrouvailles)' : '');
@@ -4360,6 +5181,11 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       case 'rank': return G.ACT_BY[r.act].name + ' passe au rang ' + r.lvl;
       case 'tracks': return '+' + nf0.format(r.n) + ' titres au catalogue (' + G.ACT_BY[r.act].name + ')';
       case 'contact': return r.name + ', +' + nf0.format(D.TUNING.contactBonus * 100) + ' % de gains pour toujours';
+      case 'rp': return '+' + short(r.v) + ' points de recherche';
+      case 'rep': return r.v > 0 ? '+' + nf0.format(r.v) + ' de réputation' : 'Réputation déjà au maximum';
+      case 'morale': return 'Moral de l’équipe +' + nf0.format(r.v);
+      case 'master': return 'Un titre ' + r.q + '★ prêt à sortir dans le Top 50';
+      case 'spent': return '−' + eur(r.v);
     }
     return '';
   }
@@ -4668,11 +5494,22 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
   // ---------- Palmarès ----------
   var tro = { cards: null, fresh: {}, last: 0, timer: 0 };
+  function fmtN(fam, n) {
+    var f = fam && fam.fmt;
+    if (f === 'eur') return eur(n);
+    if (f === 'eurs') return eur(n) + '/s';
+    if (f === 'note') return nf1.format(n) + '/10';
+    return n >= 10000 ? short(n) : nf0.format(n);
+  }
+  function troDesc(fam, i) { var d = fam.descs && fam.descs[i]; return d || fam.desc.replace('{n}', fmtN(fam, fam.levels[i])); }
+  // t: famille ou niveau visé (nextGoals) avec m et n.
   function fmtProg(t, v) {
-    if (t.n === 1) return '';
-    if (t.m === 'lifetime') return eur(v) + ' / ' + eur(t.n);
-    if (t.m === 'income') return short(v) + ' / ' + short(t.n) + NB + '€/s';
-    return short(v) + ' / ' + short(t.n);
+    var fam = t.fam || t, n = t.n;
+    if (n === 1 || fam.m === 'tier' || fam.m === 'chartBest' || fam.m === 'league') return '';
+    if (fam.fmt === 'eur') return eur(v) + ' / ' + eur(n);
+    if (fam.fmt === 'eurs') return short(v) + ' / ' + short(n) + NB + '€/s';
+    if (fam.fmt === 'note') return nf1.format(v) + ' / ' + nf1.format(n);
+    return short(v) + ' / ' + short(n);
   }
   function buildTrophies() {
     var grid = $('troGrid');
@@ -4681,39 +5518,41 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     G.TROPHIES.forEach(function (t) {
       var c = document.createElement('article');
       c.className = 'tro';
-      c.innerHTML = '<span class="disc" aria-hidden="true"></span><h3></h3><p></p><div class="tro-prog"><span class="meter" aria-hidden="true"><i></i></span><span class="tro-n"></span></div>';
+      c.innerHTML = '<span class="medal" aria-hidden="true"></span><h3></h3><p class="tro-lv"></p><p class="tro-d"></p>' +
+        '<span class="pips" aria-hidden="true">' + t.levels.map(function () { return '<i></i>'; }).join('') + '</span>' +
+        '<div class="tro-prog"><span class="meter" aria-hidden="true"><i></i></span><span class="tro-n"></span></div>';
       c.querySelector('h3').textContent = t.name;
-      c.querySelector('p').textContent = t.desc;
       grid.appendChild(c);
-      tro.cards[t.id] = { root: c, meter: c.querySelector('.meter'), fill: c.querySelector('.meter i'), num: c.querySelector('.tro-n') };
+      tro.cards[t.id] = { root: c, lv: c.querySelector('.tro-lv'), d: c.querySelector('.tro-d'), pips: c.querySelectorAll('.pips i'), meter: c.querySelector('.meter'), fill: c.querySelector('.meter i'), num: c.querySelector('.tro-n') };
     });
   }
   function renderTrophies(force) {
     if (!tro.cards) return;
-    var n = G.trophyCount(S), tot = G.TROPHIES.length, hasFresh = Object.keys(tro.fresh).length > 0;
-    setText($('troCount'), n + ' / ' + tot + ' trophées');
+    var n = G.trophyCount(S), tot = G.trophyTotal(), hasFresh = Object.keys(tro.fresh).length > 0;
+    setText($('troCount'), n + ' / ' + tot + ' niveaux');
     setText($('troBonus'), n
       ? '+' + nf0.format(D.TUNING.trophyBonus * n * 100) + ' % de gains, définitif'
-      : 'Chaque trophée ajoute ' + nf0.format(D.TUNING.trophyBonus * 100) + ' % de gains pour toujours.');
+      : 'Chaque niveau décroché ajoute ' + nf0.format(D.TUNING.trophyBonus * 100) + ' % de gains pour toujours.');
     setClass($('tabTro'), 'has', (hasFresh || tour.fresh) && $('app').getAttribute('data-view') !== 'trophies');
     var now = performance.now();
     if (!force && now - tro.last < 400) return;
     tro.last = now;
     G.TROPHIES.forEach(function (t) {
-      var c = tro.cards[t.id], got = !!S.trophies[t.id];
-      setClass(c.root, 'got', got);
-      setClass(c.root, 'fresh', !!tro.fresh[t.id]);
-      setHidden(c.meter, got);
-      if (got) { setText(c.num, 'Décroché'); return; }
-      var p = G.trophyProgress(S, t);
+      var c = tro.cards[t.id], p = G.trophyProgress(S, t), lvl = p.lvl;
+      c.root.className = 'tro lv-' + Math.min(lvl, 6) + (lvl ? ' got' : '') + (p.done ? ' done' : '') + (tro.fresh[t.id] ? ' fresh' : '') + (t.levels.length === 1 ? ' solo' : '');
+      setText(c.lv, lvl ? G.levelName(t, lvl) + (t.levels.length > 1 ? ' · ' + lvl + '/' + t.levels.length : '') : 'À décrocher');
+      setText(c.d, p.done ? (t.levels.length > 1 ? 'Tous les niveaux sont décrochés.' : troDesc(t, 0)) : (lvl ? 'Niveau ' + G.levelName(t, lvl + 1) + ' : ' : '') + troDesc(t, lvl));
+      for (var k = 0; k < c.pips.length; k++) setClass(c.pips[k], 'on', k < lvl);
+      setHidden(c.meter, p.done);
+      if (p.done) { setText(c.num, ''); return; }
       setWidth(c.fill, p.f * 100);
-      setText(c.num, fmtProg(t, p.v));
+      setText(c.num, fmtProg({ fam: t, n: p.n }, p.v));
     });
     var g = G.nextGoals(S, 1)[0];
     setHidden($('goal'), !g);
     if (g) {
       setText($('goalName'), g.t.name);
-      setText($('goalDesc'), g.t.desc);
+      setText($('goalDesc'), troDesc(g.t.fam, g.t.lvl - 1));
       setText($('goalN'), fmtProg(g.t, g.p.v));
       setWidth($('goalFill'), g.p.f * 100);
     }
@@ -4724,7 +5563,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var migrated = !!raw && typeof raw === 'object' && raw.trophies === undefined;
     G.checkTrophies(S, true);
     var n = G.trophyCount(S);
-    if (migrated && n > 0) toast('Nouveau : le Palmarès. Tu as déjà ' + n + (n > 1 ? ' trophées' : ' trophée') + ', soit +' + nf0.format(D.TUNING.trophyBonus * n * 100) + ' % de gains.', 8000);
+    if (migrated && n > 0) toast('Nouveau : le Palmarès. Tu as déjà ' + n + (n > 1 ? ' niveaux' : ' niveau') + ', soit +' + nf0.format(D.TUNING.trophyBonus * n * 100) + ' % de gains.', 8000);
     return n;
   }
 
@@ -4793,18 +5632,27 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     $('evText').textContent = x.intro;
     var box = $('evChoices');
     box.innerHTML = '';
+    var first = null;
     x.choices.forEach(function (c, i) {
-      var b = document.createElement('button');
+      var b = document.createElement('button'), info = G.choiceInfo(S, c), tags = [];
       b.type = 'button'; b.className = 'btn choice'; b.id = 'choice-' + i; b.setAttribute('data-i', i);
-      b.innerHTML = '<span class="k"></span><span class="ct"></span>';
-      b.firstChild.textContent = 'ABC'.charAt(i);
-      b.lastChild.textContent = c.text;
+      b.innerHTML = '<span class="k"></span><span class="cw"><span class="ct"></span><span class="tags"></span></span>';
+      b.querySelector('.k').textContent = 'ABC'.charAt(i);
+      b.querySelector('.ct').textContent = c.text;
+      if (info.need) tags.push(['need' + (info.needOk ? ' ok' : ''), (info.needOk ? 'Grâce à ' : 'Requiert ') + info.need]);
+      if (info.cost) tags.push(['cost' + (S.money >= info.cost ? '' : ' short'), 'Coûte ' + eur(info.cost)]);
+      if (info.risk !== null) tags.push(['risk', 'Risqué · ' + nf0.format(info.risk * 100) + ' % de réussite']);
+      var tg = b.querySelector('.tags');
+      tags.forEach(function (x2) { var s = document.createElement('span'); s.className = 'tag ' + x2[0]; s.textContent = x2[1]; tg.appendChild(s); });
+      if (!tags.length) tg.remove();
+      b.disabled = !info.ok;
+      if (info.ok && first === null) first = b;
       box.appendChild(b);
     });
     $('evAsk').hidden = false; $('evDone').hidden = true;
     $('scrim').hidden = false;
     $('app').inert = true; $('tabs').inert = true;
-    $('choice-0').focus();
+    (first || $('evLater')).focus();
     render();
   }
 
@@ -4822,7 +5670,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var res = G.resolveEvent(S, i);
     if (!res) return;
     ev.resolved = true;
-    $('evOutcome').textContent = res.choice.outcome;
+    var vd = $('evVerdict');
+    vd.hidden = res.win === null;
+    if (res.win !== null) { vd.textContent = res.win ? 'Pari réussi !' : 'Pari perdu…'; vd.className = 'ev-verdict ' + (res.win ? 'win' : 'loss'); }
+    $('evOutcome').textContent = res.outcome;
     var box = $('evReward');
     box.innerHTML = '';
     res.rewards.forEach(function (r, k) {
@@ -4926,7 +5777,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
-    closeMix(); closeProj(); pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
+    closeMix(); closeProj(); cl.playing = false; closeClash(); cl.key = ''; cl.wasOpen = null; pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -4934,7 +5785,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (off) { off.trophies = G.trophyCount(S) - tc0; showOffline(off); }
   }
   function showOffline(off) {
-    toast('Pendant ton absence (' + away(off.gap) + ') : +' + eur(off.gain) + (off.wages > 1e-9 ? ' après ' + eur(off.wages) + ' de salaires' : '') + (off.levels > 0 ? ', ' + off.levels + ' niveau' + (off.levels > 1 ? 'x' : '') + ' d’expertise' : '') + (off.trophies > 0 ? ', ' + off.trophies + (off.trophies > 1 ? ' trophées' : ' trophée') : '') + '.', 7000);
+    toast('Pendant ton absence (' + away(off.gap) + ') : +' + eur(off.gain) + (off.wages > 1e-9 ? ' après ' + eur(off.wages) + ' de salaires' : '') + (off.levels > 0 ? ', ' + off.levels + ' niveau' + (off.levels > 1 ? 'x' : '') + ' d’expertise' : '') + (off.trophies > 0 ? ', ' + off.trophies + (off.trophies > 1 ? ' niveaux de palmarès' : ' niveau de palmarès') : '') + '.', 7000);
   }
 
   function initCloud() {
@@ -5156,7 +6007,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     tro.fresh[t.id] = true; tro.last = 0;
     markCloud();
     if (quiet) return;
-    toast('Trophée : ' + t.name + ' · +' + nf0.format(D.TUNING.trophyBonus * 100) + ' % de gains', 4800);
+    toast('Palmarès : ' + t.name + (t.fam.levels.length > 1 ? ', niveau ' + t.level : '') + ' · +' + nf0.format(D.TUNING.trophyBonus * 100) + ' % de gains', 4800);
     blip(9);
   };
   G.hooks.hire = function (m, back) {
@@ -5183,6 +6034,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   };
   G.hooks.research = function (n) { markCloud(); rdv.key = ''; if (!quiet) { toast('Recherche terminée : ' + n.name + '.', 4500); blip(10); } };
   G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
+  G.hooks.battleNew = function (r) { cl.key = ''; markCloud(); if (!quiet) { toast(r.name + ' te défie en clash de beatmakers ! Rendez-vous dans Productions.', 6000); blip(10); } };
+  G.hooks.battleDone = function () { cl.key = ''; markCloud(); };
   G.hooks.projectStart = function (c) { markCloud(); if (!quiet) { toast('« ' + c.title + ' » est lancé : écriture en cours.', 4000); blip(6); } };
   G.hooks.projectPhase = function (c) { pjv.key = ''; markCloud(); if (!quiet) toast('« ' + c.title + ' » : ' + D.PROJECTS.phases[c.phase].name.toLowerCase() + ' en cours.', 3500); };
   G.hooks.projectDone = function (r) {

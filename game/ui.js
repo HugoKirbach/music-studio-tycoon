@@ -166,6 +166,253 @@
 
 
 
+
+  // ---------- Clash de beatmakers ----------
+  var LANE_COL = ['#ff7a2f', '#3d7be0', '#24a066', '#7a5cd6'], LANE_KEYS = { d: 0, f: 1, j: 2, k: 3 };
+  var cl = { open: false, playing: false, done: false, cfg: null, notes: [], t0: 0, raf: 0, score: 0, combo: 0, best: 0, opener: null, gain: null, flash: [0, 0, 0, 0], judge: [null, null, null, null], end: 0, lead: 0, step: 0, key: '', wasOpen: null, ctx: null, W: 0, H: 0, dpr: 1 };
+  function clNow() { return performance.now() / 1000; }
+  function renderClash(force) {
+    var open = G.battleOpen(S), B = S.battle, onProd = $('app').getAttribute('data-view') === 'prod';
+    if (cl.wasOpen === false && open && !quiet) toast('Nouveau : les clashs de beatmakers. Des rivaux vont te défier depuis Productions.', 6500);
+    cl.wasOpen = open;
+    setHidden($('clashBox'), !open);
+    if (!open) return;
+    var L = D.BATTLE.leagues[B.league - 1], R = B.rival;
+    setText($('clashChip'), 'Ligue ' + L.name);
+    var key = (R ? 'r' + R.name + R.target : 'w') + '|' + B.league + '|' + B.pts + '|' + B.wins + '|' + B.losses;
+    if (key !== cl.key || force) {
+      cl.key = key;
+      var up = B.league < D.BATTLE.leagues.length;
+      var bar = '<span class="league-bar" aria-hidden="true">' + D.BATTLE.leagues.map(function (x, i) { return '<i class="' + (i < B.league ? 'on' : '') + '"></i>'; }).join('') + '</span>';
+      var prog = up ? B.pts + ' / ' + D.TUNING.battleUp + ' victoires pour monter en ligue ' + D.BATTLE.leagues[B.league].name + '.' : 'Tu es au sommet : ligue Légende.';
+      $('clashBody').innerHTML = R
+        ? '<article class="card clash-card hot"><span class="who-r"></span><p class="proj-meta">Score à battre : <b>' + Math.round(R.target * 100) + ' %</b> · ' + L.bpm + ' BPM · ' + prog + '</p>' + bar +
+          '<div class="proj-row"><button class="btn primary" type="button" data-cl="go">Relever le défi</button><button class="btn sm" type="button" data-cl="no">Décliner</button></div></article>'
+        : '<article class="card clash-card"><p class="proj-meta" id="clWait"></p>' + bar + '<p class="proj-meta">' + prog + ' ' + B.wins + ' victoire' + (B.wins > 1 ? 's' : '') + ', ' + B.losses + ' défaite' + (B.losses > 1 ? 's' : '') + (B.best ? ', meilleur combo ' + B.best : '') + '.</p></article>';
+      var w = $('clashBody').querySelector('.who-r'); if (w) w.textContent = R.name + ' te défie !';
+    }
+    if (!R && $('clWait')) setText($('clWait'), 'Prochain défi dans ' + clock(B.cd) + ' (le compte à rebours avance quand le jeu est ouvert).');
+    if (R && !onProd) setClass($('tabProd'), 'has', true);
+  }
+  // Sons de batterie synthétisés (aucun fichier audio).
+  function drum(l, at, gainMul) {
+    if (!cl.gain || !ac) return;
+    var t = Math.max(ac.currentTime, at || ac.currentTime), g = ac.createGain(), m = gainMul || 1;
+    g.connect(cl.gain);
+    if (l === 0) { // kick
+      var o = ac.createOscillator(); o.type = 'sine';
+      o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.16);
+      g.gain.setValueAtTime(0.9 * m, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      o.connect(g); o.start(t); o.stop(t + 0.4); return;
+    }
+    var len = l === 2 ? 0.05 : l === 3 ? 0.18 : 0.2, buf = ac.createBuffer(1, Math.ceil(ac.sampleRate * len), ac.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    var n = ac.createBufferSource(); n.buffer = buf;
+    var f = ac.createBiquadFilter();
+    if (l === 1) { f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = 0.7; g.gain.setValueAtTime(0.55 * m, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      var o2 = ac.createOscillator(), g2 = ac.createGain(); o2.type = 'triangle'; o2.frequency.setValueAtTime(220, t); g2.gain.setValueAtTime(0.3 * m, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.1); o2.connect(g2); g2.connect(cl.gain); o2.start(t); o2.stop(t + 0.12); }
+    else if (l === 2) { f.type = 'highpass'; f.frequency.value = 7000; g.gain.setValueAtTime(0.28 * m, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.05); }
+    else { f.type = 'bandpass'; f.frequency.value = 1200; f.Q.value = 1.2; g.gain.setValueAtTime(0.0001, t);
+      [0, 0.012, 0.024].forEach(function (dt) { g.gain.setValueAtTime(0.5 * m, t + dt); g.gain.exponentialRampToValueAtTime(0.05 * m, t + dt + 0.01); });
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.18); }
+    n.connect(f); f.connect(g); n.start(t); n.stop(t + len);
+  }
+  function tone(freq, at, len, vol, type) {
+    if (!cl.gain || !ac) return;
+    var o = ac.createOscillator(), g = ac.createGain(), t = Math.max(ac.currentTime, at);
+    o.type = type || 'triangle'; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    o.connect(g); g.connect(cl.gain); o.start(t); o.stop(t + len + 0.02);
+  }
+  function clAudioOn() {
+    if (!S.sound || vol.sfx <= 0) return false;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      cl.gain = ac.createGain(); cl.gain.gain.value = 0.55 * volMul(vol.sfx); cl.gain.connect(ac.destination);
+      return true;
+    } catch (e) { cl.gain = null; return false; }
+  }
+  function clAudioOff() { if (cl.gain) { try { cl.gain.gain.cancelScheduledValues(0); cl.gain.disconnect(); } catch (e) { /* déjà coupé */ } cl.gain = null; } }
+  function openClash() {
+    var cfg = G.startBattle(S);
+    if (!cfg || cl.open) return;
+    cl.open = true; cl.playing = false; cl.done = false; cl.cfg = cfg; cl.opener = document.activeElement;
+    setText($('clLeague'), 'Ligue ' + cfg.leagueName);
+    $('clTitle').textContent = cfg.rival.name + ' te défie';
+    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + ' % à battre · ' + cfg.bpm + ' BPM');
+    var snd = S.sound && vol.sfx > 0;
+    setText($('clTip'), snd ? 'Le son est activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.' : 'Le son est coupé : tu peux jouer quand même, mais le clash est bien plus amusant en musique.');
+    $('clSoundOn').hidden = snd;
+    $('clIntro').hidden = false; $('clPlay').hidden = true; $('clDone').hidden = true;
+    $('clashScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    $('clGo').focus();
+  }
+  function closeClash() {
+    if (!cl.open) return;
+    if (cl.playing) return; // pendant la partie, il faut abandonner explicitement
+    cl.open = false; cancelAnimationFrame(cl.raf); clAudioOff();
+    $('clashScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    var o = cl.opener; cl.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+    cl.key = ''; render();
+  }
+  function clSize() {
+    var c = $('clCanvas'), r = c.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    cl.W = r.width; cl.H = r.height; cl.dpr = dpr;
+    c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+    cl.ctx = c.getContext('2d'); cl.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function startClash() {
+    var cfg = cl.cfg;
+    $('clIntro').hidden = true; $('clPlay').hidden = false;
+    clSize();
+    var beat = 60 / cfg.bpm; cl.step = beat / 4; cl.lead = beat * 4 + 0.4;
+    cl.notes = cfg.notes.map(function (n) { return { t: cl.lead + n.s * cl.step, l: n.l, hit: 0 }; });
+    cl.end = cl.lead + cfg.bars * 16 * cl.step + 0.8;
+    cl.score = 0; cl.combo = 0; cl.best = 0; cl.pts = 0; cl.flash = [0, 0, 0, 0]; cl.judge = [null, null, null, null];
+    setText($('clTarget'), Math.round(cfg.rival.target * 100) + ' %'); setText($('clScore'), '0 %'); setText($('clCombo'), '0');
+    cl.t0 = clNow() + 0.1;
+    if (clAudioOn()) {
+      var a0 = ac.currentTime + 0.1, BASS = [55, 43.65, 65.41, 49];
+      for (var k = 0; k < 4; k++) tone(k === 0 ? 1320 : 880, a0 + 0.4 + k * beat, 0.08, 0.12, 'square');
+      for (var b = 0; b < cfg.bars; b++) for (var q = 0; q < 4; q++) {
+        var at = a0 + cl.lead + (b * 4 + q) * beat, f = BASS[Math.floor(b / 2) % 4];
+        tone(f, at, beat * 0.9, 0.22, 'triangle'); if (q % 2 === 1) tone(f * 2, at + beat / 2, beat * 0.4, 0.08, 'sawtooth');
+      }
+    }
+    cl.playing = true; cl.done = false;
+    $('clPads').querySelector('.clpad').focus();
+    cancelAnimationFrame(cl.raf); cl.raf = requestAnimationFrame(clLoop);
+  }
+  var JUDGE = { p: 'Parfait', g: 'Bien', m: 'Raté' };
+  function clHit(l) {
+    if (!cl.playing) return;
+    var now = clNow() - cl.t0, T = D.TUNING, best = null, bd = 1;
+    drum(l);
+    cl.flash[l] = now;
+    for (var i = 0; i < cl.notes.length; i++) {
+      var n = cl.notes[i];
+      if (n.hit || n.l !== l) continue;
+      var d = Math.abs(n.t - now);
+      if (n.t - now > T.battleGood) break;
+      if (d < bd) { bd = d; best = n; }
+    }
+    if (best && bd <= T.battleGood) {
+      var perfect = bd <= T.battlePerfect;
+      best.hit = perfect ? 2 : 1; cl.pts += perfect ? 1 : 0.6; cl.combo++; cl.best = Math.max(cl.best, cl.combo);
+      cl.judge[l] = { k: perfect ? 'p' : 'g', t: now };
+    } else { cl.combo = 0; cl.judge[l] = { k: 'm', t: now }; }
+    clHud();
+  }
+  function clHud() { setText($('clScore'), Math.round(cl.pts / cl.notes.length * 100) + ' %'); setText($('clCombo'), String(cl.combo)); }
+  function clLoop() {
+    if (!cl.playing) return;
+    var now = clNow() - cl.t0, T = D.TUNING;
+    cl.notes.forEach(function (n) { if (!n.hit && now - n.t > T.battleGood) { n.hit = -1; cl.combo = 0; clHud(); } });
+    clDraw(now);
+    if (now >= cl.end) { finishClash(false); return; }
+    cl.raf = requestAnimationFrame(clLoop);
+  }
+  function clDraw(now) {
+    var c = cl.ctx, W = cl.W, H = cl.H, lw = W / 4, hy = H - 46, travel = 1.6, sp = hy / travel;
+    c.clearRect(0, 0, W, H);
+    for (var l = 0; l < 4; l++) {
+      c.fillStyle = l % 2 ? 'rgba(255,255,255,0.035)' : 'rgba(255,255,255,0.015)'; c.fillRect(l * lw, 0, lw, H);
+      var fl = Math.max(0, 1 - (now - cl.flash[l]) / 0.18);
+      if (fl > 0) { c.fillStyle = LANE_COL[l]; c.globalAlpha = 0.25 * fl; c.fillRect(l * lw, 0, lw, H); c.globalAlpha = 1; }
+    }
+    // lignes de temps (une par temps)
+    var beat = cl.step * 4, first = Math.ceil((now - 0.2 - cl.lead) / beat);
+    c.strokeStyle = 'rgba(255,255,255,0.08)'; c.lineWidth = 1;
+    for (var b = first; ; b++) { var bt = cl.lead + b * beat, y = hy - (bt - now) * sp; if (y < 0) break; if (b >= 0 && y <= H) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); } }
+    // ligne de frappe
+    c.fillStyle = 'rgba(255,255,255,0.85)'; c.fillRect(0, hy - 1.5, W, 3);
+    for (var k = 0; k < 4; k++) { c.strokeStyle = LANE_COL[k]; c.lineWidth = 3; c.beginPath(); c.arc(k * lw + lw / 2, hy, Math.min(lw * 0.3, 18), 0, Math.PI * 2); c.stroke(); }
+    // notes
+    cl.notes.forEach(function (n) {
+      if (n.hit > 0) return;
+      var y = hy - (n.t - now) * sp;
+      if (y < -20 || y > H + 20) return;
+      var x = n.l * lw + lw / 2, r = Math.min(lw * 0.28, 16);
+      c.globalAlpha = n.hit < 0 ? 0.3 : 1;
+      c.fillStyle = LANE_COL[n.l]; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+      c.fillStyle = 'rgba(255,255,255,0.55)'; c.beginPath(); c.arc(x - r * 0.3, y - r * 0.3, r * 0.3, 0, Math.PI * 2); c.fill();
+      c.globalAlpha = 1;
+    });
+    // jugements
+    c.textAlign = 'center'; c.font = '800 14px system-ui, sans-serif';
+    for (var j = 0; j < 4; j++) {
+      var jd = cl.judge[j]; if (!jd) continue;
+      var a = 1 - (now - jd.t) / 0.5; if (a <= 0) continue;
+      c.globalAlpha = a; c.fillStyle = jd.k === 'p' ? '#ffd166' : jd.k === 'g' ? '#9be7c4' : '#ff8a80';
+      c.fillText(JUDGE[jd.k], j * lw + lw / 2, hy - 30 - (1 - a) * 14); c.globalAlpha = 1;
+    }
+    // décompte
+    if (now < cl.lead - 0.4) {
+      var cnt = 4 - Math.floor((now - 0.4) / (cl.step * 4));
+      if (now >= 0.4 && cnt >= 1 && cnt <= 4) { c.fillStyle = '#fff'; c.font = '800 64px system-ui, sans-serif'; c.fillText(String(cnt), W / 2, H / 2); }
+      else if (now < 0.4) { c.fillStyle = '#fff'; c.font = '800 22px system-ui, sans-serif'; c.fillText('Prêt ?', W / 2, H / 2); }
+    }
+    // progression
+    c.fillStyle = 'rgba(255,255,255,0.15)'; c.fillRect(0, 0, W, 4);
+    c.fillStyle = '#ff7a2f'; c.fillRect(0, 0, W * Math.max(0, Math.min(1, now / cl.end)), 4);
+  }
+  function finishClash(quit) {
+    if (!cl.playing) return;
+    cl.playing = false; cancelAnimationFrame(cl.raf);
+    if (quit) clAudioOff(); else setTimeout(clAudioOff, 1200);
+    var score = cl.notes.length ? cl.pts / cl.notes.length : 0;
+    var res = G.finishBattle(S, { score: score, combo: cl.best });
+    cl.done = true;
+    $('clPlay').hidden = true; $('clDone').hidden = false;
+    if (!res) { closeClash(); return; }
+    var v = $('clVerdict');
+    v.textContent = quit ? 'Abandon' : res.win ? 'Victoire !' : 'Défaite';
+    v.className = 'ev-verdict ' + (res.win ? 'win' : 'loss');
+    setText($('clMine'), Math.round(res.score * 100) + ' %'); setText($('clTheirs'), Math.round(res.target * 100) + ' %'); setText($('clBest'), String(cl.best));
+    var L = D.BATTLE.leagues;
+    $('clRes').textContent = res.win
+      ? 'Tu remportes ' + eur(res.cash) + ' et ta réputation grimpe.' + (res.promo ? ' Promotion : bienvenue en ligue ' + L[res.newLeague - 1].name + ' !' : res.newLeague < L.length ? ' Encore ' + (D.TUNING.battleUp - res.pts) + ' victoire' + (D.TUNING.battleUp - res.pts > 1 ? 's' : '') + ' pour monter en ligue ' + L[res.newLeague].name + '.' : '')
+      : res.rival + ' garde la couronne cette fois. Tu gagnes un peu d’expérience. Un nouveau rival se présentera bientôt.';
+    setText($('clLive'), v.textContent + '. ' + $('clRes').textContent);
+    blip(res.win ? 12 : 3);
+    saveLocal(); markCloud();
+    $('clClose').focus();
+  }
+  function bindClash() {
+    $('clashBody').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-cl]'); if (!b) return;
+      if (b.getAttribute('data-cl') === 'go') openClash();
+      else { G.declineBattle(S); saveLocal(); toast('Défi décliné. Un autre rival se présentera bientôt.'); cl.key = ''; render(); }
+    });
+    $('clGo').addEventListener('click', startClash);
+    $('clLater').addEventListener('click', closeClash);
+    $('clClose').addEventListener('click', closeClash);
+    $('clQuit').addEventListener('click', function () { finishClash(true); });
+    $('clSoundOn').addEventListener('click', function () {
+      S.sound = true; if (vol.sfx <= 0) { vol.sfx = VDEF; saveVol(); }
+      markCloud(); saveLocal(); $('clSoundOn').hidden = true; setText($('clTip'), 'Son activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.'); blip(8);
+      if (bind.syncSound) bind.syncSound(); if (bind.syncVol) bind.syncVol();
+      $('clGo').focus();
+    });
+    $('clPads').addEventListener('pointerdown', function (e) {
+      var p = e.target.closest('.clpad'); if (!p) return;
+      e.preventDefault(); p.classList.add('down'); clHit(+p.getAttribute('data-l'));
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev2) { $('clPads').addEventListener(ev2, function (e) { var p = e.target.closest('.clpad'); if (p) p.classList.remove('down'); }); });
+    // pads au clavier (Entrée / Espace sur le pad sélectionné)
+    $('clPads').addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) { var p = e.target.closest('.clpad'); if (p) { e.preventDefault(); clHit(+p.getAttribute('data-l')); } } });
+    document.addEventListener('keydown', function (e) {
+      if (!cl.open) return;
+      var k = LANE_KEYS[(e.key || '').toLowerCase()];
+      if (cl.playing && k !== undefined) { e.preventDefault(); if (!e.repeat) { clHit(k); var pd = $('clPads').children[k]; pd.classList.add('down'); setTimeout(function () { pd.classList.remove('down'); }, 90); } return; }
+      if (e.key === 'Escape' && !cl.playing) { e.preventDefault(); closeClash(); }
+    });
+    window.addEventListener('resize', function () { if (cl.playing) clSize(); });
+    document.addEventListener('visibilitychange', function () { if (document.hidden && cl.playing) finishClash(true); });
+  }
+
   // ---------- Projets de création (bonus) ----------
   var pjv = { key: '', t: 0, wasOpen: null, open: false, opener: null, cfg: { genre: 'rap', mood: null, pub: null, fmt: 'single', sl: [50, 50, 50], team: [null, null, null] }, confirm: false };
   var GRADE = { top: 'idéal', ok: 'neutre', bad: 'à éviter' };
@@ -496,6 +743,7 @@
 
   function bindFeatures() {
     bindProj();
+    bindClash();
     $('rd').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-rd]'), sp = e.target.closest('button[data-spec]');
       if (b && !b.disabled) { if (G.research(S, b.getAttribute('data-rd'))) saveLocal(); renderRd(true); render(); }
@@ -714,6 +962,7 @@
     renderCharts();
     renderRd();
     renderProj();
+    renderClash();
     if (pjv.open) pjFoot();
     renderScene();
     var hint = $('hint');
@@ -728,7 +977,8 @@
 
   // ---------- Sorties de studio ----------
   var ev = { slot: 0, shownId: null, open: false, resolved: false, opener: null, ckey: null };
-  var RW_LABEL = { cash: 'Argent', xp: 'Expertise', boost: 'Boost', rank: 'Perfectionnement', tracks: 'Catalogue', contact: 'Nouveau contact' };
+  var RW_LABEL = { cash: 'Argent', xp: 'Expertise', boost: 'Boost', rank: 'Perfectionnement', tracks: 'Catalogue', contact: 'Nouveau contact',
+    rp: 'Recherche', rep: 'Réputation', morale: 'Équipe', master: 'Titre mixé', spent: 'Investissement' };
   function rewardText(r) {
     switch (r.k) {
       case 'cash': return '+' + eur(r.v) + (r.again ? ' (cachet de retrouvailles)' : '');
@@ -737,6 +987,11 @@
       case 'rank': return G.ACT_BY[r.act].name + ' passe au rang ' + r.lvl;
       case 'tracks': return '+' + nf0.format(r.n) + ' titres au catalogue (' + G.ACT_BY[r.act].name + ')';
       case 'contact': return r.name + ', +' + nf0.format(D.TUNING.contactBonus * 100) + ' % de gains pour toujours';
+      case 'rp': return '+' + short(r.v) + ' points de recherche';
+      case 'rep': return r.v > 0 ? '+' + nf0.format(r.v) + ' de réputation' : 'Réputation déjà au maximum';
+      case 'morale': return 'Moral de l’équipe +' + nf0.format(r.v);
+      case 'master': return 'Un titre ' + r.q + '★ prêt à sortir dans le Top 50';
+      case 'spent': return '−' + eur(r.v);
     }
     return '';
   }
@@ -1045,11 +1300,22 @@
 
   // ---------- Palmarès ----------
   var tro = { cards: null, fresh: {}, last: 0, timer: 0 };
+  function fmtN(fam, n) {
+    var f = fam && fam.fmt;
+    if (f === 'eur') return eur(n);
+    if (f === 'eurs') return eur(n) + '/s';
+    if (f === 'note') return nf1.format(n) + '/10';
+    return n >= 10000 ? short(n) : nf0.format(n);
+  }
+  function troDesc(fam, i) { var d = fam.descs && fam.descs[i]; return d || fam.desc.replace('{n}', fmtN(fam, fam.levels[i])); }
+  // t: famille ou niveau visé (nextGoals) avec m et n.
   function fmtProg(t, v) {
-    if (t.n === 1) return '';
-    if (t.m === 'lifetime') return eur(v) + ' / ' + eur(t.n);
-    if (t.m === 'income') return short(v) + ' / ' + short(t.n) + NB + '€/s';
-    return short(v) + ' / ' + short(t.n);
+    var fam = t.fam || t, n = t.n;
+    if (n === 1 || fam.m === 'tier' || fam.m === 'chartBest' || fam.m === 'league') return '';
+    if (fam.fmt === 'eur') return eur(v) + ' / ' + eur(n);
+    if (fam.fmt === 'eurs') return short(v) + ' / ' + short(n) + NB + '€/s';
+    if (fam.fmt === 'note') return nf1.format(v) + ' / ' + nf1.format(n);
+    return short(v) + ' / ' + short(n);
   }
   function buildTrophies() {
     var grid = $('troGrid');
@@ -1058,39 +1324,41 @@
     G.TROPHIES.forEach(function (t) {
       var c = document.createElement('article');
       c.className = 'tro';
-      c.innerHTML = '<span class="disc" aria-hidden="true"></span><h3></h3><p></p><div class="tro-prog"><span class="meter" aria-hidden="true"><i></i></span><span class="tro-n"></span></div>';
+      c.innerHTML = '<span class="medal" aria-hidden="true"></span><h3></h3><p class="tro-lv"></p><p class="tro-d"></p>' +
+        '<span class="pips" aria-hidden="true">' + t.levels.map(function () { return '<i></i>'; }).join('') + '</span>' +
+        '<div class="tro-prog"><span class="meter" aria-hidden="true"><i></i></span><span class="tro-n"></span></div>';
       c.querySelector('h3').textContent = t.name;
-      c.querySelector('p').textContent = t.desc;
       grid.appendChild(c);
-      tro.cards[t.id] = { root: c, meter: c.querySelector('.meter'), fill: c.querySelector('.meter i'), num: c.querySelector('.tro-n') };
+      tro.cards[t.id] = { root: c, lv: c.querySelector('.tro-lv'), d: c.querySelector('.tro-d'), pips: c.querySelectorAll('.pips i'), meter: c.querySelector('.meter'), fill: c.querySelector('.meter i'), num: c.querySelector('.tro-n') };
     });
   }
   function renderTrophies(force) {
     if (!tro.cards) return;
-    var n = G.trophyCount(S), tot = G.TROPHIES.length, hasFresh = Object.keys(tro.fresh).length > 0;
-    setText($('troCount'), n + ' / ' + tot + ' trophées');
+    var n = G.trophyCount(S), tot = G.trophyTotal(), hasFresh = Object.keys(tro.fresh).length > 0;
+    setText($('troCount'), n + ' / ' + tot + ' niveaux');
     setText($('troBonus'), n
       ? '+' + nf0.format(D.TUNING.trophyBonus * n * 100) + ' % de gains, définitif'
-      : 'Chaque trophée ajoute ' + nf0.format(D.TUNING.trophyBonus * 100) + ' % de gains pour toujours.');
+      : 'Chaque niveau décroché ajoute ' + nf0.format(D.TUNING.trophyBonus * 100) + ' % de gains pour toujours.');
     setClass($('tabTro'), 'has', (hasFresh || tour.fresh) && $('app').getAttribute('data-view') !== 'trophies');
     var now = performance.now();
     if (!force && now - tro.last < 400) return;
     tro.last = now;
     G.TROPHIES.forEach(function (t) {
-      var c = tro.cards[t.id], got = !!S.trophies[t.id];
-      setClass(c.root, 'got', got);
-      setClass(c.root, 'fresh', !!tro.fresh[t.id]);
-      setHidden(c.meter, got);
-      if (got) { setText(c.num, 'Décroché'); return; }
-      var p = G.trophyProgress(S, t);
+      var c = tro.cards[t.id], p = G.trophyProgress(S, t), lvl = p.lvl;
+      c.root.className = 'tro lv-' + Math.min(lvl, 6) + (lvl ? ' got' : '') + (p.done ? ' done' : '') + (tro.fresh[t.id] ? ' fresh' : '') + (t.levels.length === 1 ? ' solo' : '');
+      setText(c.lv, lvl ? G.levelName(t, lvl) + (t.levels.length > 1 ? ' · ' + lvl + '/' + t.levels.length : '') : 'À décrocher');
+      setText(c.d, p.done ? (t.levels.length > 1 ? 'Tous les niveaux sont décrochés.' : troDesc(t, 0)) : (lvl ? 'Niveau ' + G.levelName(t, lvl + 1) + ' : ' : '') + troDesc(t, lvl));
+      for (var k = 0; k < c.pips.length; k++) setClass(c.pips[k], 'on', k < lvl);
+      setHidden(c.meter, p.done);
+      if (p.done) { setText(c.num, ''); return; }
       setWidth(c.fill, p.f * 100);
-      setText(c.num, fmtProg(t, p.v));
+      setText(c.num, fmtProg({ fam: t, n: p.n }, p.v));
     });
     var g = G.nextGoals(S, 1)[0];
     setHidden($('goal'), !g);
     if (g) {
       setText($('goalName'), g.t.name);
-      setText($('goalDesc'), g.t.desc);
+      setText($('goalDesc'), troDesc(g.t.fam, g.t.lvl - 1));
       setText($('goalN'), fmtProg(g.t, g.p.v));
       setWidth($('goalFill'), g.p.f * 100);
     }
@@ -1101,7 +1369,7 @@
     var migrated = !!raw && typeof raw === 'object' && raw.trophies === undefined;
     G.checkTrophies(S, true);
     var n = G.trophyCount(S);
-    if (migrated && n > 0) toast('Nouveau : le Palmarès. Tu as déjà ' + n + (n > 1 ? ' trophées' : ' trophée') + ', soit +' + nf0.format(D.TUNING.trophyBonus * n * 100) + ' % de gains.', 8000);
+    if (migrated && n > 0) toast('Nouveau : le Palmarès. Tu as déjà ' + n + (n > 1 ? ' niveaux' : ' niveau') + ', soit +' + nf0.format(D.TUNING.trophyBonus * n * 100) + ' % de gains.', 8000);
     return n;
   }
 
@@ -1170,18 +1438,27 @@
     $('evText').textContent = x.intro;
     var box = $('evChoices');
     box.innerHTML = '';
+    var first = null;
     x.choices.forEach(function (c, i) {
-      var b = document.createElement('button');
+      var b = document.createElement('button'), info = G.choiceInfo(S, c), tags = [];
       b.type = 'button'; b.className = 'btn choice'; b.id = 'choice-' + i; b.setAttribute('data-i', i);
-      b.innerHTML = '<span class="k"></span><span class="ct"></span>';
-      b.firstChild.textContent = 'ABC'.charAt(i);
-      b.lastChild.textContent = c.text;
+      b.innerHTML = '<span class="k"></span><span class="cw"><span class="ct"></span><span class="tags"></span></span>';
+      b.querySelector('.k').textContent = 'ABC'.charAt(i);
+      b.querySelector('.ct').textContent = c.text;
+      if (info.need) tags.push(['need' + (info.needOk ? ' ok' : ''), (info.needOk ? 'Grâce à ' : 'Requiert ') + info.need]);
+      if (info.cost) tags.push(['cost' + (S.money >= info.cost ? '' : ' short'), 'Coûte ' + eur(info.cost)]);
+      if (info.risk !== null) tags.push(['risk', 'Risqué · ' + nf0.format(info.risk * 100) + ' % de réussite']);
+      var tg = b.querySelector('.tags');
+      tags.forEach(function (x2) { var s = document.createElement('span'); s.className = 'tag ' + x2[0]; s.textContent = x2[1]; tg.appendChild(s); });
+      if (!tags.length) tg.remove();
+      b.disabled = !info.ok;
+      if (info.ok && first === null) first = b;
       box.appendChild(b);
     });
     $('evAsk').hidden = false; $('evDone').hidden = true;
     $('scrim').hidden = false;
     $('app').inert = true; $('tabs').inert = true;
-    $('choice-0').focus();
+    (first || $('evLater')).focus();
     render();
   }
 
@@ -1199,7 +1476,10 @@
     var res = G.resolveEvent(S, i);
     if (!res) return;
     ev.resolved = true;
-    $('evOutcome').textContent = res.choice.outcome;
+    var vd = $('evVerdict');
+    vd.hidden = res.win === null;
+    if (res.win !== null) { vd.textContent = res.win ? 'Pari réussi !' : 'Pari perdu…'; vd.className = 'ev-verdict ' + (res.win ? 'win' : 'loss'); }
+    $('evOutcome').textContent = res.outcome;
     var box = $('evReward');
     box.innerHTML = '';
     res.rewards.forEach(function (r, k) {
@@ -1303,7 +1583,7 @@
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
-    closeMix(); closeProj(); pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
+    closeMix(); closeProj(); cl.playing = false; closeClash(); cl.key = ''; cl.wasOpen = null; pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -1311,7 +1591,7 @@
     if (off) { off.trophies = G.trophyCount(S) - tc0; showOffline(off); }
   }
   function showOffline(off) {
-    toast('Pendant ton absence (' + away(off.gap) + ') : +' + eur(off.gain) + (off.wages > 1e-9 ? ' après ' + eur(off.wages) + ' de salaires' : '') + (off.levels > 0 ? ', ' + off.levels + ' niveau' + (off.levels > 1 ? 'x' : '') + ' d’expertise' : '') + (off.trophies > 0 ? ', ' + off.trophies + (off.trophies > 1 ? ' trophées' : ' trophée') : '') + '.', 7000);
+    toast('Pendant ton absence (' + away(off.gap) + ') : +' + eur(off.gain) + (off.wages > 1e-9 ? ' après ' + eur(off.wages) + ' de salaires' : '') + (off.levels > 0 ? ', ' + off.levels + ' niveau' + (off.levels > 1 ? 'x' : '') + ' d’expertise' : '') + (off.trophies > 0 ? ', ' + off.trophies + (off.trophies > 1 ? ' niveaux de palmarès' : ' niveau de palmarès') : '') + '.', 7000);
   }
 
   function initCloud() {
@@ -1533,7 +1813,7 @@
     tro.fresh[t.id] = true; tro.last = 0;
     markCloud();
     if (quiet) return;
-    toast('Trophée : ' + t.name + ' · +' + nf0.format(D.TUNING.trophyBonus * 100) + ' % de gains', 4800);
+    toast('Palmarès : ' + t.name + (t.fam.levels.length > 1 ? ', niveau ' + t.level : '') + ' · +' + nf0.format(D.TUNING.trophyBonus * 100) + ' % de gains', 4800);
     blip(9);
   };
   G.hooks.hire = function (m, back) {
@@ -1560,6 +1840,8 @@
   };
   G.hooks.research = function (n) { markCloud(); rdv.key = ''; if (!quiet) { toast('Recherche terminée : ' + n.name + '.', 4500); blip(10); } };
   G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
+  G.hooks.battleNew = function (r) { cl.key = ''; markCloud(); if (!quiet) { toast(r.name + ' te défie en clash de beatmakers ! Rendez-vous dans Productions.', 6000); blip(10); } };
+  G.hooks.battleDone = function () { cl.key = ''; markCloud(); };
   G.hooks.projectStart = function (c) { markCloud(); if (!quiet) { toast('« ' + c.title + ' » est lancé : écriture en cours.', 4000); blip(6); } };
   G.hooks.projectPhase = function (c) { pjv.key = ''; markCloud(); if (!quiet) toast('« ' + c.title + ' » : ' + D.PROJECTS.phases[c.phase].name.toLowerCase() + ' en cours.', 3500); };
   G.hooks.projectDone = function (r) {

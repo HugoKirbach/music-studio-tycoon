@@ -115,5 +115,5 @@ console.log('OK: hydrate');
 
 // 10. trophées d'équipe
 S = midState(); G.advance(S, 0.1); G.hire(S, S.team.pool[0].id); G.advance(S, 0.1);
-assert.ok(S.trophies.recrue, 'trophée Première recrue');
+assert.ok(S.trophies.chef >= 1, 'trophée Chef d’équipe');
 console.log('OK: trophées');
