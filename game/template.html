@@ -341,6 +341,31 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .buyn span { padding: 0 6px 0 5px; font: 800 11px var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
 .buyn button { min-width: 44px; min-height: 34px; padding: 4px 8px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: 800 13.5px var(--f-body); }
 .buyn button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-s); }
+/* Icônes cliquables dans la scène 3D */
+.hot3d { position: absolute; left: 0; top: 0; z-index: 3; display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px 5px 7px; border: 2px solid transparent; border-radius: 999px; background: var(--hud); color: var(--ink); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28); font: 800 13px var(--f-body); white-space: nowrap; pointer-events: auto; cursor: pointer; will-change: transform; }
+.hot3d::after { content: ''; position: absolute; left: 50%; bottom: -7px; margin-left: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: var(--hud); }
+.hot3d svg { width: 20px; height: 20px; flex: none; color: var(--accent); }
+.hot3d small { font-size: 11.5px; color: var(--ink-soft); font-weight: 700; }
+.hot3d.hot { border-color: var(--accent); }
+.hot3d .bang { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--bad); color: #fff; font-size: 12px; }
+.hot3d:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) { .hot3d.hot { animation: hotPulse 1.6s ease-in-out infinite; } }
+@keyframes hotPulse { 0%, 100% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 50% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 8px transparent; } }
+/* Atelier piano */
+.piano-sheet { width: min(640px, 100%); }
+.pi-mode { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pi-status { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; min-height: 26px; }
+.pi-status b { font: 800 19px var(--f-title); }
+.pi-status span { font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+.piano { position: relative; display: flex; height: 168px; padding: 10px 8px 8px; border-radius: 14px; background: #1b1d22; touch-action: none; user-select: none; -webkit-user-select: none; }
+.piano .wk { position: relative; flex: 1; min-width: 0; margin: 0 1px; border: 0; border-radius: 0 0 8px 8px; background: linear-gradient(#fff, #f1ede4); box-shadow: inset 0 -6px 0 #d8d2c4; color: #8a8478; font: 800 11px var(--f-body); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 8px; gap: 2px; }
+.piano .bk { position: absolute; top: 10px; z-index: 2; width: calc((100% - 16px) / 12 * 0.62); height: 58%; margin-left: calc((100% - 16px) / 12 * -0.31); border: 0; border-radius: 0 0 6px 6px; background: linear-gradient(#3a3d45, #15161a); box-shadow: inset 0 -5px 0 #000; color: #9aa0ab; font: 800 10px var(--f-body); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; }
+.piano .wk.on { background: linear-gradient(#ffe2c9, var(--accent-2)); box-shadow: inset 0 -3px 0 var(--accent); }
+.piano .bk.on { background: linear-gradient(var(--accent-2), var(--accent)); color: #fff; }
+.piano .wk.bad, .piano .bk.bad { background: var(--bad); color: #fff; }
+.piano .wk.cue, .piano .bk.cue { background: linear-gradient(#cfe0ff, var(--blue)); color: #fff; }
+.piano button:disabled { cursor: default; }
+@media (max-width: 999px) { .piano { height: 150px; padding: 8px 4px 6px; } .piano .wk { font-size: 0; } .piano .bk { font-size: 0; } }
 /* Clash de beatmakers */
 .clash-card { display: grid; gap: 8px; }
 .clash-card > * { min-width: 0; }
@@ -813,6 +838,20 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <div class="pf"><span class="lbl">Les trois phases</span><div id="pjPhases"></div></div>
     <p class="small-note" id="pjTeamNote"></p>
     <div class="pj-foot"><div><b id="pjCost"></b><small id="pjInfo"></small></div><button class="btn sm" id="pjClose" type="button">Fermer</button><button class="btn primary" id="pjGo" type="button">Lancer le projet</button></div>
+  </div>
+</div>
+<div class="scrim" id="pianoScrim" hidden>
+  <div class="sheet piano-sheet" role="dialog" aria-modal="true" aria-labelledby="piTitle">
+    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Atelier piano</p>
+    <h2 id="piTitle">Au piano</h2>
+    <div class="seg pi-mode" role="group" aria-label="Mode de jeu"><button type="button" data-pm="ear" aria-pressed="true">Défi d’oreille</button><button type="button" data-pm="free" aria-pressed="false">Jeu libre</button></div>
+    <p class="ev-text" id="piText"></p>
+    <div class="pi-status" aria-live="polite"><b id="piState"></b><span id="piInfo"></span></div>
+    <div class="piano" id="piKeys" role="group" aria-label="Clavier de piano"></div>
+    <p class="small-note" id="piTip"></p>
+    <button class="btn sm" id="piSoundOn" type="button" hidden>Activer le son du jeu</button>
+    <button class="pad" id="piStart" type="button"><b id="piStartT">Écouter la mélodie</b><small id="piStartS"></small></button>
+    <button class="btn sm" id="piClose" type="button">Retour au studio</button>
   </div>
 </div>
 <div class="scrim" id="clashScrim" hidden>

@@ -68,7 +68,9 @@
     // Projets de création (bonus facultatif)
     projLevel: 5, projCostSec: 90, projRefund: 0.5, rpProj: 12, projXp: 4,
     // Clash de beatmakers (mini-jeu de rythme)
-    battleLevel: 3, battleFirst: 45, battleEvery: 210, battleUp: 3, battleBars: 8, battlePerfect: 0.07, battleGood: 0.14
+    battleLevel: 3, battleFirst: 45, battleEvery: 210, battleUp: 3, battleBars: 8, battlePerfect: 0.07, battleGood: 0.14,
+    // Atelier piano: une inspiration récompensée toutes les pianoEvery secondes de jeu
+    pianoEvery: 240
   };
 
   // dur: secondes, pay: euros, xp: points d'expertise
@@ -663,6 +665,7 @@
     { id: 'carnet-studio', name: 'Carnet du studio', m: 'book', levels: [4, 12, 30], desc: 'Découvre {n} associations genre et ambiance.', old: [null, 'carnet-plein'] },
     { id: 'clash', name: 'Clash', m: 'battles', levels: [1, 10, 50, 150], desc: 'Remporte {n} clashs de beatmakers.', descs: ['Remporte ton premier clash de beatmakers.'] },
     { id: 'ligue', name: 'Ligue des beatmakers', m: 'league', levels: [2, 3, 4, 5], descs: ['Monte en ligue Régionale.', 'Monte en ligue Nationale.', 'Monte en ligue Internationale.', 'Atteins la ligue Légende.'] },
+    { id: 'piano', name: 'Oreille musicale', m: 'pianoBest', levels: [5, 9, 13], desc: 'Rejoue une mélodie de {n} notes à l’atelier piano.' },
     { id: 'combo', name: 'Main sûre', m: 'combo', levels: [20, 50, 100], desc: 'Enchaîne {n} frappes réussies d’affilée dans un clash.' }
   ];
 

@@ -44,7 +44,7 @@
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle() };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 } };
   }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newBattle() { return { league: 1, pts: 0, wins: 0, losses: 0, best: 0, cd: T.battleFirst, rival: null }; }
@@ -112,6 +112,10 @@
       if (o.rd.spec && typeof o.rd.spec === 'object') RESEARCH.specs.forEach(function (t) { var id = o.rd.spec[t.tier]; if (SPEC_BY[id] && SPEC_BY[id].tier === t.tier) S.rd.spec[t.tier] = id; });
     }
     if (o.proj && typeof o.proj === 'object') hydrateProj(S, o.proj);
+    if (o.piano && typeof o.piano === 'object') {
+      S.piano.best = Math.max(0, Math.min(60, Math.floor(num(o.piano.best, 0)))); S.piano.plays = Math.max(0, Math.floor(num(o.piano.plays, 0)));
+      S.piano.cd = Math.max(0, Math.min(T.pianoEvery, num(o.piano.cd, 0)));
+    }
     if (o.battle && typeof o.battle === 'object') {
       var b = o.battle, B = S.battle, L = BT.leagues.length;
       B.league = Math.max(1, Math.min(L, Math.floor(num(b.league, 1)))); B.pts = Math.max(0, Math.min(T.battleUp - 1, Math.floor(num(b.pts, 0))));
@@ -851,7 +855,7 @@
     c.left -= dt;
     if (c.left <= 0) weekEnd(S);
   }
-  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); tickBattle(S, dt); }
+  function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); tickBattle(S, dt); if (S.piano.cd > 0) S.piano.cd = Math.max(0, S.piano.cd - dt); }
 
 
   // ---------- Projets de création (bonus facultatif) ----------
@@ -994,6 +998,26 @@
   }
   function dismissProject(S) { if (S.proj) S.proj.last = null; }
 
+
+  // ---------- Atelier piano ----------
+  function pianoOpen(S) { return !!S.owned.clavier; }
+  function pianoReward(len) { return { m: Math.round(Math.min(2.5, 1 + 0.12 * len) * 100) / 100, s: Math.min(240, 60 + 12 * len) }; }
+  // len: longueur de la plus longue mélodie rejouée sans faute. L'inspiration n'est versée que hors délai d'attente.
+  function finishPiano(S, len) {
+    if (!pianoOpen(S)) return null;
+    var P = S.piano; len = Math.max(0, Math.min(60, Math.floor(num(len, 0))));
+    P.plays++; P.best = Math.max(P.best, len);
+    var out = { len: len, best: P.best, reward: null };
+    if (P.cd <= 0 && len >= 3) {
+      var r = pianoReward(len), xp = xpNeeded(S.level) * 0.012 * len;
+      grantBoost(S, r.m, r.s); addXp(S, xp);
+      P.cd = T.pianoEvery;
+      out.reward = { m: r.m, s: r.s, xp: xp };
+    }
+    out.cd = P.cd;
+    checkTrophies(S);
+    return out;
+  }
 
   // ---------- Clash de beatmakers ----------
   function battleOpen(S) { return S.level >= T.battleLevel; }
@@ -1159,6 +1183,7 @@
       case 'battles': n = S.battle ? S.battle.wins : 0; break;
       case 'league': n = S.battle ? S.battle.league : 1; break;
       case 'combo': n = S.battle ? S.battle.best : 0; break;
+      case 'pianoBest': n = S.piano ? S.piano.best : 0; break;
       case 'specs': n = Object.keys((S.rd && S.rd.spec) || {}).length; break;
       case 'staffLvl': (S.team ? S.team.staff : []).forEach(function (m) { n = Math.max(n, m.lvl); }); break;
       case 'outings': Object.keys(S.ev.seen || {}).forEach(function (id) { n += S.ev.seen[id] || 0; }); break;
@@ -1260,6 +1285,10 @@
     }
     return { ok: ok && S.money >= cost, need: label, needOk: ok, cost: cost, risk: c.risk ? c.risk.p : null };
   }
+  // Un nouveau boost plus long repart avec une jauge pleine ; un boost plus court ne raccourcit pas l'actuel.
+  function grantBoost(S, m, s) {
+    S.boost = { m: Math.max(boostMult(S), m), left: Math.max(S.boost.left, s), t: s >= S.boost.left ? s : Math.max(S.boost.t || 0, S.boost.left) };
+  }
   function applyReward(S, x, r, ref) {
     var m, a;
     switch (r.k) {
@@ -1285,9 +1314,7 @@
         m = xpNeeded(S.level) * r.x * rdFx(S).event; addXp(S, m);
         return { k: 'xp', v: m };
       case 'boost':
-        // Un nouveau boost plus long repart avec une jauge pleine ; un boost plus court ne raccourcit pas l'actuel.
-        S.boost = { m: Math.max(boostMult(S), r.m), left: Math.max(S.boost.left, r.s),
-          t: r.s >= S.boost.left ? r.s : Math.max(S.boost.t || 0, S.boost.left) };
+        grantBoost(S, r.m, r.s);
         return { k: 'boost', m: S.boost.m, s: S.boost.left };
       case 'rank':
         a = bestAct(S); S.acts[a.id].lvl++;
@@ -1361,7 +1388,7 @@
     projTime: projTime, phaseFit: phaseFit, projBusy: projBusy, startProject: startProject, cancelProject: cancelProject, tickProject: tickProject,
     finishProject: finishProject, dismissProject: dismissProject, comboGrade: comboGrade, pubGrade: pubGrade,
     TROPHY_LEVELS: TLV, trophyTotal: trophyTotal, trophyLevel: trophyLevel, levelName: levelName, choiceInfo: choiceInfo,
-    BATTLE: BT, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
+    BATTLE: BT, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;

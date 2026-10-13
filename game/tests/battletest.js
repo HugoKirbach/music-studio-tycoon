@@ -42,3 +42,16 @@ assert.deepStrictEqual(R.battle, S.battle);
 const bad = G.hydrate({ battle: { league: 99, pts: 50, wins: -1, rival: { target: 9, league: -2 } } }, 0);
 assert(bad.battle.league === B.leagues.length && bad.battle.pts === T.battleUp - 1 && bad.battle.wins === 0 && bad.battle.rival.target === 0.95 && bad.battle.rival.league === 1);
 console.log('OK: hydrate');
+// 6. Atelier piano
+const Pn = G.newState(0); Pn.level = 5;
+assert.strictEqual(G.finishPiano(Pn, 5), null, 'il faut le clavier MIDI');
+Pn.owned.clavier = 1;
+const a1 = G.finishPiano(Pn, 6);
+assert(a1.reward && Pn.boost.m === a1.reward.m && Pn.boost.left === a1.reward.s && Pn.piano.cd === T.pianoEvery, 'inspiration versée');
+const a2 = G.finishPiano(Pn, 9);
+assert(!a2.reward && Pn.piano.best === 9 && Pn.piano.plays === 2, 'pas de deuxième inspiration pendant l’attente');
+G.tickLive(Pn, T.pianoEvery); assert.strictEqual(Pn.piano.cd, 0);
+assert(!G.finishPiano(Pn, 2).reward, 'il faut au moins 3 notes');
+assert(Pn.trophies.piano === 2, 'trophée Oreille musicale niveau Argent');
+assert.deepStrictEqual(G.hydrate(JSON.parse(JSON.stringify(Pn)), 0).piano, Pn.piano);
+console.log('OK: piano, inspiration ×' + a1.reward.m + ' pendant ' + a1.reward.s + ' s');
