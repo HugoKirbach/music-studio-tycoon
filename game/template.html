@@ -70,13 +70,13 @@ select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
 .cam-reset { position: absolute; z-index: 6; left: 16px; bottom: calc(var(--sheet-h, 0px) + 16px); display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 6px 12px; border: 0; border-radius: 12px; background: var(--hud); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: var(--shadow); font: 800 13px var(--f-body); color: var(--ink); }
 .cam-reset svg { width: 18px; height: 18px; }
 .pane { display: none; }
-.game[data-view="prod"] #prod, .game[data-view="shop"] #shop, .game[data-view="team"] #team, .game[data-view="charts"] #charts, .game[data-view="trophies"] #trophies, .game[data-view="account"] #account { display: block; }
+.game[data-view="prod"] #prod, .game[data-view="shop"] #shop, .game[data-view="team"] #team, .game[data-view="charts"] #charts, .game[data-view="rd"] #rd, .game[data-view="trophies"] #trophies, .game[data-view="account"] #account { display: block; }
 .pane > h2 { font-size: 24px; margin: 2px 0 12px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .pane > h2 small { font: 700 13px var(--f-body); color: var(--ink-soft); }
 .sec { font-size: 18px; margin: 22px 0 10px; }
 
 /* ---------- Onglets ---------- */
-.tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; padding: 8px 8px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.tabs { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; padding: 8px 6px; border-bottom: 1px solid var(--line); background: var(--panel); }
 .tabs button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 1px 6px; border: 0; border-radius: 12px; background: transparent; color: var(--ink-soft); font: 800 11px var(--f-body); min-height: 52px; min-width: 0; }
 .tabs button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tabs button svg { width: 22px; height: 22px; }
@@ -325,6 +325,36 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .chart .tt span { display: block; font-size: 12px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chart .gain { font: 800 12px var(--f-body); color: var(--good); white-space: nowrap; }
 .chart li.top1 .pos { color: var(--gold); }
+/* Recherche */
+.rd-points { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.rd-points b { display: block; font: 800 26px var(--f-title); color: var(--blue); }
+.rd-points .small-note { text-align: right; margin: 0; max-width: 60%; }
+.rd-branch { margin-top: 18px; }
+.rd-branch > h3 { font-size: 18px; display: flex; align-items: center; gap: 8px; margin: 0; }
+.rd-branch > h3 i { width: 12px; height: 12px; border-radius: 4px; background: var(--bc); }
+.rd-branch > p { margin: 2px 0 10px; font-size: 13px; color: var(--ink-soft); }
+.rd-chain { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; position: relative; padding-left: 18px; }
+.rd-chain::before { content: ''; position: absolute; left: 6px; top: 14px; bottom: 14px; width: 3px; border-radius: 3px; background: var(--line); }
+.rd-node { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 10px 12px; }
+.rd-node > *, .spec > * { min-width: 0; }
+.rd-node::before { content: ''; position: absolute; left: -17px; top: 50%; width: 11px; height: 11px; margin-top: -6px; border-radius: 50%; background: var(--panel); border: 3px solid var(--line); box-sizing: content-box; width: 5px; height: 5px; margin-top: -5.5px; }
+.rd-node.own::before { background: var(--bc); border-color: var(--bc); }
+.rd-node.next::before { border-color: var(--bc); }
+.rd-node b, .spec b { font: 800 15px var(--f-title); display: block; }
+.rd-node p, .spec p { margin: 2px 0 0; font-size: 13px; color: var(--ink-soft); }
+.rd-node.own { border-color: color-mix(in srgb, var(--bc) 50%, var(--line)); background: color-mix(in srgb, var(--bc) 9%, var(--card)); }
+.rd-node.lock { opacity: 0.55; }
+.rd-node .btn, .spec .btn { white-space: nowrap; }
+.rd-tag { font: 800 12px var(--f-body); color: var(--bc); white-space: nowrap; }
+.rd-tag.dim { color: var(--ink-soft); }
+.rd-tech { --bc: var(--blue); } .rd-crea { --bc: var(--purple); } .rd-biz { --bc: var(--good); }
+.spec-tier { margin-top: 14px; }
+.spec-tier > h3 { font-size: 17px; margin: 0; }
+.spec-tier > p { margin: 2px 0 8px; font-size: 13px; color: var(--ink-soft); }
+.spec-opts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.spec { --bc: var(--gold); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 10px 12px; border-left: 4px solid var(--gold); }
+.spec.chosen { background: color-mix(in srgb, var(--gold) 12%, var(--card)); border-color: var(--gold); }
+.spec.off { opacity: 0.45; }
 /* Réglages */
 .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--panel-2); border: 1px solid var(--line); }
 .seg button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 6px 4px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-soft); font-weight: 800; font-size: 14px; }
@@ -409,7 +439,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   .boost { font-size: 10.5px; padding: 0 5px 3px; }
   .menu-toggle { display: none; }
   .panel, .game.collapsed > .panel { display: contents; }
-  .tabs { position: absolute; z-index: 12; left: 0; right: 0; bottom: 0; height: var(--tabs-h); border-bottom: 0; border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .tabs { position: absolute; z-index: 12; left: 0; right: 0; bottom: 0; height: var(--tabs-h); border-bottom: 0; border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)); }
   .tabs button { font-size: 11px; min-height: 50px; }
   .game.collapsed .tabs button[aria-selected="true"] { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
   .panes { position: absolute; z-index: 11; left: 0; right: 0; bottom: var(--tabs-h); height: min(54vh, 560px); height: min(54dvh, 560px); padding: 0 16px 20px; background: var(--panel); border-radius: 18px 18px 0 0; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2); transition: transform 0.28s ease, visibility 0s linear 0s; }
@@ -485,6 +515,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
       <button type="button" id="tabProd" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l11-2v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.8" fill="currentColor"/><circle cx="17.5" cy="16" r="2.8" fill="currentColor"/></svg><span>Prod</span></button>
       <button type="button" id="tabShop" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="8" cy="12.5" r="2" fill="currentColor"/><circle cx="16" cy="12.5" r="2" fill="currentColor"/><path d="M8 7V4h8v3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg><span>Matériel</span></button>
       <button type="button" id="tabTeam" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4" fill="currentColor"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" fill="currentColor"/><circle cx="17" cy="9" r="2.6" fill="currentColor" opacity=".7"/><path d="M15.5 14.2c3.3-.4 6 1.6 6 5" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/></svg><span>Équipe</span></button>
+      <button type="button" id="tabRd" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5.5 9.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 15h9" stroke="currentColor" stroke-width="2.2"/><circle cx="10.5" cy="17.6" r="1.1" fill="currentColor"/><circle cx="13.6" cy="18.3" r="0.9" fill="currentColor"/></svg><span>R&amp;D</span></button>
       <button type="button" id="tabCharts" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="12" width="4" height="9" rx="1" fill="currentColor"/><rect x="10" y="6" width="4" height="15" rx="1" fill="currentColor"/><rect x="17" y="9" width="4" height="12" rx="1" fill="currentColor"/><path d="M12 1.5l1.2 2.4 2.6.4-1.9 1.8.5 2.6L12 7.5 9.6 8.7l.5-2.6-1.9-1.8 2.6-.4z" fill="currentColor"/></svg><span>Top 50</span></button>
       <button type="button" id="tabTro" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 20h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Palmarès</span></button>
       <button type="button" id="tabMore" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Réglages</span></button>
@@ -536,6 +567,14 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <div class="list" id="poolList"></div>
           <button class="btn sm" id="poolRefresh" type="button" style="margin-top:10px;width:100%"><span>Voir d’autres candidats</span><span class="p" id="poolRefreshP"></span></button>
         </div>
+      </section>
+
+      <section class="pane" id="rd" aria-labelledby="rdTitle">
+        <h2 id="rdTitle">Recherche <small id="rdCount"></small></h2>
+        <div class="card rd-points"><div><span class="lbl">Points de recherche</span><b id="rdPts">0</b></div><p class="small-note" id="rdRate"></p></div>
+        <p class="hint">Ton studio accumule du savoir-faire en produisant, en mixant, en livrant des commandes et grâce au Top 50. Chaque recherche est définitive, même après une tournée mondiale. Les spécialisations, elles, se choisissent à nouveau à chaque carrière.</p>
+        <div id="rdSpecs"></div>
+        <div id="rdTree"></div>
       </section>
 
       <section class="pane" id="charts" aria-labelledby="chartTitle">

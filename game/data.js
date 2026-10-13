@@ -59,7 +59,12 @@
     orderTimeMin: 60, orderTimeMax: 150, orderDeadlineK: 2.5, orderRewardBase: 1.5, orderRewardQ: 0.5,
     repWin: 4, repLose: 6, repMax: 100,
     // Top 50
-    chartLevel: 4, weekLen: 180, chartSize: 50, chartPaySec: 90, promoSec: 120, promoMult: 1.4, chartDecay: 0.85
+    chartLevel: 4, weekLen: 180, chartSize: 50, chartPaySec: 90, promoSec: 120, promoMult: 1.4, chartDecay: 0.85,
+    // Recherche
+    rpPer: 0.6,         // points par production terminée, multipliés par le rang de la production (1 à 11)
+    rpMix: 6,           // points par étoile d'un mix
+    rpOrder: 25,        // points par commande livrée (multipliés par la qualité demandée)
+    rpChart: 0.5        // points par place au-dessus de la 51e, chaque semaine, pour chaque titre classé
   };
 
   // dur: secondes, pay: euros, xp: points d'expertise
@@ -338,8 +343,56 @@
     { id: 'carnet-commandes', name: 'Carnet de commandes', desc: 'Livre 15 commandes à temps.', m: 'orders', n: 15 },
     { id: 'reputation', name: 'Réputation en or', desc: 'Atteins 60 points de réputation.', m: 'rep', n: 60 },
     { id: 'top10', name: 'Top 10', desc: 'Place un titre dans le Top 10.', m: 'chartBest', n: 41 },
-    { id: 'numero-un', name: 'Numéro un', desc: 'Place un titre en tête du Top 50.', m: 'chartBest', n: 50 }
+    { id: 'numero-un', name: 'Numéro un', desc: 'Place un titre en tête du Top 50.', m: 'chartBest', n: 50 },
+    { id: 'chercheur', name: 'Esprit curieux', desc: 'Termine 3 recherches.', m: 'rdNodes', n: 3 },
+    { id: 'savant', name: 'Laboratoire du son', desc: 'Termine 12 recherches.', m: 'rdNodes', n: 12 },
+    { id: 'encyclopedie', name: 'Tout savoir', desc: 'Termine les 18 recherches.', m: 'rdNodes', n: 18 },
+    { id: 'specialiste', name: 'Une identité', desc: 'Choisis ta première spécialisation.', m: 'specs', n: 1 }
   ];
+
+  // Recherche: trois branches de six recherches (chacune demande la précédente de sa branche) et deux paliers de spécialisation.
+  // fx multiplicatifs: gain, speed, xp, roy, mixZone, mixMul, chartScore, chartPay, promoCost, event, orderReward, orderEvery, rep, salary, trainCost, trainTime
+  // fx additifs: quality, mixMax, mixStar, promoAdd, orderSlots, cap, autoQ4 ; chartDecay: valeur (la plus haute gagne)
+  var RESEARCH = {
+    branches: [
+      { id: 'tech', name: 'Technique', desc: 'Vitesse, qualité et mixage.' },
+      { id: 'crea', name: 'Création', desc: 'Expertise, Top 50 et rencontres.' },
+      { id: 'biz', name: 'Business', desc: 'Commandes, équipe et revenus.' }
+    ],
+    costs: [100, 500, 2500, 10000, 40000, 150000],
+    nodes: [
+      { id: 'raccourcis', b: 'tech', name: 'Raccourcis clavier', desc: 'Toutes les productions vont 8 % plus vite.', fx: { speed: 1.08 } },
+      { id: 'gain-staging', b: 'tech', name: 'Gain staging', desc: 'Au mini-jeu de mixage, la zone verte est 40 % plus large.', fx: { mixZone: 1.4 } },
+      { id: 'autotune', b: 'tech', name: 'Auto-Tune', desc: 'Tous les gains augmentent de 10 %.', fx: { gain: 1.1 } },
+      { id: 'mastering-ia', b: 'tech', name: 'Mastering par IA', desc: '+1 étoile de qualité sur toutes les productions.', fx: { quality: 1 } },
+      { id: 'atmos', b: 'tech', name: 'Dolby Atmos', desc: 'Un mix parfait rapporte ×2,5 au lieu de ×2.', fx: { mixMax: 0.5 } },
+      { id: 'hybride', b: 'tech', name: 'Studio hybride', desc: 'Toutes les productions vont 15 % plus vite.', fx: { speed: 1.15 } },
+      { id: 'carnet-idees', b: 'crea', name: 'Carnet d’idées', desc: 'L’expertise vient 15 % plus vite.', fx: { xp: 1.15 } },
+      { id: 'ecoute', b: 'crea', name: 'Écoute active', desc: 'Tes sorties se classent 10 % mieux au Top 50.', fx: { chartScore: 1.1 } },
+      { id: 'signature', b: 'crea', name: 'Signature sonore', desc: 'Les récompenses des sorties de studio augmentent de 50 %.', fx: { event: 1.5 } },
+      { id: 'residence', b: 'crea', name: 'Écriture en résidence', desc: 'L’expertise vient 30 % plus vite.', fx: { xp: 1.3 } },
+      { id: 'instinct', b: 'crea', name: 'Tube instinctif', desc: 'Tes titres perdent beaucoup moins de places au Top 50 chaque semaine.', fx: { chartDecay: 0.93 } },
+      { id: 'genie', b: 'crea', name: 'Génie créatif', desc: '+1 étoile sur chaque titre que tu mixes.', fx: { mixStar: 1 } },
+      { id: 'reseau-pro', b: 'biz', name: 'Réseau professionnel', desc: 'Les primes des commandes augmentent de 25 %.', fx: { orderReward: 1.25 } },
+      { id: 'negociation', b: 'biz', name: 'Négociation', desc: 'Les salaires de l’équipe baissent de 15 %.', fx: { salary: 0.85 } },
+      { id: 'presse', b: 'biz', name: 'Attaché de presse', desc: 'Campagnes promo deux fois moins chères et plus efficaces (×1,6).', fx: { promoCost: 0.5, promoAdd: 0.2 } },
+      { id: 'cadres', b: 'biz', name: 'Contrats cadres', desc: 'Une commande de plus en même temps, et les clients appellent plus souvent.', fx: { orderSlots: 1, orderEvery: 0.7 } },
+      { id: 'distribution', b: 'biz', name: 'Distribution mondiale', desc: 'Royalties ×2.', fx: { roy: 2 } },
+      { id: 'empire', b: 'biz', name: 'Empire musical', desc: 'Tous les gains augmentent de 20 %.', fx: { gain: 1.2 } }
+    ],
+    specs: [
+      { tier: 1, need: 5, name: 'Identité du studio', options: [
+        { id: 'usine', name: 'Usine à tubes', desc: 'Productions 20 % plus rapides, mais une étoile de qualité en moins.', fx: { speed: 1.2, quality: -1 } },
+        { id: 'prestige', name: 'Studio de prestige', desc: 'Gains +30 %, mais productions 15 % plus lentes.', fx: { gain: 1.3, speed: 0.87 } },
+        { id: 'independant', name: 'Studio indépendant', desc: 'Réputation gagnée doublée et primes des commandes +40 %, mais gains −10 %.', fx: { rep: 2, orderReward: 1.4, gain: 0.9 } }
+      ] },
+      { tier: 2, need: 11, name: 'Savoir-faire', options: [
+        { id: 'stars', name: 'Faiseur de stars', desc: 'Gains du Top 50 doublés et classement +20 %.', fx: { chartPay: 2, chartScore: 1.2 } },
+        { id: 'formation-maison', name: 'Maison de formation', desc: 'Formations deux fois moins chères et deux fois plus rapides, un poste d’équipe en plus.', fx: { trainCost: 0.5, trainTime: 0.5, cap: 1 } },
+        { id: 'artisan', name: 'Artisan du son', desc: 'Les mix rapportent 50 % de plus, et une production automatique sur dix sort en 4 étoiles.', fx: { mixMul: 1.5, autoQ4: 0.1 } }
+      ] }
+    ]
+  };
 
   // Commandes: clients par type de production
   var CLIENTS = {
@@ -370,7 +423,7 @@
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -70,13 +70,13 @@ select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
 .cam-reset { position: absolute; z-index: 6; left: 16px; bottom: calc(var(--sheet-h, 0px) + 16px); display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 6px 12px; border: 0; border-radius: 12px; background: var(--hud); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: var(--shadow); font: 800 13px var(--f-body); color: var(--ink); }
 .cam-reset svg { width: 18px; height: 18px; }
 .pane { display: none; }
-.game[data-view="prod"] #prod, .game[data-view="shop"] #shop, .game[data-view="team"] #team, .game[data-view="charts"] #charts, .game[data-view="trophies"] #trophies, .game[data-view="account"] #account { display: block; }
+.game[data-view="prod"] #prod, .game[data-view="shop"] #shop, .game[data-view="team"] #team, .game[data-view="charts"] #charts, .game[data-view="rd"] #rd, .game[data-view="trophies"] #trophies, .game[data-view="account"] #account { display: block; }
 .pane > h2 { font-size: 24px; margin: 2px 0 12px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .pane > h2 small { font: 700 13px var(--f-body); color: var(--ink-soft); }
 .sec { font-size: 18px; margin: 22px 0 10px; }
 
 /* ---------- Onglets ---------- */
-.tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; padding: 8px 8px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.tabs { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; padding: 8px 6px; border-bottom: 1px solid var(--line); background: var(--panel); }
 .tabs button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 1px 6px; border: 0; border-radius: 12px; background: transparent; color: var(--ink-soft); font: 800 11px var(--f-body); min-height: 52px; min-width: 0; }
 .tabs button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tabs button svg { width: 22px; height: 22px; }
@@ -325,6 +325,36 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .chart .tt span { display: block; font-size: 12px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chart .gain { font: 800 12px var(--f-body); color: var(--good); white-space: nowrap; }
 .chart li.top1 .pos { color: var(--gold); }
+/* Recherche */
+.rd-points { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.rd-points b { display: block; font: 800 26px var(--f-title); color: var(--blue); }
+.rd-points .small-note { text-align: right; margin: 0; max-width: 60%; }
+.rd-branch { margin-top: 18px; }
+.rd-branch > h3 { font-size: 18px; display: flex; align-items: center; gap: 8px; margin: 0; }
+.rd-branch > h3 i { width: 12px; height: 12px; border-radius: 4px; background: var(--bc); }
+.rd-branch > p { margin: 2px 0 10px; font-size: 13px; color: var(--ink-soft); }
+.rd-chain { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; position: relative; padding-left: 18px; }
+.rd-chain::before { content: ''; position: absolute; left: 6px; top: 14px; bottom: 14px; width: 3px; border-radius: 3px; background: var(--line); }
+.rd-node { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 10px 12px; }
+.rd-node > *, .spec > * { min-width: 0; }
+.rd-node::before { content: ''; position: absolute; left: -17px; top: 50%; width: 11px; height: 11px; margin-top: -6px; border-radius: 50%; background: var(--panel); border: 3px solid var(--line); box-sizing: content-box; width: 5px; height: 5px; margin-top: -5.5px; }
+.rd-node.own::before { background: var(--bc); border-color: var(--bc); }
+.rd-node.next::before { border-color: var(--bc); }
+.rd-node b, .spec b { font: 800 15px var(--f-title); display: block; }
+.rd-node p, .spec p { margin: 2px 0 0; font-size: 13px; color: var(--ink-soft); }
+.rd-node.own { border-color: color-mix(in srgb, var(--bc) 50%, var(--line)); background: color-mix(in srgb, var(--bc) 9%, var(--card)); }
+.rd-node.lock { opacity: 0.55; }
+.rd-node .btn, .spec .btn { white-space: nowrap; }
+.rd-tag { font: 800 12px var(--f-body); color: var(--bc); white-space: nowrap; }
+.rd-tag.dim { color: var(--ink-soft); }
+.rd-tech { --bc: var(--blue); } .rd-crea { --bc: var(--purple); } .rd-biz { --bc: var(--good); }
+.spec-tier { margin-top: 14px; }
+.spec-tier > h3 { font-size: 17px; margin: 0; }
+.spec-tier > p { margin: 2px 0 8px; font-size: 13px; color: var(--ink-soft); }
+.spec-opts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.spec { --bc: var(--gold); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 10px 12px; border-left: 4px solid var(--gold); }
+.spec.chosen { background: color-mix(in srgb, var(--gold) 12%, var(--card)); border-color: var(--gold); }
+.spec.off { opacity: 0.45; }
 /* Réglages */
 .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--panel-2); border: 1px solid var(--line); }
 .seg button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 6px 4px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-soft); font-weight: 800; font-size: 14px; }
@@ -409,7 +439,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   .boost { font-size: 10.5px; padding: 0 5px 3px; }
   .menu-toggle { display: none; }
   .panel, .game.collapsed > .panel { display: contents; }
-  .tabs { position: absolute; z-index: 12; left: 0; right: 0; bottom: 0; height: var(--tabs-h); border-bottom: 0; border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .tabs { position: absolute; z-index: 12; left: 0; right: 0; bottom: 0; height: var(--tabs-h); border-bottom: 0; border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)); }
   .tabs button { font-size: 11px; min-height: 50px; }
   .game.collapsed .tabs button[aria-selected="true"] { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
   .panes { position: absolute; z-index: 11; left: 0; right: 0; bottom: var(--tabs-h); height: min(54vh, 560px); height: min(54dvh, 560px); padding: 0 16px 20px; background: var(--panel); border-radius: 18px 18px 0 0; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2); transition: transform 0.28s ease, visibility 0s linear 0s; }
@@ -485,6 +515,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
       <button type="button" id="tabProd" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l11-2v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.8" fill="currentColor"/><circle cx="17.5" cy="16" r="2.8" fill="currentColor"/></svg><span>Prod</span></button>
       <button type="button" id="tabShop" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="8" cy="12.5" r="2" fill="currentColor"/><circle cx="16" cy="12.5" r="2" fill="currentColor"/><path d="M8 7V4h8v3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg><span>Matériel</span></button>
       <button type="button" id="tabTeam" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4" fill="currentColor"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" fill="currentColor"/><circle cx="17" cy="9" r="2.6" fill="currentColor" opacity=".7"/><path d="M15.5 14.2c3.3-.4 6 1.6 6 5" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/></svg><span>Équipe</span></button>
+      <button type="button" id="tabRd" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5.5 9.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 15h9" stroke="currentColor" stroke-width="2.2"/><circle cx="10.5" cy="17.6" r="1.1" fill="currentColor"/><circle cx="13.6" cy="18.3" r="0.9" fill="currentColor"/></svg><span>R&amp;D</span></button>
       <button type="button" id="tabCharts" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="12" width="4" height="9" rx="1" fill="currentColor"/><rect x="10" y="6" width="4" height="15" rx="1" fill="currentColor"/><rect x="17" y="9" width="4" height="12" rx="1" fill="currentColor"/><path d="M12 1.5l1.2 2.4 2.6.4-1.9 1.8.5 2.6L12 7.5 9.6 8.7l.5-2.6-1.9-1.8 2.6-.4z" fill="currentColor"/></svg><span>Top 50</span></button>
       <button type="button" id="tabTro" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 20h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Palmarès</span></button>
       <button type="button" id="tabMore" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Réglages</span></button>
@@ -536,6 +567,14 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <div class="list" id="poolList"></div>
           <button class="btn sm" id="poolRefresh" type="button" style="margin-top:10px;width:100%"><span>Voir d’autres candidats</span><span class="p" id="poolRefreshP"></span></button>
         </div>
+      </section>
+
+      <section class="pane" id="rd" aria-labelledby="rdTitle">
+        <h2 id="rdTitle">Recherche <small id="rdCount"></small></h2>
+        <div class="card rd-points"><div><span class="lbl">Points de recherche</span><b id="rdPts">0</b></div><p class="small-note" id="rdRate"></p></div>
+        <p class="hint">Ton studio accumule du savoir-faire en produisant, en mixant, en livrant des commandes et grâce au Top 50. Chaque recherche est définitive, même après une tournée mondiale. Les spécialisations, elles, se choisissent à nouveau à chaque carrière.</p>
+        <div id="rdSpecs"></div>
+        <div id="rdTree"></div>
       </section>
 
       <section class="pane" id="charts" aria-labelledby="chartTitle">
@@ -743,7 +782,12 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     orderTimeMin: 60, orderTimeMax: 150, orderDeadlineK: 2.5, orderRewardBase: 1.5, orderRewardQ: 0.5,
     repWin: 4, repLose: 6, repMax: 100,
     // Top 50
-    chartLevel: 4, weekLen: 180, chartSize: 50, chartPaySec: 90, promoSec: 120, promoMult: 1.4, chartDecay: 0.85
+    chartLevel: 4, weekLen: 180, chartSize: 50, chartPaySec: 90, promoSec: 120, promoMult: 1.4, chartDecay: 0.85,
+    // Recherche
+    rpPer: 0.6,         // points par production terminée, multipliés par le rang de la production (1 à 11)
+    rpMix: 6,           // points par étoile d'un mix
+    rpOrder: 25,        // points par commande livrée (multipliés par la qualité demandée)
+    rpChart: 0.5        // points par place au-dessus de la 51e, chaque semaine, pour chaque titre classé
   };
 
   // dur: secondes, pay: euros, xp: points d'expertise
@@ -1022,8 +1066,56 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     { id: 'carnet-commandes', name: 'Carnet de commandes', desc: 'Livre 15 commandes à temps.', m: 'orders', n: 15 },
     { id: 'reputation', name: 'Réputation en or', desc: 'Atteins 60 points de réputation.', m: 'rep', n: 60 },
     { id: 'top10', name: 'Top 10', desc: 'Place un titre dans le Top 10.', m: 'chartBest', n: 41 },
-    { id: 'numero-un', name: 'Numéro un', desc: 'Place un titre en tête du Top 50.', m: 'chartBest', n: 50 }
+    { id: 'numero-un', name: 'Numéro un', desc: 'Place un titre en tête du Top 50.', m: 'chartBest', n: 50 },
+    { id: 'chercheur', name: 'Esprit curieux', desc: 'Termine 3 recherches.', m: 'rdNodes', n: 3 },
+    { id: 'savant', name: 'Laboratoire du son', desc: 'Termine 12 recherches.', m: 'rdNodes', n: 12 },
+    { id: 'encyclopedie', name: 'Tout savoir', desc: 'Termine les 18 recherches.', m: 'rdNodes', n: 18 },
+    { id: 'specialiste', name: 'Une identité', desc: 'Choisis ta première spécialisation.', m: 'specs', n: 1 }
   ];
+
+  // Recherche: trois branches de six recherches (chacune demande la précédente de sa branche) et deux paliers de spécialisation.
+  // fx multiplicatifs: gain, speed, xp, roy, mixZone, mixMul, chartScore, chartPay, promoCost, event, orderReward, orderEvery, rep, salary, trainCost, trainTime
+  // fx additifs: quality, mixMax, mixStar, promoAdd, orderSlots, cap, autoQ4 ; chartDecay: valeur (la plus haute gagne)
+  var RESEARCH = {
+    branches: [
+      { id: 'tech', name: 'Technique', desc: 'Vitesse, qualité et mixage.' },
+      { id: 'crea', name: 'Création', desc: 'Expertise, Top 50 et rencontres.' },
+      { id: 'biz', name: 'Business', desc: 'Commandes, équipe et revenus.' }
+    ],
+    costs: [100, 500, 2500, 10000, 40000, 150000],
+    nodes: [
+      { id: 'raccourcis', b: 'tech', name: 'Raccourcis clavier', desc: 'Toutes les productions vont 8 % plus vite.', fx: { speed: 1.08 } },
+      { id: 'gain-staging', b: 'tech', name: 'Gain staging', desc: 'Au mini-jeu de mixage, la zone verte est 40 % plus large.', fx: { mixZone: 1.4 } },
+      { id: 'autotune', b: 'tech', name: 'Auto-Tune', desc: 'Tous les gains augmentent de 10 %.', fx: { gain: 1.1 } },
+      { id: 'mastering-ia', b: 'tech', name: 'Mastering par IA', desc: '+1 étoile de qualité sur toutes les productions.', fx: { quality: 1 } },
+      { id: 'atmos', b: 'tech', name: 'Dolby Atmos', desc: 'Un mix parfait rapporte ×2,5 au lieu de ×2.', fx: { mixMax: 0.5 } },
+      { id: 'hybride', b: 'tech', name: 'Studio hybride', desc: 'Toutes les productions vont 15 % plus vite.', fx: { speed: 1.15 } },
+      { id: 'carnet-idees', b: 'crea', name: 'Carnet d’idées', desc: 'L’expertise vient 15 % plus vite.', fx: { xp: 1.15 } },
+      { id: 'ecoute', b: 'crea', name: 'Écoute active', desc: 'Tes sorties se classent 10 % mieux au Top 50.', fx: { chartScore: 1.1 } },
+      { id: 'signature', b: 'crea', name: 'Signature sonore', desc: 'Les récompenses des sorties de studio augmentent de 50 %.', fx: { event: 1.5 } },
+      { id: 'residence', b: 'crea', name: 'Écriture en résidence', desc: 'L’expertise vient 30 % plus vite.', fx: { xp: 1.3 } },
+      { id: 'instinct', b: 'crea', name: 'Tube instinctif', desc: 'Tes titres perdent beaucoup moins de places au Top 50 chaque semaine.', fx: { chartDecay: 0.93 } },
+      { id: 'genie', b: 'crea', name: 'Génie créatif', desc: '+1 étoile sur chaque titre que tu mixes.', fx: { mixStar: 1 } },
+      { id: 'reseau-pro', b: 'biz', name: 'Réseau professionnel', desc: 'Les primes des commandes augmentent de 25 %.', fx: { orderReward: 1.25 } },
+      { id: 'negociation', b: 'biz', name: 'Négociation', desc: 'Les salaires de l’équipe baissent de 15 %.', fx: { salary: 0.85 } },
+      { id: 'presse', b: 'biz', name: 'Attaché de presse', desc: 'Campagnes promo deux fois moins chères et plus efficaces (×1,6).', fx: { promoCost: 0.5, promoAdd: 0.2 } },
+      { id: 'cadres', b: 'biz', name: 'Contrats cadres', desc: 'Une commande de plus en même temps, et les clients appellent plus souvent.', fx: { orderSlots: 1, orderEvery: 0.7 } },
+      { id: 'distribution', b: 'biz', name: 'Distribution mondiale', desc: 'Royalties ×2.', fx: { roy: 2 } },
+      { id: 'empire', b: 'biz', name: 'Empire musical', desc: 'Tous les gains augmentent de 20 %.', fx: { gain: 1.2 } }
+    ],
+    specs: [
+      { tier: 1, need: 5, name: 'Identité du studio', options: [
+        { id: 'usine', name: 'Usine à tubes', desc: 'Productions 20 % plus rapides, mais une étoile de qualité en moins.', fx: { speed: 1.2, quality: -1 } },
+        { id: 'prestige', name: 'Studio de prestige', desc: 'Gains +30 %, mais productions 15 % plus lentes.', fx: { gain: 1.3, speed: 0.87 } },
+        { id: 'independant', name: 'Studio indépendant', desc: 'Réputation gagnée doublée et primes des commandes +40 %, mais gains −10 %.', fx: { rep: 2, orderReward: 1.4, gain: 0.9 } }
+      ] },
+      { tier: 2, need: 11, name: 'Savoir-faire', options: [
+        { id: 'stars', name: 'Faiseur de stars', desc: 'Gains du Top 50 doublés et classement +20 %.', fx: { chartPay: 2, chartScore: 1.2 } },
+        { id: 'formation-maison', name: 'Maison de formation', desc: 'Formations deux fois moins chères et deux fois plus rapides, un poste d’équipe en plus.', fx: { trainCost: 0.5, trainTime: 0.5, cap: 1 } },
+        { id: 'artisan', name: 'Artisan du son', desc: 'Les mix rapportent 50 % de plus, et une production automatique sur dix sort en 4 étoiles.', fx: { mixMul: 1.5, autoQ4: 0.1 } }
+      ] }
+    ]
+  };
 
   // Commandes: clients par type de production
   var CLIENTS = {
@@ -1054,7 +1146,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1074,6 +1166,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   var ACTS = D.ACTS, ITEMS = D.ITEMS, TIERS = D.TIERS, EVENTS = D.EVENTS, TROPHIES = D.TROPHIES, T = D.TUNING;
   ROY = T.roy; OFFLINE_CAP = T.offlineCap; OFFLINE_EFF = T.offlineEff; TAP = T.tap;
 
+  var RESEARCH = D.RESEARCH || { branches: [], nodes: [], specs: [], costs: [] }, RD_BY = {}, SPEC_BY = {};
+  RESEARCH.nodes.forEach(function (n) { RD_BY[n.id] = n; });
+  RESEARCH.specs.forEach(function (t) { t.options.forEach(function (o) { SPEC_BY[o.id] = { o: o, tier: t.tier }; }); });
   var ROLES = D.ROLES || [], NAMES = D.NAMES || [], CLIENTS = D.CLIENTS || {}, CHART = D.CHART || { words: ['Titre'], tails: [''], artists: ['Artiste'] };
   var ACT_BY = {}, ITEM_BY = {}, EVENT_BY = {}, TROPHY_BY = {}, ROLE_BY = {};
   ROLES.forEach(function (r) { ROLE_BY[r.id] = r; });
@@ -1096,8 +1191,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts() };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd() };
   }
+  function newRd() { return { pts: 0, total: 0, nodes: {}, spec: {} }; }
   function newOrders() { return { offers: [], active: [], cd: T.orderFirst, rep: 0, done: 0, failed: 0, nextId: 1 }; }
   function newCharts() { return { week: 1, left: T.weekLen, rivals: [], mine: [], free: 0, best: 0, num1: 0, releases: 0, nextId: 1 }; }
   function newTeam() { return { staff: [], pool: [], poolCd: 0, alumni: [], nextId: 1, hired: 0 }; }
@@ -1152,6 +1248,13 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     });
     if (o.orders && typeof o.orders === 'object') hydrateOrders(S, o.orders);
     if (o.charts && typeof o.charts === 'object') hydrateCharts(S, o.charts);
+    if (o.rd && typeof o.rd === 'object') {
+      S.rd.pts = Math.max(0, num(o.rd.pts, 0)); S.rd.total = Math.max(S.rd.pts, num(o.rd.total, 0));
+      if (o.rd.nodes && typeof o.rd.nodes === 'object') RESEARCH.nodes.forEach(function (n) { if (o.rd.nodes[n.id]) S.rd.nodes[n.id] = 1; });
+      // une recherche n'est valable que si la précédente de sa branche l'est aussi
+      RESEARCH.branches.forEach(function (b) { var ok = true; branchNodes(b.id).forEach(function (n) { if (!ok) delete S.rd.nodes[n.id]; else if (!S.rd.nodes[n.id]) ok = false; }); });
+      if (o.rd.spec && typeof o.rd.spec === 'object') RESEARCH.specs.forEach(function (t) { var id = o.rd.spec[t.tier]; if (SPEC_BY[id] && SPEC_BY[id].tier === t.tier) S.rd.spec[t.tier] = id; });
+    }
     return S;
   }
 
@@ -1249,10 +1352,65 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     g.gain *= 1 + T.trophyBonus * Object.keys(S.trophies || {}).length;
     g.gain *= 1 + T.fameBonus * (S.fame || 0);
     g.xp *= 1 + T.fameXp * (S.fame || 0);
-    c = { g: g, v: v, vm: Math.pow(Math.max(v, 400) / 400, T.valueExp) };
+    var rf = computeRd(S);
+    g.gain *= rf.gain; g.speed *= rf.speed; g.xp *= rf.xp; g.roy *= rf.roy;
+    c = { g: g, v: v, vm: Math.pow(Math.max(v, 400) / 400, T.valueExp), rd: rf };
     if (cache) cache.set(S, c);
     return c;
   }
+
+  // ---------- Recherche ----------
+  var MULT = ['gain', 'speed', 'xp', 'roy', 'mixZone', 'mixMul', 'chartScore', 'chartPay', 'promoCost', 'event', 'orderReward', 'orderEvery', 'rep', 'salary', 'trainCost', 'trainTime'];
+  var ADD = ['quality', 'mixMax', 'mixStar', 'promoAdd', 'orderSlots', 'cap', 'autoQ4'];
+  function computeRd(S) {
+    var f = { chartDecay: 0 };
+    MULT.forEach(function (k) { f[k] = 1; }); ADD.forEach(function (k) { f[k] = 0; });
+    function addFx(x) {
+      Object.keys(x).forEach(function (k) {
+        if (k === 'chartDecay') f.chartDecay = Math.max(f.chartDecay, x[k]);
+        else if (MULT.indexOf(k) >= 0) f[k] *= x[k];
+        else if (ADD.indexOf(k) >= 0) f[k] += x[k];
+      });
+    }
+    var rd = S.rd || {};
+    RESEARCH.nodes.forEach(function (n) { if (rd.nodes && rd.nodes[n.id]) addFx(n.fx); });
+    Object.keys(rd.spec || {}).forEach(function (t) { var sp = SPEC_BY[rd.spec[t]]; if (sp) addFx(sp.o.fx); });
+    return f;
+  }
+  function rdFx(S) { return stats(S).rd; }
+  function branchNodes(b) { return RESEARCH.nodes.filter(function (n) { return n.b === b; }); }
+  function nodeTier(id) { var n = RD_BY[id], list = branchNodes(n.b); return list.indexOf(n); }
+  function researchCost(id) { return RESEARCH.costs[Math.min(RESEARCH.costs.length - 1, nodeTier(id))]; }
+  function rdCount(S) { return Object.keys((S.rd && S.rd.nodes) || {}).length; }
+  function canResearch(S, id) {
+    var n = RD_BY[id];
+    if (!n || S.rd.nodes[id]) return false;
+    var list = branchNodes(n.b), i = list.indexOf(n);
+    if (i > 0 && !S.rd.nodes[list[i - 1].id]) return false;
+    return S.rd.pts >= researchCost(id);
+  }
+  function research(S, id) {
+    if (!canResearch(S, id)) return false;
+    S.rd.pts -= researchCost(id); S.rd.nodes[id] = 1; touch(S);
+    if (hooks.research) hooks.research(RD_BY[id]);
+    return true;
+  }
+  function specOpen(S, tier) { var t = RESEARCH.specs.filter(function (x) { return x.tier === tier; })[0]; return !!t && rdCount(S) >= t.need; }
+  function chooseSpec(S, tier, id) {
+    var sp = SPEC_BY[id];
+    if (!sp || sp.tier !== tier || S.rd.spec[tier] || !specOpen(S, tier)) return false;
+    S.rd.spec[tier] = id; touch(S);
+    if (hooks.spec) hooks.spec(sp.o, tier);
+    return true;
+  }
+  function addRp(S, x) { if (x > 0 && S.rd) { S.rd.pts += x; S.rd.total += x; } }
+  // Points de recherche par seconde avec les productions qui tournent en continu (pour l'affichage).
+  function rdRate(S) {
+    var r = 0;
+    ACTS.forEach(function (a, i) { var s = S.acts[a.id]; if (s.auto && isUnlocked(S, a)) r += (i + 1) * T.rpPer / duration(S, a); });
+    return r;
+  }
+  function orderMax(S) { return T.orderMaxActive + rdFx(S).orderSlots; }
 
   function boostMult(S) { return S.boost && S.boost.left > 0 ? S.boost.m : 1; }
   function contactCount(S) { return Object.keys(S.contacts || {}).length; }
@@ -1331,7 +1489,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     S.tracks[act.id] = (S.tracks[act.id] || 0) + n;
     a.done += n;
     addXp(S, x);
-    orderProgress(S, act.id, n, baseQuality(S, act.id), mixed ? mixed.q : null);
+    var qb = baseQuality(S, act.id), rf = rdFx(S);
+    if (rf.autoQ4 && a.auto && rand() < rf.autoQ4) qb = Math.max(qb, 4);
+    orderProgress(S, act.id, n, qb, mixed ? mixed.q : null);
+    addRp(S, n * (ACTS.indexOf(act) + 1) * T.rpPer);
     if (hooks.complete) hooks.complete(act, n, p, mixed);
   }
 
@@ -1423,7 +1584,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   // ---------- Équipe du studio ----------
   var NOFX = { sp: 1, gn: 1, m: null };
   function teamOpen(S) { return S.level >= T.teamLevel; }
-  function teamCap(S) { return T.teamCap[Math.min(T.teamCap.length - 1, tierIndex(S))]; }
+  function teamCap(S) { return T.teamCap[Math.min(T.teamCap.length - 1, tierIndex(S))] + rdFx(S).cap; }
   function staffXpNeed(lvl) { return Math.round(T.staffXpBase * Math.pow(T.staffXpGrowth, lvl - 1)); }
   function roleFits(m, actId) { return ROLE_BY[m.role].acts.indexOf(actId) >= 0; }
   function working(m) { return !!m.act && m.rest <= 0 && m.train <= 0; }
@@ -1448,7 +1609,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var b = boostMult(S), a = bestAct(S);
     return Math.max((royRate(S) + activeRate(S)) / b, payout(S, a) / b / duration(S, a), 0.05);
   }
-  function payroll(S) { var t = 0; (S.team ? S.team.staff : []).forEach(function (m) { t += m.salary; }); return t; }
+  function payroll(S) { var t = 0; (S.team ? S.team.staff : []).forEach(function (m) { t += m.salary; }); return t * rdFx(S).salary; }
   function salaryFor(S, stars, lvl) { return Math.max(T.salaryMin, incomeRef(S) * T.salaryShare * stars * (1 + 0.08 * (lvl - 1))); }
   function pickName(S) {
     var tm = S.team, used = {};
@@ -1531,13 +1692,13 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     m.act = actId || null;
     return true;
   }
-  function trainCost(S, m) { return m.salary * T.trainSec * m.lvl; }
+  function trainCost(S, m) { return m.salary * T.trainSec * m.lvl * rdFx(S).trainCost; }
   function train(S, id) {
     var m = findMember(S, id);
     if (!m || m.lvl >= T.staffMaxLvl || m.train > 0 || m.rest > 0) return false;
     var c = trainCost(S, m);
     if (S.money < c) return false;
-    S.money -= c; m.train = T.trainTime * (m.lvl + 1);
+    S.money -= c; m.train = T.trainTime * (m.lvl + 1) * rdFx(S).trainTime;
     return true;
   }
   function bonusCost(S, m) { return m.salary * T.bonusSec; }
@@ -1609,7 +1770,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function baseQuality(S, actId) {
     var q = 1 + Math.floor(tierIndex(S) / 2), fx = staffFx(S, actId);
     if (fx.m) q += fx.m.stars >= 4 ? 2 : 1;
-    return Math.min(5, q);
+    q += rdFx(S).quality;
+    return Math.max(1, Math.min(5, q));
   }
   function canMix(S, id) {
     var act = ACT_BY[id], a = act && S.acts[id];
@@ -1623,9 +1785,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var a = S.acts[id];
     if (!a || !a.hold) return null;
     score = Math.max(0, Math.min(1, +score || 0));
-    var q = mixStars(score);
+    var rf = rdFx(S), q = Math.min(5, mixStars(score) + rf.mixStar);
     a.hold = false;
-    a.mix = { m: 1 + T.mixMax * score, q: q, x: T.mixXp * score };
+    a.mix = { m: 1 + (T.mixMax + rf.mixMax) * score * rf.mixMul, q: q, x: T.mixXp * score };
+    addRp(S, T.rpMix * q);
     S.mixes = (S.mixes || 0) + 1;
     if (q === 5) S.perfect = (S.perfect || 0) + 1;
     var ch = S.charts;
@@ -1653,13 +1816,13 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var time = Math.round(Math.max(n * d * T.orderDeadlineK + 30, q > bq ? n * (d + 45) + 60 : 0));
     var o = S.orders;
     return { id: o.nextId++, act: act.id, n: n, q: q, got: 0, time: time, left: time, life: T.orderOfferLife,
-      reward: rawPayout(S, act) * n * (T.orderRewardBase + T.orderRewardQ * q) * (1 + o.rep / 100), xp: xpGain(S, act) * n * 0.5,
+      reward: rawPayout(S, act) * n * (T.orderRewardBase + T.orderRewardQ * q) * (1 + o.rep / 100) * rdFx(S).orderReward, xp: xpGain(S, act) * n * 0.5,
       client: names[Math.floor(rand() * names.length)], kind: cl[0] };
   }
   function acceptOrder(S, id) {
     var o = S.orders, i = -1;
     o.offers.forEach(function (x, k) { if (x.id === id) i = k; });
-    if (i < 0 || o.active.length >= T.orderMaxActive) return false;
+    if (i < 0 || o.active.length >= orderMax(S)) return false;
     var x = o.offers.splice(i, 1)[0];
     x.left = x.time; x.got = 0;
     o.active.push(x);
@@ -1680,8 +1843,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       o.active = o.active.filter(function (y) { return y !== x; });
       S.money += x.reward; S.lifetime += x.reward;
       addXp(S, x.xp);
-      o.rep = Math.min(T.repMax, o.rep + T.repWin);
+      o.rep = Math.min(T.repMax, o.rep + T.repWin * rdFx(S).rep);
       o.done++;
+      addRp(S, T.rpOrder * x.q);
       if (hooks.orderDone) hooks.orderDone(x);
     });
   }
@@ -1691,7 +1855,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var o = S.orders;
     o.cd -= dt;
     if (o.cd <= 0) {
-      o.cd = T.orderEvery;
+      o.cd = T.orderEvery * rdFx(S).orderEvery;
       if (o.offers.length < T.orderMaxOffers) { var x = makeOrder(S); if (x) { o.offers.push(x); if (hooks.orderNew) hooks.orderNew(x); } }
     }
     o.offers = o.offers.filter(function (x) { x.life -= dt; return x.life > 0; });
@@ -1710,7 +1874,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function newRival(f) { return { t: songTitle(), a: CHART.artists[Math.floor(rand() * CHART.artists.length)], f: f, p: 0 }; }
   function potential(S) { return Math.log10(rawPayout(S, bestAct(S)) + 10); }
   function releaseScore(S, actId, q, promo) {
-    return Math.log10(rawPayout(S, ACT_BY[actId]) + 10) * (0.55 + 0.2 * q) * (promo ? T.promoMult : 1) * (1 + S.orders.rep / 200) * (0.9 + rand() * 0.2);
+    return Math.log10(rawPayout(S, ACT_BY[actId]) + 10) * (0.55 + 0.2 * q) * (promo ? T.promoMult + rdFx(S).promoAdd : 1) * (1 + S.orders.rep / 200) * rdFx(S).chartScore * (0.9 + rand() * 0.2);
   }
   function initRivals(S) {
     var c = S.charts; c.rivals = [];
@@ -1739,7 +1903,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     all.sort(function (x, y) { return y.s - x.s; });
     return all.slice(0, T.chartSize).map(function (e, i) { return { t: e.o.t, a: e.mine ? null : e.o.a, mine: !!e.mine, id: e.mine ? e.o.id : null, act: e.mine ? e.o.act : null, q: e.mine ? e.o.q : null, pos: i + 1, prev: e.o.p || 0, weeks: e.mine ? e.o.weeks : null }; });
   }
-  function promoCost(S) { return incomeRef(S) * T.promoSec; }
+  function promoCost(S) { return incomeRef(S) * T.promoSec * rdFx(S).promoCost; }
   function canFreeRelease(S) { return chartsOpen(S) && S.charts.free !== S.charts.week; }
   // src: identifiant d'un titre mixé, ou 'free' pour un titre du catalogue (une fois par semaine, qualité de base, production choisie).
   function release(S, src, promo, actId) {
@@ -1768,7 +1932,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (hooks.release) hooks.release(e);
     return e;
   }
-  function chartPay(S, pos) { return incomeRef(S) * T.chartPaySec * (T.chartSize + 1 - pos) / T.chartSize; }
+  function chartPay(S, pos) { return incomeRef(S) * T.chartPaySec * (T.chartSize + 1 - pos) / T.chartSize * rdFx(S).chartPay; }
   function weekEnd(S) {
     var c = S.charts, pay = 0, entries = [];
     rankCharts(S, false);
@@ -1778,10 +1942,12 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       pay += g; m.earned += g; m.weeks++;
       entries.push({ t: m.t, pos: m.pos, gain: g });
       if (m.pos === 1) { c.num1++; S.orders.rep = Math.min(T.repMax, S.orders.rep + 3); }
+      addRp(S, T.rpChart * (T.chartSize + 1 - m.pos));
     });
     S.money += pay; S.lifetime += pay;
     // la semaine suivante: les titres vieillissent, de nouveaux rivaux entrent
-    c.mine.forEach(function (m) { m.s *= T.chartDecay * (0.95 + rand() * 0.1); });
+    var dec = Math.max(T.chartDecay, rdFx(S).chartDecay);
+    c.mine.forEach(function (m) { m.s *= dec * (0.95 + rand() * 0.1); });
     c.rivals.forEach(function (r) { r.f *= 0.93 + rand() * 0.12; });
     c.rivals.sort(function (x, y) { return y.f - x.f; });
     for (var i = 0; i < 5; i++) c.rivals.splice(Math.floor(rand() * c.rivals.length), 1);
@@ -1829,6 +1995,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       S.acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: s ? s.done : 0 };
     });
     S.ev.cd = T.eventFirst; S.ev.pending = null; S.ev.hold = false;
+    S.rd.spec = {}; // les recherches restent, les spécialisations se choisissent à nouveau
     // L'équipe part aussi en tournée: ses membres pourront revenir sans prime d'embauche.
     var tm = S.team || newTeam(), al = tm.staff.map(function (m) { return { id: m.id, name: m.name, role: m.role, stars: m.stars, lvl: m.lvl, xp: 0, salary: m.salary, look: m.look }; });
     tm.alumni = al.concat(tm.alumni.filter(function (a) { return !al.some(function (b) { return b.id === a.id; }); })).slice(0, 16);
@@ -1867,6 +2034,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       case 'orders': n = S.orders ? S.orders.done : 0; break;
       case 'rep': n = S.orders ? S.orders.rep : 0; break;
       case 'chartBest': n = S.charts && S.charts.best ? T.chartSize + 1 - S.charts.best : 0; break;
+      case 'rdNodes': n = rdCount(S); break;
+      case 'specs': n = Object.keys((S.rd && S.rd.spec) || {}).length; break;
       case 'staffLvl': (S.team ? S.team.staff : []).forEach(function (m) { n = Math.max(n, m.lvl); }); break;
       case 'outings': Object.keys(S.ev.seen || {}).forEach(function (id) { n += S.ev.seen[id] || 0; }); break;
     }
@@ -1949,10 +2118,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var m, a;
     switch (r.k) {
       case 'cash':
-        m = ref * r.x; S.money += m; S.lifetime += m;
+        m = ref * r.x * rdFx(S).event; S.money += m; S.lifetime += m;
         return { k: 'cash', v: m };
       case 'xp':
-        m = xpNeeded(S.level) * r.x; addXp(S, m);
+        m = xpNeeded(S.level) * r.x * rdFx(S).event; addXp(S, m);
         return { k: 'xp', v: m };
       case 'boost':
         // Un nouveau boost plus long repart avec une jauge pleine ; un boost plus court ne raccourcit pas l'actuel.
@@ -2015,7 +2184,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     baseQuality: baseQuality, canMix: canMix, startMix: startMix, cancelMix: cancelMix, finishMix: finishMix, mixStars: mixStars,
     ordersOpen: ordersOpen, makeOrder: makeOrder, acceptOrder: acceptOrder, declineOrder: declineOrder, tickOrders: tickOrders,
     chartsOpen: chartsOpen, chartTop: chartTop, rankCharts: rankCharts, release: release, canFreeRelease: canFreeRelease, promoCost: promoCost,
-    chartPay: chartPay, weekEnd: weekEnd, tickCharts: tickCharts, tickLive: tickLive, potential: potential
+    chartPay: chartPay, weekEnd: weekEnd, tickCharts: tickCharts, tickLive: tickLive, potential: potential,
+    RESEARCH: RESEARCH, RD_BY: RD_BY, SPEC_BY: SPEC_BY, rdFx: rdFx, researchCost: researchCost, canResearch: canResearch, research: research,
+    specOpen: specOpen, chooseSpec: chooseSpec, rdCount: rdCount, rdRate: rdRate, orderMax: orderMax, branchNodes: branchNodes, addRp: addRp
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;
@@ -3235,13 +3406,14 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function starsHtml(q) { return '<span class="qual" aria-label="' + q + ' étoile' + (q > 1 ? 's' : '') + ' sur 5">' + '★★★★★'.slice(0, q) + '<s>' + '★★★★★'.slice(q) + '</s></span>'; }
 
   // ---------- Mini-jeu de mixage ----------
-  var CHANNELS = ['Voix', 'Batterie', 'Basse', 'Synthé'], ZH = 0.09;
+  var CHANNELS = ['Voix', 'Batterie', 'Basse', 'Synthé'], ZH0 = 0.09, ZH = ZH0;
   var mix = { open: false, act: null, i: 0, acc: [], zones: [], speeds: [], phase: [], t0: 0, raf: 0, pos: 0, done: false, opener: null, faders: [] };
   function knobPos(k, t) { var x = (t * mix.speeds[k] + mix.phase[k]) % 2; x = x < 1 ? x : 2 - x; return 0.04 + 0.92 * x; }
   function openMix(id) {
     if (mix.open || !G.startMix(S, id)) return;
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     mix.open = true; mix.done = false; mix.act = id; mix.i = 0; mix.acc = []; mix.opener = document.activeElement;
+    ZH = Math.min(0.2, ZH0 * (G.rdFx(S).mixZone || 1));
     mix.zones = []; mix.speeds = []; mix.phase = [];
     for (var k = 0; k < 4; k++) { mix.zones.push(0.2 + Math.random() * 0.6); mix.speeds.push((0.55 + k * 0.15) * (reduce ? 0.7 : 1)); mix.phase.push(Math.random() * 2); }
     $('mixTitle').textContent = 'Mixer « ' + G.ACT_BY[id].name + ' »';
@@ -3310,6 +3482,69 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     render();
   }
 
+
+  // ---------- Recherche ----------
+  var rdv = { key: '', t: 0, nodes: {} };
+  function fmtPts(n) { return short(Math.floor(n)); }
+  function renderRd(force) {
+    var R = G.RESEARCH, rd = S.rd, onRd = $('app').getAttribute('data-view') === 'rd';
+    var affordable = R.nodes.some(function (n) { return G.canResearch(S, n.id); });
+    var specReady = R.specs.some(function (t) { return G.specOpen(S, t.tier) && !rd.spec[t.tier]; });
+    setClass($('tabRd'), 'has', !onRd && specReady);
+    setClass($('tabRd'), 'warn', !onRd && !specReady && affordable);
+    if (!onRd && !force) return;
+    var now = performance.now();
+    if (!force && now - rdv.t < 250) return;
+    rdv.t = now;
+    setText($('rdPts'), fmtPts(rd.pts));
+    setText($('rdCount'), G.rdCount(S) + ' / ' + R.nodes.length);
+    var rate = G.rdRate(S) * 60;
+    setText($('rdRate'), (rate >= 1 ? '+' + fmtPts(rate) + ' par minute grâce aux productions automatiques. ' : 'Chaque production terminée en rapporte. ') + 'Mix, commandes et Top 50 en donnent en plus.');
+    var key = Object.keys(rd.nodes).sort().join(',') + '|' + JSON.stringify(rd.spec) + '|' + G.specOpen(S, 1) + G.specOpen(S, 2);
+    if (key !== rdv.key) {
+      rdv.key = key;
+      var sb = $('rdSpecs'); sb.innerHTML = '';
+      R.specs.forEach(function (t) {
+        var open = G.specOpen(S, t.tier), chosen = rd.spec[t.tier];
+        var box = document.createElement('div'); box.className = 'spec-tier';
+        box.innerHTML = '<h3></h3><p></p><div class="spec-opts"></div>';
+        box.querySelector('h3').textContent = 'Spécialisation ' + t.tier + ' · ' + t.name;
+        box.querySelector('p').textContent = chosen ? 'Choix fait pour cette carrière. Tu pourras en changer après une tournée mondiale.' : open ? 'Choisis une seule voie : le choix est définitif jusqu’à ta prochaine tournée.' : 'Se débloque à ' + t.need + ' recherches terminées (' + G.rdCount(S) + ' / ' + t.need + ').';
+        var opts = box.querySelector('.spec-opts');
+        t.options.forEach(function (o) {
+          var el = document.createElement('article');
+          el.className = 'card spec' + (chosen === o.id ? ' chosen' : chosen ? ' off' : '');
+          el.innerHTML = '<div><b></b><p></p></div>' + (chosen === o.id ? '<span class="rd-tag">✓ Choisie</span>' : chosen ? '' : '<button class="btn sm primary" type="button" data-spec="' + o.id + '" data-tier="' + t.tier + '"' + (open ? '' : ' disabled') + '>Choisir</button>');
+          el.querySelector('b').textContent = o.name; el.querySelector('p').textContent = o.desc;
+          opts.appendChild(el);
+        });
+        sb.appendChild(box);
+      });
+      var tb = $('rdTree'); tb.innerHTML = ''; rdv.nodes = {};
+      R.branches.forEach(function (b) {
+        var sec = document.createElement('section'); sec.className = 'rd-branch rd-' + b.id;
+        sec.innerHTML = '<h3><i aria-hidden="true"></i></h3><p></p><div class="rd-chain"></div>';
+        sec.querySelector('h3').appendChild(document.createTextNode(b.name)); sec.querySelector('p').textContent = b.desc;
+        var chain = sec.querySelector('.rd-chain'), prevOwned = true;
+        G.branchNodes(b.id).forEach(function (n) {
+          var own = !!rd.nodes[n.id], next = !own && prevOwned, cost = fmtPts(G.researchCost(n.id)) + ' pts';
+          var el = document.createElement('article');
+          el.className = 'card rd-node' + (own ? ' own' : next ? ' next' : ' lock');
+          el.innerHTML = '<div><b></b><p></p></div>' + (own ? '<span class="rd-tag">✓ Acquise</span>' : next ? '<button class="btn sm primary" type="button" data-rd="' + n.id + '">' + cost + '</button>' : '<span class="rd-tag dim">' + cost + '</span>');
+          el.querySelector('b').textContent = n.name; el.querySelector('p').textContent = n.desc;
+          chain.appendChild(el);
+          if (next) rdv.nodes[n.id] = el.querySelector('button');
+          prevOwned = own;
+        });
+        tb.appendChild(sec);
+      });
+    }
+      // spécialisations en tête quand un choix attend, sinon sous l'arbre
+      var sbx = $('rdSpecs'), tbx = $('rdTree');
+      if (specReady !== (sbx.nextElementSibling === tbx)) tbx.parentNode.insertBefore(sbx, specReady ? tbx : tbx.nextSibling);
+    Object.keys(rdv.nodes).forEach(function (id) { setDisabled(rdv.nodes[id], !G.canResearch(S, id)); });
+  }
+
   // ---------- Commandes clients ----------
   var ord = { key: '', cards: {}, t: 0, wasOpen: null };
   function orderCard(x, active) {
@@ -3335,7 +3570,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (ord.wasOpen === false && open && !quiet) toast('Des clients commencent à t’appeler : retrouve leurs commandes dans Productions.', 6000);
     ord.wasOpen = open;
     setHidden($('ordersBox'), !open);
-    setClass($('tabProd'), 'has', open && !onProd && o.offers.length > 0 && o.active.length < D.TUNING.orderMaxActive);
+    setClass($('tabProd'), 'has', open && !onProd && o.offers.length > 0 && o.active.length < G.orderMax(S));
     if (!open) return;
     var now = performance.now();
     if (!onProd && now - ord.t < 1000) return;
@@ -3348,7 +3583,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       o.active.forEach(function (x) { var c = orderCard(x, true); box.appendChild(c.root); ord.cards['a' + x.id] = c; });
       o.offers.forEach(function (x) { var c = orderCard(x, false); box.appendChild(c.root); ord.cards['o' + x.id] = c; });
     }
-    var full = o.active.length >= D.TUNING.orderMaxActive;
+    var full = o.active.length >= G.orderMax(S);
     Object.keys(ord.cards).forEach(function (k) {
       var c = ord.cards[k], x = c.x;
       if (c.active) {
@@ -3363,7 +3598,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       }
     });
     setText($('orderNote'), !o.active.length && !o.offers.length ? 'Pas de demande pour l’instant. Prochain appel dans ' + clock(o.cd) + '. La réputation augmente la prime des commandes et ton classement au Top 50.'
-      : full && o.offers.length ? 'Tu mènes déjà ' + D.TUNING.orderMaxActive + ' commandes : termine-en une pour en accepter une autre.' : 'Les productions terminées comptent si leur qualité suffit. Un délai dépassé coûte ' + D.TUNING.repLose + ' points de réputation.');
+      : full && o.offers.length ? 'Tu mènes déjà ' + G.orderMax(S) + ' commandes : termine-en une pour en accepter une autre.' : 'Les productions terminées comptent si leur qualité suffit. Un délai dépassé coûte ' + D.TUNING.repLose + ' points de réputation.');
   }
 
   // ---------- Top 50 ----------
@@ -3417,6 +3652,11 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
 
   function bindFeatures() {
+    $('rd').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-rd]'), sp = e.target.closest('button[data-spec]');
+      if (b && !b.disabled) { if (G.research(S, b.getAttribute('data-rd'))) saveLocal(); renderRd(true); render(); }
+      else if (sp && !sp.disabled) { if (G.chooseSpec(S, +sp.getAttribute('data-tier'), sp.getAttribute('data-spec'))) saveLocal(); renderRd(true); render(); }
+    });
     $('mixStop').addEventListener('click', mixStop);
     $('mixer').addEventListener('pointerdown', function (e) { e.preventDefault(); mixStop(); });
     $('mixCancel').addEventListener('click', closeMix);
@@ -3626,6 +3866,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     renderTeam();
     renderOrders();
     renderCharts();
+    renderRd();
     renderScene();
     var hint = $('hint');
     if (hint) setHidden(hint, S.acts.beat.done >= 6);
@@ -4214,7 +4455,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
-    closeMix(); ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null;
+    closeMix(); ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -4274,7 +4515,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       G.buy(S, b.getAttribute('data-buy'));
       render();
     });
-    var TABS = { prod: 'tabProd', shop: 'tabShop', team: 'tabTeam', charts: 'tabCharts', trophies: 'tabTro', account: 'tabMore' };
+    var TABS = { prod: 'tabProd', shop: 'tabShop', team: 'tabTeam', rd: 'tabRd', charts: 'tabCharts', trophies: 'tabTro', account: 'tabMore' };
     function view(v) {
       var was = $('app').getAttribute('data-view');
       $('app').setAttribute('data-view', v);
@@ -4283,6 +4524,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (v === 'trophies') seeTrophies();
       if (v === 'team') { team.key = ''; renderTeam(true); }
       if (v === 'charts') { chs.key = ''; chs.listT = 0; renderCharts(true); }
+      if (v === 'rd') { rdv.key = ''; renderRd(true); }
       if (v !== 'team') team.focus = null;
       render();
     }
@@ -4302,6 +4544,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     $('tabTro').addEventListener('click', function () { tab('trophies'); });
     $('tabTeam').addEventListener('click', function () { tab('team'); });
     $('tabCharts').addEventListener('click', function () { tab('charts'); });
+    $('tabRd').addEventListener('click', function () { tab('rd'); });
     bindFeatures();
     $('tabMore').addEventListener('click', function () { tab('account'); });
     $('goal').addEventListener('click', function () { view('trophies'); });
@@ -4453,6 +4696,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     team.lastUnpaid = now;
     toast('Budget à zéro : les salaires ne sont plus payés et le moral de l’équipe chute.', 6000);
   };
+  G.hooks.research = function (n) { markCloud(); rdv.key = ''; if (!quiet) { toast('Recherche terminée : ' + n.name + '.', 4500); blip(10); } };
+  G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
   G.hooks.orderNew = function (x) { if (!quiet) { toast('Nouvelle commande : ' + x.client + ' (' + x.kind.toLowerCase() + ') te contacte.', 4500); blip(6); } };
   G.hooks.orderDone = function (x) {
     markCloud(); ord.key = '';

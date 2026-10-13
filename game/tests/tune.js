@@ -42,6 +42,18 @@ function teamPolicy(G, S) {
   });
 }
 
+// Recherche: la moins chère d'abord; spécialisations choisies dès que possible.
+function rdPolicy(G, S, over) {
+  let ok = true;
+  while (ok) {
+    ok = false;
+    const opts = G.RESEARCH.nodes.filter(n => !S.rd.nodes[n.id]).sort((a, b) => G.researchCost(a.id) - G.researchCost(b.id));
+    for (const n of opts) if (G.research(S, n.id)) { ok = true; break; }
+  }
+  if (G.specOpen(S, 1) && !S.rd.spec[1]) G.chooseSpec(S, 1, over.spec1 || 'prestige');
+  if (G.specOpen(S, 2) && !S.rd.spec[2]) G.chooseSpec(S, 2, over.spec2 || 'formation-maison');
+}
+
 function run(over, hours, verbose, mode) {
   const { D, G } = load(over);
   const S = G.newState(0);
@@ -74,6 +86,7 @@ function run(over, hours, verbose, mode) {
       }
     }
     if (over.team !== false && G.teamOpen) teamPolicy(G, S);
+    if (over.rd !== false && G.research) rdPolicy(G, S, over);
     G.advance(S, step);
     t += step;
     D.ACTS.forEach(a => { if (unlocks[a.id] == null && G.isUnlocked(S, a)) unlocks[a.id] = t / 60; });

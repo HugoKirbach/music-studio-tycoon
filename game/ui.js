@@ -88,13 +88,14 @@
   function starsHtml(q) { return '<span class="qual" aria-label="' + q + ' étoile' + (q > 1 ? 's' : '') + ' sur 5">' + '★★★★★'.slice(0, q) + '<s>' + '★★★★★'.slice(q) + '</s></span>'; }
 
   // ---------- Mini-jeu de mixage ----------
-  var CHANNELS = ['Voix', 'Batterie', 'Basse', 'Synthé'], ZH = 0.09;
+  var CHANNELS = ['Voix', 'Batterie', 'Basse', 'Synthé'], ZH0 = 0.09, ZH = ZH0;
   var mix = { open: false, act: null, i: 0, acc: [], zones: [], speeds: [], phase: [], t0: 0, raf: 0, pos: 0, done: false, opener: null, faders: [] };
   function knobPos(k, t) { var x = (t * mix.speeds[k] + mix.phase[k]) % 2; x = x < 1 ? x : 2 - x; return 0.04 + 0.92 * x; }
   function openMix(id) {
     if (mix.open || !G.startMix(S, id)) return;
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     mix.open = true; mix.done = false; mix.act = id; mix.i = 0; mix.acc = []; mix.opener = document.activeElement;
+    ZH = Math.min(0.2, ZH0 * (G.rdFx(S).mixZone || 1));
     mix.zones = []; mix.speeds = []; mix.phase = [];
     for (var k = 0; k < 4; k++) { mix.zones.push(0.2 + Math.random() * 0.6); mix.speeds.push((0.55 + k * 0.15) * (reduce ? 0.7 : 1)); mix.phase.push(Math.random() * 2); }
     $('mixTitle').textContent = 'Mixer « ' + G.ACT_BY[id].name + ' »';
@@ -163,6 +164,69 @@
     render();
   }
 
+
+  // ---------- Recherche ----------
+  var rdv = { key: '', t: 0, nodes: {} };
+  function fmtPts(n) { return short(Math.floor(n)); }
+  function renderRd(force) {
+    var R = G.RESEARCH, rd = S.rd, onRd = $('app').getAttribute('data-view') === 'rd';
+    var affordable = R.nodes.some(function (n) { return G.canResearch(S, n.id); });
+    var specReady = R.specs.some(function (t) { return G.specOpen(S, t.tier) && !rd.spec[t.tier]; });
+    setClass($('tabRd'), 'has', !onRd && specReady);
+    setClass($('tabRd'), 'warn', !onRd && !specReady && affordable);
+    if (!onRd && !force) return;
+    var now = performance.now();
+    if (!force && now - rdv.t < 250) return;
+    rdv.t = now;
+    setText($('rdPts'), fmtPts(rd.pts));
+    setText($('rdCount'), G.rdCount(S) + ' / ' + R.nodes.length);
+    var rate = G.rdRate(S) * 60;
+    setText($('rdRate'), (rate >= 1 ? '+' + fmtPts(rate) + ' par minute grâce aux productions automatiques. ' : 'Chaque production terminée en rapporte. ') + 'Mix, commandes et Top 50 en donnent en plus.');
+    var key = Object.keys(rd.nodes).sort().join(',') + '|' + JSON.stringify(rd.spec) + '|' + G.specOpen(S, 1) + G.specOpen(S, 2);
+    if (key !== rdv.key) {
+      rdv.key = key;
+      var sb = $('rdSpecs'); sb.innerHTML = '';
+      R.specs.forEach(function (t) {
+        var open = G.specOpen(S, t.tier), chosen = rd.spec[t.tier];
+        var box = document.createElement('div'); box.className = 'spec-tier';
+        box.innerHTML = '<h3></h3><p></p><div class="spec-opts"></div>';
+        box.querySelector('h3').textContent = 'Spécialisation ' + t.tier + ' · ' + t.name;
+        box.querySelector('p').textContent = chosen ? 'Choix fait pour cette carrière. Tu pourras en changer après une tournée mondiale.' : open ? 'Choisis une seule voie : le choix est définitif jusqu’à ta prochaine tournée.' : 'Se débloque à ' + t.need + ' recherches terminées (' + G.rdCount(S) + ' / ' + t.need + ').';
+        var opts = box.querySelector('.spec-opts');
+        t.options.forEach(function (o) {
+          var el = document.createElement('article');
+          el.className = 'card spec' + (chosen === o.id ? ' chosen' : chosen ? ' off' : '');
+          el.innerHTML = '<div><b></b><p></p></div>' + (chosen === o.id ? '<span class="rd-tag">✓ Choisie</span>' : chosen ? '' : '<button class="btn sm primary" type="button" data-spec="' + o.id + '" data-tier="' + t.tier + '"' + (open ? '' : ' disabled') + '>Choisir</button>');
+          el.querySelector('b').textContent = o.name; el.querySelector('p').textContent = o.desc;
+          opts.appendChild(el);
+        });
+        sb.appendChild(box);
+      });
+      var tb = $('rdTree'); tb.innerHTML = ''; rdv.nodes = {};
+      R.branches.forEach(function (b) {
+        var sec = document.createElement('section'); sec.className = 'rd-branch rd-' + b.id;
+        sec.innerHTML = '<h3><i aria-hidden="true"></i></h3><p></p><div class="rd-chain"></div>';
+        sec.querySelector('h3').appendChild(document.createTextNode(b.name)); sec.querySelector('p').textContent = b.desc;
+        var chain = sec.querySelector('.rd-chain'), prevOwned = true;
+        G.branchNodes(b.id).forEach(function (n) {
+          var own = !!rd.nodes[n.id], next = !own && prevOwned, cost = fmtPts(G.researchCost(n.id)) + ' pts';
+          var el = document.createElement('article');
+          el.className = 'card rd-node' + (own ? ' own' : next ? ' next' : ' lock');
+          el.innerHTML = '<div><b></b><p></p></div>' + (own ? '<span class="rd-tag">✓ Acquise</span>' : next ? '<button class="btn sm primary" type="button" data-rd="' + n.id + '">' + cost + '</button>' : '<span class="rd-tag dim">' + cost + '</span>');
+          el.querySelector('b').textContent = n.name; el.querySelector('p').textContent = n.desc;
+          chain.appendChild(el);
+          if (next) rdv.nodes[n.id] = el.querySelector('button');
+          prevOwned = own;
+        });
+        tb.appendChild(sec);
+      });
+    }
+      // spécialisations en tête quand un choix attend, sinon sous l'arbre
+      var sbx = $('rdSpecs'), tbx = $('rdTree');
+      if (specReady !== (sbx.nextElementSibling === tbx)) tbx.parentNode.insertBefore(sbx, specReady ? tbx : tbx.nextSibling);
+    Object.keys(rdv.nodes).forEach(function (id) { setDisabled(rdv.nodes[id], !G.canResearch(S, id)); });
+  }
+
   // ---------- Commandes clients ----------
   var ord = { key: '', cards: {}, t: 0, wasOpen: null };
   function orderCard(x, active) {
@@ -188,7 +252,7 @@
     if (ord.wasOpen === false && open && !quiet) toast('Des clients commencent à t’appeler : retrouve leurs commandes dans Productions.', 6000);
     ord.wasOpen = open;
     setHidden($('ordersBox'), !open);
-    setClass($('tabProd'), 'has', open && !onProd && o.offers.length > 0 && o.active.length < D.TUNING.orderMaxActive);
+    setClass($('tabProd'), 'has', open && !onProd && o.offers.length > 0 && o.active.length < G.orderMax(S));
     if (!open) return;
     var now = performance.now();
     if (!onProd && now - ord.t < 1000) return;
@@ -201,7 +265,7 @@
       o.active.forEach(function (x) { var c = orderCard(x, true); box.appendChild(c.root); ord.cards['a' + x.id] = c; });
       o.offers.forEach(function (x) { var c = orderCard(x, false); box.appendChild(c.root); ord.cards['o' + x.id] = c; });
     }
-    var full = o.active.length >= D.TUNING.orderMaxActive;
+    var full = o.active.length >= G.orderMax(S);
     Object.keys(ord.cards).forEach(function (k) {
       var c = ord.cards[k], x = c.x;
       if (c.active) {
@@ -216,7 +280,7 @@
       }
     });
     setText($('orderNote'), !o.active.length && !o.offers.length ? 'Pas de demande pour l’instant. Prochain appel dans ' + clock(o.cd) + '. La réputation augmente la prime des commandes et ton classement au Top 50.'
-      : full && o.offers.length ? 'Tu mènes déjà ' + D.TUNING.orderMaxActive + ' commandes : termine-en une pour en accepter une autre.' : 'Les productions terminées comptent si leur qualité suffit. Un délai dépassé coûte ' + D.TUNING.repLose + ' points de réputation.');
+      : full && o.offers.length ? 'Tu mènes déjà ' + G.orderMax(S) + ' commandes : termine-en une pour en accepter une autre.' : 'Les productions terminées comptent si leur qualité suffit. Un délai dépassé coûte ' + D.TUNING.repLose + ' points de réputation.');
   }
 
   // ---------- Top 50 ----------
@@ -270,6 +334,11 @@
   }
 
   function bindFeatures() {
+    $('rd').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-rd]'), sp = e.target.closest('button[data-spec]');
+      if (b && !b.disabled) { if (G.research(S, b.getAttribute('data-rd'))) saveLocal(); renderRd(true); render(); }
+      else if (sp && !sp.disabled) { if (G.chooseSpec(S, +sp.getAttribute('data-tier'), sp.getAttribute('data-spec'))) saveLocal(); renderRd(true); render(); }
+    });
     $('mixStop').addEventListener('click', mixStop);
     $('mixer').addEventListener('pointerdown', function (e) { e.preventDefault(); mixStop(); });
     $('mixCancel').addEventListener('click', closeMix);
@@ -479,6 +548,7 @@
     renderTeam();
     renderOrders();
     renderCharts();
+    renderRd();
     renderScene();
     var hint = $('hint');
     if (hint) setHidden(hint, S.acts.beat.done >= 6);
@@ -1067,7 +1137,7 @@
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
-    closeMix(); ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null;
+    closeMix(); ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -1127,7 +1197,7 @@
       G.buy(S, b.getAttribute('data-buy'));
       render();
     });
-    var TABS = { prod: 'tabProd', shop: 'tabShop', team: 'tabTeam', charts: 'tabCharts', trophies: 'tabTro', account: 'tabMore' };
+    var TABS = { prod: 'tabProd', shop: 'tabShop', team: 'tabTeam', rd: 'tabRd', charts: 'tabCharts', trophies: 'tabTro', account: 'tabMore' };
     function view(v) {
       var was = $('app').getAttribute('data-view');
       $('app').setAttribute('data-view', v);
@@ -1136,6 +1206,7 @@
       if (v === 'trophies') seeTrophies();
       if (v === 'team') { team.key = ''; renderTeam(true); }
       if (v === 'charts') { chs.key = ''; chs.listT = 0; renderCharts(true); }
+      if (v === 'rd') { rdv.key = ''; renderRd(true); }
       if (v !== 'team') team.focus = null;
       render();
     }
@@ -1155,6 +1226,7 @@
     $('tabTro').addEventListener('click', function () { tab('trophies'); });
     $('tabTeam').addEventListener('click', function () { tab('team'); });
     $('tabCharts').addEventListener('click', function () { tab('charts'); });
+    $('tabRd').addEventListener('click', function () { tab('rd'); });
     bindFeatures();
     $('tabMore').addEventListener('click', function () { tab('account'); });
     $('goal').addEventListener('click', function () { view('trophies'); });
@@ -1306,6 +1378,8 @@
     team.lastUnpaid = now;
     toast('Budget à zéro : les salaires ne sont plus payés et le moral de l’équipe chute.', 6000);
   };
+  G.hooks.research = function (n) { markCloud(); rdv.key = ''; if (!quiet) { toast('Recherche terminée : ' + n.name + '.', 4500); blip(10); } };
+  G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
   G.hooks.orderNew = function (x) { if (!quiet) { toast('Nouvelle commande : ' + x.client + ' (' + x.kind.toLowerCase() + ') te contacte.', 4500); blip(6); } };
   G.hooks.orderDone = function (x) {
     markCloud(); ord.key = '';

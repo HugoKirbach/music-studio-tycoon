@@ -13,6 +13,9 @@
   var ACTS = D.ACTS, ITEMS = D.ITEMS, TIERS = D.TIERS, EVENTS = D.EVENTS, TROPHIES = D.TROPHIES, T = D.TUNING;
   ROY = T.roy; OFFLINE_CAP = T.offlineCap; OFFLINE_EFF = T.offlineEff; TAP = T.tap;
 
+  var RESEARCH = D.RESEARCH || { branches: [], nodes: [], specs: [], costs: [] }, RD_BY = {}, SPEC_BY = {};
+  RESEARCH.nodes.forEach(function (n) { RD_BY[n.id] = n; });
+  RESEARCH.specs.forEach(function (t) { t.options.forEach(function (o) { SPEC_BY[o.id] = { o: o, tier: t.tier }; }); });
   var ROLES = D.ROLES || [], NAMES = D.NAMES || [], CLIENTS = D.CLIENTS || {}, CHART = D.CHART || { words: ['Titre'], tails: [''], artists: ['Artiste'] };
   var ACT_BY = {}, ITEM_BY = {}, EVENT_BY = {}, TROPHY_BY = {}, ROLE_BY = {};
   ROLES.forEach(function (r) { ROLE_BY[r.id] = r; });
@@ -35,8 +38,9 @@
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts() };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd() };
   }
+  function newRd() { return { pts: 0, total: 0, nodes: {}, spec: {} }; }
   function newOrders() { return { offers: [], active: [], cd: T.orderFirst, rep: 0, done: 0, failed: 0, nextId: 1 }; }
   function newCharts() { return { week: 1, left: T.weekLen, rivals: [], mine: [], free: 0, best: 0, num1: 0, releases: 0, nextId: 1 }; }
   function newTeam() { return { staff: [], pool: [], poolCd: 0, alumni: [], nextId: 1, hired: 0 }; }
@@ -91,6 +95,13 @@
     });
     if (o.orders && typeof o.orders === 'object') hydrateOrders(S, o.orders);
     if (o.charts && typeof o.charts === 'object') hydrateCharts(S, o.charts);
+    if (o.rd && typeof o.rd === 'object') {
+      S.rd.pts = Math.max(0, num(o.rd.pts, 0)); S.rd.total = Math.max(S.rd.pts, num(o.rd.total, 0));
+      if (o.rd.nodes && typeof o.rd.nodes === 'object') RESEARCH.nodes.forEach(function (n) { if (o.rd.nodes[n.id]) S.rd.nodes[n.id] = 1; });
+      // une recherche n'est valable que si la précédente de sa branche l'est aussi
+      RESEARCH.branches.forEach(function (b) { var ok = true; branchNodes(b.id).forEach(function (n) { if (!ok) delete S.rd.nodes[n.id]; else if (!S.rd.nodes[n.id]) ok = false; }); });
+      if (o.rd.spec && typeof o.rd.spec === 'object') RESEARCH.specs.forEach(function (t) { var id = o.rd.spec[t.tier]; if (SPEC_BY[id] && SPEC_BY[id].tier === t.tier) S.rd.spec[t.tier] = id; });
+    }
     return S;
   }
 
@@ -188,10 +199,65 @@
     g.gain *= 1 + T.trophyBonus * Object.keys(S.trophies || {}).length;
     g.gain *= 1 + T.fameBonus * (S.fame || 0);
     g.xp *= 1 + T.fameXp * (S.fame || 0);
-    c = { g: g, v: v, vm: Math.pow(Math.max(v, 400) / 400, T.valueExp) };
+    var rf = computeRd(S);
+    g.gain *= rf.gain; g.speed *= rf.speed; g.xp *= rf.xp; g.roy *= rf.roy;
+    c = { g: g, v: v, vm: Math.pow(Math.max(v, 400) / 400, T.valueExp), rd: rf };
     if (cache) cache.set(S, c);
     return c;
   }
+
+  // ---------- Recherche ----------
+  var MULT = ['gain', 'speed', 'xp', 'roy', 'mixZone', 'mixMul', 'chartScore', 'chartPay', 'promoCost', 'event', 'orderReward', 'orderEvery', 'rep', 'salary', 'trainCost', 'trainTime'];
+  var ADD = ['quality', 'mixMax', 'mixStar', 'promoAdd', 'orderSlots', 'cap', 'autoQ4'];
+  function computeRd(S) {
+    var f = { chartDecay: 0 };
+    MULT.forEach(function (k) { f[k] = 1; }); ADD.forEach(function (k) { f[k] = 0; });
+    function addFx(x) {
+      Object.keys(x).forEach(function (k) {
+        if (k === 'chartDecay') f.chartDecay = Math.max(f.chartDecay, x[k]);
+        else if (MULT.indexOf(k) >= 0) f[k] *= x[k];
+        else if (ADD.indexOf(k) >= 0) f[k] += x[k];
+      });
+    }
+    var rd = S.rd || {};
+    RESEARCH.nodes.forEach(function (n) { if (rd.nodes && rd.nodes[n.id]) addFx(n.fx); });
+    Object.keys(rd.spec || {}).forEach(function (t) { var sp = SPEC_BY[rd.spec[t]]; if (sp) addFx(sp.o.fx); });
+    return f;
+  }
+  function rdFx(S) { return stats(S).rd; }
+  function branchNodes(b) { return RESEARCH.nodes.filter(function (n) { return n.b === b; }); }
+  function nodeTier(id) { var n = RD_BY[id], list = branchNodes(n.b); return list.indexOf(n); }
+  function researchCost(id) { return RESEARCH.costs[Math.min(RESEARCH.costs.length - 1, nodeTier(id))]; }
+  function rdCount(S) { return Object.keys((S.rd && S.rd.nodes) || {}).length; }
+  function canResearch(S, id) {
+    var n = RD_BY[id];
+    if (!n || S.rd.nodes[id]) return false;
+    var list = branchNodes(n.b), i = list.indexOf(n);
+    if (i > 0 && !S.rd.nodes[list[i - 1].id]) return false;
+    return S.rd.pts >= researchCost(id);
+  }
+  function research(S, id) {
+    if (!canResearch(S, id)) return false;
+    S.rd.pts -= researchCost(id); S.rd.nodes[id] = 1; touch(S);
+    if (hooks.research) hooks.research(RD_BY[id]);
+    return true;
+  }
+  function specOpen(S, tier) { var t = RESEARCH.specs.filter(function (x) { return x.tier === tier; })[0]; return !!t && rdCount(S) >= t.need; }
+  function chooseSpec(S, tier, id) {
+    var sp = SPEC_BY[id];
+    if (!sp || sp.tier !== tier || S.rd.spec[tier] || !specOpen(S, tier)) return false;
+    S.rd.spec[tier] = id; touch(S);
+    if (hooks.spec) hooks.spec(sp.o, tier);
+    return true;
+  }
+  function addRp(S, x) { if (x > 0 && S.rd) { S.rd.pts += x; S.rd.total += x; } }
+  // Points de recherche par seconde avec les productions qui tournent en continu (pour l'affichage).
+  function rdRate(S) {
+    var r = 0;
+    ACTS.forEach(function (a, i) { var s = S.acts[a.id]; if (s.auto && isUnlocked(S, a)) r += (i + 1) * T.rpPer / duration(S, a); });
+    return r;
+  }
+  function orderMax(S) { return T.orderMaxActive + rdFx(S).orderSlots; }
 
   function boostMult(S) { return S.boost && S.boost.left > 0 ? S.boost.m : 1; }
   function contactCount(S) { return Object.keys(S.contacts || {}).length; }
@@ -270,7 +336,10 @@
     S.tracks[act.id] = (S.tracks[act.id] || 0) + n;
     a.done += n;
     addXp(S, x);
-    orderProgress(S, act.id, n, baseQuality(S, act.id), mixed ? mixed.q : null);
+    var qb = baseQuality(S, act.id), rf = rdFx(S);
+    if (rf.autoQ4 && a.auto && rand() < rf.autoQ4) qb = Math.max(qb, 4);
+    orderProgress(S, act.id, n, qb, mixed ? mixed.q : null);
+    addRp(S, n * (ACTS.indexOf(act) + 1) * T.rpPer);
     if (hooks.complete) hooks.complete(act, n, p, mixed);
   }
 
@@ -362,7 +431,7 @@
   // ---------- Équipe du studio ----------
   var NOFX = { sp: 1, gn: 1, m: null };
   function teamOpen(S) { return S.level >= T.teamLevel; }
-  function teamCap(S) { return T.teamCap[Math.min(T.teamCap.length - 1, tierIndex(S))]; }
+  function teamCap(S) { return T.teamCap[Math.min(T.teamCap.length - 1, tierIndex(S))] + rdFx(S).cap; }
   function staffXpNeed(lvl) { return Math.round(T.staffXpBase * Math.pow(T.staffXpGrowth, lvl - 1)); }
   function roleFits(m, actId) { return ROLE_BY[m.role].acts.indexOf(actId) >= 0; }
   function working(m) { return !!m.act && m.rest <= 0 && m.train <= 0; }
@@ -387,7 +456,7 @@
     var b = boostMult(S), a = bestAct(S);
     return Math.max((royRate(S) + activeRate(S)) / b, payout(S, a) / b / duration(S, a), 0.05);
   }
-  function payroll(S) { var t = 0; (S.team ? S.team.staff : []).forEach(function (m) { t += m.salary; }); return t; }
+  function payroll(S) { var t = 0; (S.team ? S.team.staff : []).forEach(function (m) { t += m.salary; }); return t * rdFx(S).salary; }
   function salaryFor(S, stars, lvl) { return Math.max(T.salaryMin, incomeRef(S) * T.salaryShare * stars * (1 + 0.08 * (lvl - 1))); }
   function pickName(S) {
     var tm = S.team, used = {};
@@ -470,13 +539,13 @@
     m.act = actId || null;
     return true;
   }
-  function trainCost(S, m) { return m.salary * T.trainSec * m.lvl; }
+  function trainCost(S, m) { return m.salary * T.trainSec * m.lvl * rdFx(S).trainCost; }
   function train(S, id) {
     var m = findMember(S, id);
     if (!m || m.lvl >= T.staffMaxLvl || m.train > 0 || m.rest > 0) return false;
     var c = trainCost(S, m);
     if (S.money < c) return false;
-    S.money -= c; m.train = T.trainTime * (m.lvl + 1);
+    S.money -= c; m.train = T.trainTime * (m.lvl + 1) * rdFx(S).trainTime;
     return true;
   }
   function bonusCost(S, m) { return m.salary * T.bonusSec; }
@@ -548,7 +617,8 @@
   function baseQuality(S, actId) {
     var q = 1 + Math.floor(tierIndex(S) / 2), fx = staffFx(S, actId);
     if (fx.m) q += fx.m.stars >= 4 ? 2 : 1;
-    return Math.min(5, q);
+    q += rdFx(S).quality;
+    return Math.max(1, Math.min(5, q));
   }
   function canMix(S, id) {
     var act = ACT_BY[id], a = act && S.acts[id];
@@ -562,9 +632,10 @@
     var a = S.acts[id];
     if (!a || !a.hold) return null;
     score = Math.max(0, Math.min(1, +score || 0));
-    var q = mixStars(score);
+    var rf = rdFx(S), q = Math.min(5, mixStars(score) + rf.mixStar);
     a.hold = false;
-    a.mix = { m: 1 + T.mixMax * score, q: q, x: T.mixXp * score };
+    a.mix = { m: 1 + (T.mixMax + rf.mixMax) * score * rf.mixMul, q: q, x: T.mixXp * score };
+    addRp(S, T.rpMix * q);
     S.mixes = (S.mixes || 0) + 1;
     if (q === 5) S.perfect = (S.perfect || 0) + 1;
     var ch = S.charts;
@@ -592,13 +663,13 @@
     var time = Math.round(Math.max(n * d * T.orderDeadlineK + 30, q > bq ? n * (d + 45) + 60 : 0));
     var o = S.orders;
     return { id: o.nextId++, act: act.id, n: n, q: q, got: 0, time: time, left: time, life: T.orderOfferLife,
-      reward: rawPayout(S, act) * n * (T.orderRewardBase + T.orderRewardQ * q) * (1 + o.rep / 100), xp: xpGain(S, act) * n * 0.5,
+      reward: rawPayout(S, act) * n * (T.orderRewardBase + T.orderRewardQ * q) * (1 + o.rep / 100) * rdFx(S).orderReward, xp: xpGain(S, act) * n * 0.5,
       client: names[Math.floor(rand() * names.length)], kind: cl[0] };
   }
   function acceptOrder(S, id) {
     var o = S.orders, i = -1;
     o.offers.forEach(function (x, k) { if (x.id === id) i = k; });
-    if (i < 0 || o.active.length >= T.orderMaxActive) return false;
+    if (i < 0 || o.active.length >= orderMax(S)) return false;
     var x = o.offers.splice(i, 1)[0];
     x.left = x.time; x.got = 0;
     o.active.push(x);
@@ -619,8 +690,9 @@
       o.active = o.active.filter(function (y) { return y !== x; });
       S.money += x.reward; S.lifetime += x.reward;
       addXp(S, x.xp);
-      o.rep = Math.min(T.repMax, o.rep + T.repWin);
+      o.rep = Math.min(T.repMax, o.rep + T.repWin * rdFx(S).rep);
       o.done++;
+      addRp(S, T.rpOrder * x.q);
       if (hooks.orderDone) hooks.orderDone(x);
     });
   }
@@ -630,7 +702,7 @@
     var o = S.orders;
     o.cd -= dt;
     if (o.cd <= 0) {
-      o.cd = T.orderEvery;
+      o.cd = T.orderEvery * rdFx(S).orderEvery;
       if (o.offers.length < T.orderMaxOffers) { var x = makeOrder(S); if (x) { o.offers.push(x); if (hooks.orderNew) hooks.orderNew(x); } }
     }
     o.offers = o.offers.filter(function (x) { x.life -= dt; return x.life > 0; });
@@ -649,7 +721,7 @@
   function newRival(f) { return { t: songTitle(), a: CHART.artists[Math.floor(rand() * CHART.artists.length)], f: f, p: 0 }; }
   function potential(S) { return Math.log10(rawPayout(S, bestAct(S)) + 10); }
   function releaseScore(S, actId, q, promo) {
-    return Math.log10(rawPayout(S, ACT_BY[actId]) + 10) * (0.55 + 0.2 * q) * (promo ? T.promoMult : 1) * (1 + S.orders.rep / 200) * (0.9 + rand() * 0.2);
+    return Math.log10(rawPayout(S, ACT_BY[actId]) + 10) * (0.55 + 0.2 * q) * (promo ? T.promoMult + rdFx(S).promoAdd : 1) * (1 + S.orders.rep / 200) * rdFx(S).chartScore * (0.9 + rand() * 0.2);
   }
   function initRivals(S) {
     var c = S.charts; c.rivals = [];
@@ -678,7 +750,7 @@
     all.sort(function (x, y) { return y.s - x.s; });
     return all.slice(0, T.chartSize).map(function (e, i) { return { t: e.o.t, a: e.mine ? null : e.o.a, mine: !!e.mine, id: e.mine ? e.o.id : null, act: e.mine ? e.o.act : null, q: e.mine ? e.o.q : null, pos: i + 1, prev: e.o.p || 0, weeks: e.mine ? e.o.weeks : null }; });
   }
-  function promoCost(S) { return incomeRef(S) * T.promoSec; }
+  function promoCost(S) { return incomeRef(S) * T.promoSec * rdFx(S).promoCost; }
   function canFreeRelease(S) { return chartsOpen(S) && S.charts.free !== S.charts.week; }
   // src: identifiant d'un titre mixé, ou 'free' pour un titre du catalogue (une fois par semaine, qualité de base, production choisie).
   function release(S, src, promo, actId) {
@@ -707,7 +779,7 @@
     if (hooks.release) hooks.release(e);
     return e;
   }
-  function chartPay(S, pos) { return incomeRef(S) * T.chartPaySec * (T.chartSize + 1 - pos) / T.chartSize; }
+  function chartPay(S, pos) { return incomeRef(S) * T.chartPaySec * (T.chartSize + 1 - pos) / T.chartSize * rdFx(S).chartPay; }
   function weekEnd(S) {
     var c = S.charts, pay = 0, entries = [];
     rankCharts(S, false);
@@ -717,10 +789,12 @@
       pay += g; m.earned += g; m.weeks++;
       entries.push({ t: m.t, pos: m.pos, gain: g });
       if (m.pos === 1) { c.num1++; S.orders.rep = Math.min(T.repMax, S.orders.rep + 3); }
+      addRp(S, T.rpChart * (T.chartSize + 1 - m.pos));
     });
     S.money += pay; S.lifetime += pay;
     // la semaine suivante: les titres vieillissent, de nouveaux rivaux entrent
-    c.mine.forEach(function (m) { m.s *= T.chartDecay * (0.95 + rand() * 0.1); });
+    var dec = Math.max(T.chartDecay, rdFx(S).chartDecay);
+    c.mine.forEach(function (m) { m.s *= dec * (0.95 + rand() * 0.1); });
     c.rivals.forEach(function (r) { r.f *= 0.93 + rand() * 0.12; });
     c.rivals.sort(function (x, y) { return y.f - x.f; });
     for (var i = 0; i < 5; i++) c.rivals.splice(Math.floor(rand() * c.rivals.length), 1);
@@ -768,6 +842,7 @@
       S.acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: s ? s.done : 0 };
     });
     S.ev.cd = T.eventFirst; S.ev.pending = null; S.ev.hold = false;
+    S.rd.spec = {}; // les recherches restent, les spécialisations se choisissent à nouveau
     // L'équipe part aussi en tournée: ses membres pourront revenir sans prime d'embauche.
     var tm = S.team || newTeam(), al = tm.staff.map(function (m) { return { id: m.id, name: m.name, role: m.role, stars: m.stars, lvl: m.lvl, xp: 0, salary: m.salary, look: m.look }; });
     tm.alumni = al.concat(tm.alumni.filter(function (a) { return !al.some(function (b) { return b.id === a.id; }); })).slice(0, 16);
@@ -806,6 +881,8 @@
       case 'orders': n = S.orders ? S.orders.done : 0; break;
       case 'rep': n = S.orders ? S.orders.rep : 0; break;
       case 'chartBest': n = S.charts && S.charts.best ? T.chartSize + 1 - S.charts.best : 0; break;
+      case 'rdNodes': n = rdCount(S); break;
+      case 'specs': n = Object.keys((S.rd && S.rd.spec) || {}).length; break;
       case 'staffLvl': (S.team ? S.team.staff : []).forEach(function (m) { n = Math.max(n, m.lvl); }); break;
       case 'outings': Object.keys(S.ev.seen || {}).forEach(function (id) { n += S.ev.seen[id] || 0; }); break;
     }
@@ -888,10 +965,10 @@
     var m, a;
     switch (r.k) {
       case 'cash':
-        m = ref * r.x; S.money += m; S.lifetime += m;
+        m = ref * r.x * rdFx(S).event; S.money += m; S.lifetime += m;
         return { k: 'cash', v: m };
       case 'xp':
-        m = xpNeeded(S.level) * r.x; addXp(S, m);
+        m = xpNeeded(S.level) * r.x * rdFx(S).event; addXp(S, m);
         return { k: 'xp', v: m };
       case 'boost':
         // Un nouveau boost plus long repart avec une jauge pleine ; un boost plus court ne raccourcit pas l'actuel.
@@ -954,7 +1031,9 @@
     baseQuality: baseQuality, canMix: canMix, startMix: startMix, cancelMix: cancelMix, finishMix: finishMix, mixStars: mixStars,
     ordersOpen: ordersOpen, makeOrder: makeOrder, acceptOrder: acceptOrder, declineOrder: declineOrder, tickOrders: tickOrders,
     chartsOpen: chartsOpen, chartTop: chartTop, rankCharts: rankCharts, release: release, canFreeRelease: canFreeRelease, promoCost: promoCost,
-    chartPay: chartPay, weekEnd: weekEnd, tickCharts: tickCharts, tickLive: tickLive, potential: potential
+    chartPay: chartPay, weekEnd: weekEnd, tickCharts: tickCharts, tickLive: tickLive, potential: potential,
+    RESEARCH: RESEARCH, RD_BY: RD_BY, SPEC_BY: SPEC_BY, rdFx: rdFx, researchCost: researchCost, canResearch: canResearch, research: research,
+    specOpen: specOpen, chooseSpec: chooseSpec, rdCount: rdCount, rdRate: rdRate, orderMax: orderMax, branchNodes: branchNodes, addRp: addRp
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;
