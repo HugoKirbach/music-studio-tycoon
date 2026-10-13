@@ -548,7 +548,7 @@
           '<div class="actions">' +
             '<div class="go-row"><button class="pad" type="button" id="go-' + act.id + '" data-do="go" data-act="' + act.id + '"><b data-k="goT"></b><small data-k="goS"></small></button>' +
             '<button class="btn mixbtn" type="button" id="mix-' + act.id + '" data-do="mix" data-act="' + act.id + '" title="Mixer toi-même cette production"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18M12 3v18M18 3v18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3.5" y="12" width="5" height="3.4" rx="1" fill="currentColor"/><rect x="9.5" y="6" width="5" height="3.4" rx="1" fill="currentColor"/><rect x="15.5" y="14.5" width="5" height="3.4" rx="1" fill="currentColor"/></svg><small data-k="mixT">Mixer</small></button></div>' +
-            '<button class="btn" type="button" id="up-' + act.id + '" data-do="up" data-act="' + act.id + '"><span class="t"><b>Perfectionner</b><small data-k="upS"></small></span><span class="p" data-k="upP"></span></button>' +
+            '<button class="btn" type="button" id="up-' + act.id + '" data-do="up" data-act="' + act.id + '"><span class="t"><b data-k="upT">Perfectionner</b><small data-k="upS"></small></span><span class="p" data-k="upP"></span></button>' +
             '<button class="btn" type="button" id="auto-' + act.id + '" data-do="auto" data-act="' + act.id + '"><span class="t"><b>Automatiser</b><small>' + act.autoRole + '</small></span><span class="p" data-k="autoP"></span></button>' +
           '</div>' +
           '<p class="foot-line" data-k="foot"></p>' +
@@ -667,7 +667,7 @@
         return;
       }
       var d = G.duration(S, act), pct = a.run ? Math.min(1, a.prog / d) : 0;
-      var pay = G.payout(S, act), xp = G.xpGain(S, act), cost = G.upCost(S, act);
+      var pay = G.payout(S, act), xp = G.xpGain(S, act), plan = G.upPlan(S, act, buyN), cost = plan.cost;
       setText(r.rank, 'Rang ' + a.lvl);
       var wm = byAct[act.id];
       setHidden(r.who, !wm);
@@ -679,10 +679,12 @@
       setClass(r.go, 'run', a.run);
       setText(r.goT, a.run ? 'Accélérer' : 'Lancer');
       setText(r.goS, a.run ? (a.auto ? 'Automatique · ' : '') + 'chaque clic gagne ' + nf1.format(G.TAP) + ' s' : 'Un clic pour démarrer');
-      var nm = G.nextMilestone(a.lvl);
-      setText(r.upS, nm ? 'Rang ' + (a.lvl + 1) + ' · palier ×2 au rang ' + nm : 'Rang ' + (a.lvl + 1));
+      var nm = G.nextMilestone(a.lvl), to = a.lvl + plan.n, pal = 0;
+      for (var lv = a.lvl + 1; lv <= to; lv++) if (G.milestoneMult(lv) !== G.milestoneMult(lv - 1)) pal++;
+      setText(r.upT, buyN === 1 ? 'Perfectionner' : buyN === 'max' ? (plan.ok ? 'Perfectionner ×' + plan.n : 'Perfectionner · max') : 'Perfectionner ×' + buyN);
+      setText(r.upS, (plan.n > 1 ? 'Rang ' + a.lvl + ' → ' + to : 'Rang ' + to) + (pal ? ' · ' + (pal > 1 ? pal + ' paliers ×2 franchis' : 'palier ×2 franchi') : nm ? ' · palier ×2 au rang ' + nm : ''));
       setText(r.upP, eur(cost));
-      setDisabled(r.up, S.money < cost);
+      setDisabled(r.up, !plan.ok);
       setHidden(r.auto, a.auto);
       setText(r.autoP, eur(act.autoCost));
       setDisabled(r.auto, S.money < act.autoCost);
@@ -1342,8 +1344,22 @@
     try { var o = JSON.parse(decodeURIComponent(escape(atob(t.slice(4))))); return o && o.acts ? o : null; } catch (e) { return null; }
   }
 
+  // ---------- Quantité d'achat des perfectionnements ----------
+  var BUYKEY = 'premier-mix:buyN', buyN = 1;
+  try { var bv = localStorage.getItem(BUYKEY); buyN = bv === 'max' ? 'max' : [1, 10, 25].indexOf(+bv) >= 0 ? +bv : 1; } catch (e) { buyN = 1; }
+  function setBuyN(v) {
+    buyN = v;
+    try { localStorage.setItem(BUYKEY, String(v)); } catch (e) { /* stockage indisponible */ }
+    $('buyN').querySelectorAll('button').forEach(function (b) { var d = b.getAttribute('data-n'); b.setAttribute('aria-pressed', String(d === String(v))); });
+  }
+
   // ---------- Événements ----------
   function bind() {
+    setBuyN(buyN);
+    $('buyN').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-n]'); if (!b) return;
+      var d = b.getAttribute('data-n'); setBuyN(d === 'max' ? 'max' : +d); render();
+    });
     $('acts').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-do]');
       if (!b || b.disabled) return;
@@ -1351,7 +1367,7 @@
       markCloud();
       if (what === 'go') { if (!G.startAct(S, id)) G.tapAct(S, id); }
       else if (what === 'mix') { openMix(id); return; }
-      else if (what === 'up') { G.upgradeAct(S, id); }
+      else if (what === 'up') { G.upgradeActN(S, id, buyN); }
       else if (what === 'auto') { if (G.buyAuto(S, id)) { toast(G.ACT_BY[id].autoRole + ' s’occupe de « ' + G.ACT_BY[id].name + ' ».'); markCloud(); } }
       render();
     });
@@ -1571,8 +1587,11 @@
   };
   G.hooks.eventSpawn = function (x) { toast('Sortie de studio : une rencontre t’attend.', 4200); blip(7); };
   G.hooks.eventExpire = function () { if (!ev.open) toast('L’occasion est passée.'); };
-  G.hooks.upgrade = function (act, lvl) {
-    if (G.milestoneMult(lvl) !== G.milestoneMult(lvl - 1)) toast('Palier atteint : les gains de « ' + act.name + ' » sont doublés.');
+  G.hooks.upgrade = function (act, lvl, from) {
+    if (from == null) from = lvl - 1;
+    var k = Math.round(Math.log2(G.milestoneMult(lvl) / G.milestoneMult(from)));
+    if (k === 1) toast('Palier atteint : les gains de « ' + act.name + ' » sont doublés.');
+    else if (k > 1) toast(k + ' paliers atteints : les gains de « ' + act.name + ' » sont multipliés par ' + Math.pow(2, k) + '.');
   };
 
   function boot(hot) {

@@ -368,13 +368,30 @@
     if (hooks.buy) hooks.buy(it);
     return true;
   }
-  function upgradeAct(S, id) {
-    var act = ACT_BY[id], c = act && upCost(S, act);
-    if (!act || !isUnlocked(S, act) || S.money < c) return false;
-    S.money -= c; S.acts[id].lvl++;
-    if (hooks.upgrade) hooks.upgrade(act, S.acts[id].lvl);
-    return true;
+  // Achat groupé de rangs: n = 1, 10, 25 ou 'max' (autant que le budget le permet).
+  // Renvoie le nombre de rangs et le coût total; en 'max' sans budget, le prix du rang suivant (ok: false).
+  function upPlan(S, act, n) {
+    var lvl = S.acts[act.id].lvl, k = 0, cost = 0, lim = n === 'max' ? 5000 : Math.max(1, Math.floor(n) || 1);
+    while (k < lim) {
+      var c = Math.ceil(act.upCost * Math.pow(T.upGrowth, lvl + k));
+      if (n === 'max' && cost + c > S.money) break;
+      cost += c; k++;
+    }
+    if (k === 0) return { n: 1, cost: upCost(S, act), ok: false };
+    return { n: k, cost: cost, ok: S.money >= cost };
   }
+  function upgradeActN(S, id, n) {
+    var act = ACT_BY[id];
+    if (!act || !isUnlocked(S, act)) return 0;
+    var p = upPlan(S, act, n);
+    if (!p.ok) return 0;
+    var a = S.acts[id], from = a.lvl;
+    S.money -= p.cost; a.lvl += p.n;
+    if (hooks.upgrade) hooks.upgrade(act, a.lvl, from);
+    return p.n;
+  }
+  function upgradeAct(S, id) { return upgradeActN(S, id, 1) > 0; }
+
   function buyAuto(S, id) {
     var act = ACT_BY[id], a = S.acts[id];
     if (!act || a.auto || !isUnlocked(S, act) || S.money < act.autoCost) return false;
@@ -1171,7 +1188,7 @@
     levelMult: levelMult, duration: duration, payout: payout, xpGain: xpGain, upCost: upCost, royRate: royRate,
     activeRate: activeRate, trackCount: trackCount, isUnlocked: isUnlocked, lockReason: lockReason,
     tierIndex: tierIndex, milestoneMult: milestoneMult, nextMilestone: nextMilestone, startAct: startAct,
-    tapAct: tapAct, buy: buy, upgradeAct: upgradeAct, buyAuto: buyAuto, advance: advance, offline: offline, touch: touch,
+    tapAct: tapAct, buy: buy, upgradeAct: upgradeAct, upgradeActN: upgradeActN, upPlan: upPlan, buyAuto: buyAuto, advance: advance, offline: offline, touch: touch,
     boostMult: boostMult, contactCount: contactCount, eventRef: eventRef, tickEvents: tickEvents, dismissEvent: dismissEvent,
     resolveEvent: resolveEvent, pickEvent: pickEvent, trophyCount: trophyCount, trophyProgress: trophyProgress,
     checkTrophies: checkTrophies, nextGoals: nextGoals, fameFor: fameFor, fameAvailable: fameAvailable, canTour: canTour,

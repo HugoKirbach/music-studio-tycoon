@@ -325,6 +325,12 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .chart .tt span { display: block; font-size: 12px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chart .gain { font: 800 12px var(--f-body); color: var(--good); white-space: nowrap; }
 .chart li.top1 .pos { color: var(--gold); }
+/* Quantité d'achat des perfectionnements */
+.prod-head { align-items: center; }
+.buyn { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); }
+.buyn span { padding: 0 6px 0 5px; font: 800 11px var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.buyn button { min-width: 44px; min-height: 34px; padding: 4px 8px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: 800 13.5px var(--f-body); }
+.buyn button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-s); }
 /* Projets de création */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .proj-box { margin-top: 18px; }
@@ -516,6 +522,8 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   .scrim { padding: 0; place-items: end stretch; }
 }
 @media (max-width: 380px) {
+  .tabs { gap: 1px; padding-left: 2px; padding-right: 2px; }
+  .tabs button { font-size: 10.5px; }
   .stats { grid-template-columns: 1.4fr 1fr 1fr; }
   .stats .stat:nth-child(4) { display: none; }
   .tabs button { font-size: 10.5px; }
@@ -600,7 +608,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <div class="orders-head"><h3>Projet de création</h3><span class="rep-chip" id="projChip"></span></div>
           <div id="projBody"></div>
         </div>
-        <div class="orders-head"><h3>Tes productions</h3></div>
+        <div class="orders-head prod-head"><h3>Tes productions</h3><div class="buyn" id="buyN" role="group" aria-label="Quantité achetée par Perfectionner"><span aria-hidden="true">Achat</span><button type="button" data-n="1" aria-pressed="true">×1</button><button type="button" data-n="10" aria-pressed="false">×10</button><button type="button" data-n="25" aria-pressed="false">×25</button><button type="button" data-n="max" aria-pressed="false">Max</button></div></div>
         <div class="list" id="acts"></div>
       </section>
 

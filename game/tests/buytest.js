@@ -1,0 +1,22 @@
+// Achats groupés de perfectionnements. node buytest.js
+const assert = require('assert');
+require('../data.js');
+const G = require('../engine.js');
+const S = G.newState(0); S.money = 1e6;
+const act = G.ACT_BY.beat, hits = [];
+G.hooks.upgrade = (a, lvl, from) => hits.push([lvl, from]);
+let sum = 0; for (let k = 0; k < 10; k++) sum += Math.ceil(act.upCost * Math.pow(globalThis.GameData.TUNING.upGrowth, k));
+const p10 = G.upPlan(S, act, 10);
+assert.strictEqual(p10.n, 10); assert.strictEqual(p10.cost, sum, 'coût ×10 = somme des 10 rangs');
+assert.strictEqual(G.upgradeActN(S, 'beat', 10), 10); assert.strictEqual(S.acts.beat.lvl, 10); assert.strictEqual(S.money, 1e6 - sum);
+assert.deepStrictEqual(hits.pop(), [10, 0], 'un seul signal, avec le rang de départ');
+const pm = G.upPlan(S, act, 'max');
+assert.ok(pm.ok && pm.cost <= S.money && pm.cost + G.upCost({ acts: { beat: { lvl: 10 + pm.n } } }, act) > S.money, 'max = tout ce que le budget permet');
+G.upgradeActN(S, 'beat', 'max');
+assert.ok(S.money < G.upCost(S, act), 'plus de quoi acheter un rang');
+const p0 = G.upPlan(S, act, 'max');
+assert.ok(!p0.ok && p0.n === 1 && p0.cost === G.upCost(S, act), 'max sans budget: prix du rang suivant');
+assert.strictEqual(G.upgradeActN(S, 'beat', 'max'), 0);
+assert.strictEqual(G.upgradeActN(S, 'beat', 25), 0, 'pas d’achat partiel en ×25');
+assert.ok(G.upgradeAct(S, 'beat') === false);
+console.log('OK: ×10 =', sum, '| max ->', S.acts.beat.lvl, 'rangs');

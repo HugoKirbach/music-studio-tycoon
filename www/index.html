@@ -325,6 +325,12 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .chart .tt span { display: block; font-size: 12px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chart .gain { font: 800 12px var(--f-body); color: var(--good); white-space: nowrap; }
 .chart li.top1 .pos { color: var(--gold); }
+/* Quantité d'achat des perfectionnements */
+.prod-head { align-items: center; }
+.buyn { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); }
+.buyn span { padding: 0 6px 0 5px; font: 800 11px var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.buyn button { min-width: 44px; min-height: 34px; padding: 4px 8px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: 800 13.5px var(--f-body); }
+.buyn button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-s); }
 /* Projets de création */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .proj-box { margin-top: 18px; }
@@ -516,6 +522,8 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   .scrim { padding: 0; place-items: end stretch; }
 }
 @media (max-width: 380px) {
+  .tabs { gap: 1px; padding-left: 2px; padding-right: 2px; }
+  .tabs button { font-size: 10.5px; }
   .stats { grid-template-columns: 1.4fr 1fr 1fr; }
   .stats .stat:nth-child(4) { display: none; }
   .tabs button { font-size: 10.5px; }
@@ -600,7 +608,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <div class="orders-head"><h3>Projet de création</h3><span class="rep-chip" id="projChip"></span></div>
           <div id="projBody"></div>
         </div>
-        <div class="orders-head"><h3>Tes productions</h3></div>
+        <div class="orders-head prod-head"><h3>Tes productions</h3><div class="buyn" id="buyN" role="group" aria-label="Quantité achetée par Perfectionner"><span aria-hidden="true">Achat</span><button type="button" data-n="1" aria-pressed="true">×1</button><button type="button" data-n="10" aria-pressed="false">×10</button><button type="button" data-n="25" aria-pressed="false">×25</button><button type="button" data-n="max" aria-pressed="false">Max</button></div></div>
         <div class="list" id="acts"></div>
       </section>
 
@@ -1646,13 +1654,30 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (hooks.buy) hooks.buy(it);
     return true;
   }
-  function upgradeAct(S, id) {
-    var act = ACT_BY[id], c = act && upCost(S, act);
-    if (!act || !isUnlocked(S, act) || S.money < c) return false;
-    S.money -= c; S.acts[id].lvl++;
-    if (hooks.upgrade) hooks.upgrade(act, S.acts[id].lvl);
-    return true;
+  // Achat groupé de rangs: n = 1, 10, 25 ou 'max' (autant que le budget le permet).
+  // Renvoie le nombre de rangs et le coût total; en 'max' sans budget, le prix du rang suivant (ok: false).
+  function upPlan(S, act, n) {
+    var lvl = S.acts[act.id].lvl, k = 0, cost = 0, lim = n === 'max' ? 5000 : Math.max(1, Math.floor(n) || 1);
+    while (k < lim) {
+      var c = Math.ceil(act.upCost * Math.pow(T.upGrowth, lvl + k));
+      if (n === 'max' && cost + c > S.money) break;
+      cost += c; k++;
+    }
+    if (k === 0) return { n: 1, cost: upCost(S, act), ok: false };
+    return { n: k, cost: cost, ok: S.money >= cost };
   }
+  function upgradeActN(S, id, n) {
+    var act = ACT_BY[id];
+    if (!act || !isUnlocked(S, act)) return 0;
+    var p = upPlan(S, act, n);
+    if (!p.ok) return 0;
+    var a = S.acts[id], from = a.lvl;
+    S.money -= p.cost; a.lvl += p.n;
+    if (hooks.upgrade) hooks.upgrade(act, a.lvl, from);
+    return p.n;
+  }
+  function upgradeAct(S, id) { return upgradeActN(S, id, 1) > 0; }
+
   function buyAuto(S, id) {
     var act = ACT_BY[id], a = S.acts[id];
     if (!act || a.auto || !isUnlocked(S, act) || S.money < act.autoCost) return false;
@@ -2449,7 +2474,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     levelMult: levelMult, duration: duration, payout: payout, xpGain: xpGain, upCost: upCost, royRate: royRate,
     activeRate: activeRate, trackCount: trackCount, isUnlocked: isUnlocked, lockReason: lockReason,
     tierIndex: tierIndex, milestoneMult: milestoneMult, nextMilestone: nextMilestone, startAct: startAct,
-    tapAct: tapAct, buy: buy, upgradeAct: upgradeAct, buyAuto: buyAuto, advance: advance, offline: offline, touch: touch,
+    tapAct: tapAct, buy: buy, upgradeAct: upgradeAct, upgradeActN: upgradeActN, upPlan: upPlan, buyAuto: buyAuto, advance: advance, offline: offline, touch: touch,
     boostMult: boostMult, contactCount: contactCount, eventRef: eventRef, tickEvents: tickEvents, dismissEvent: dismissEvent,
     resolveEvent: resolveEvent, pickEvent: pickEvent, trophyCount: trophyCount, trophyProgress: trophyProgress,
     checkTrophies: checkTrophies, nextGoals: nextGoals, fameFor: fameFor, fameAvailable: fameAvailable, canTour: canTour,
@@ -4146,7 +4171,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
           '<div class="actions">' +
             '<div class="go-row"><button class="pad" type="button" id="go-' + act.id + '" data-do="go" data-act="' + act.id + '"><b data-k="goT"></b><small data-k="goS"></small></button>' +
             '<button class="btn mixbtn" type="button" id="mix-' + act.id + '" data-do="mix" data-act="' + act.id + '" title="Mixer toi-même cette production"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18M12 3v18M18 3v18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3.5" y="12" width="5" height="3.4" rx="1" fill="currentColor"/><rect x="9.5" y="6" width="5" height="3.4" rx="1" fill="currentColor"/><rect x="15.5" y="14.5" width="5" height="3.4" rx="1" fill="currentColor"/></svg><small data-k="mixT">Mixer</small></button></div>' +
-            '<button class="btn" type="button" id="up-' + act.id + '" data-do="up" data-act="' + act.id + '"><span class="t"><b>Perfectionner</b><small data-k="upS"></small></span><span class="p" data-k="upP"></span></button>' +
+            '<button class="btn" type="button" id="up-' + act.id + '" data-do="up" data-act="' + act.id + '"><span class="t"><b data-k="upT">Perfectionner</b><small data-k="upS"></small></span><span class="p" data-k="upP"></span></button>' +
             '<button class="btn" type="button" id="auto-' + act.id + '" data-do="auto" data-act="' + act.id + '"><span class="t"><b>Automatiser</b><small>' + act.autoRole + '</small></span><span class="p" data-k="autoP"></span></button>' +
           '</div>' +
           '<p class="foot-line" data-k="foot"></p>' +
@@ -4265,7 +4290,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
         return;
       }
       var d = G.duration(S, act), pct = a.run ? Math.min(1, a.prog / d) : 0;
-      var pay = G.payout(S, act), xp = G.xpGain(S, act), cost = G.upCost(S, act);
+      var pay = G.payout(S, act), xp = G.xpGain(S, act), plan = G.upPlan(S, act, buyN), cost = plan.cost;
       setText(r.rank, 'Rang ' + a.lvl);
       var wm = byAct[act.id];
       setHidden(r.who, !wm);
@@ -4277,10 +4302,12 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       setClass(r.go, 'run', a.run);
       setText(r.goT, a.run ? 'Accélérer' : 'Lancer');
       setText(r.goS, a.run ? (a.auto ? 'Automatique · ' : '') + 'chaque clic gagne ' + nf1.format(G.TAP) + ' s' : 'Un clic pour démarrer');
-      var nm = G.nextMilestone(a.lvl);
-      setText(r.upS, nm ? 'Rang ' + (a.lvl + 1) + ' · palier ×2 au rang ' + nm : 'Rang ' + (a.lvl + 1));
+      var nm = G.nextMilestone(a.lvl), to = a.lvl + plan.n, pal = 0;
+      for (var lv = a.lvl + 1; lv <= to; lv++) if (G.milestoneMult(lv) !== G.milestoneMult(lv - 1)) pal++;
+      setText(r.upT, buyN === 1 ? 'Perfectionner' : buyN === 'max' ? (plan.ok ? 'Perfectionner ×' + plan.n : 'Perfectionner · max') : 'Perfectionner ×' + buyN);
+      setText(r.upS, (plan.n > 1 ? 'Rang ' + a.lvl + ' → ' + to : 'Rang ' + to) + (pal ? ' · ' + (pal > 1 ? pal + ' paliers ×2 franchis' : 'palier ×2 franchi') : nm ? ' · palier ×2 au rang ' + nm : ''));
       setText(r.upP, eur(cost));
-      setDisabled(r.up, S.money < cost);
+      setDisabled(r.up, !plan.ok);
       setHidden(r.auto, a.auto);
       setText(r.autoP, eur(act.autoCost));
       setDisabled(r.auto, S.money < act.autoCost);
@@ -4940,8 +4967,22 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     try { var o = JSON.parse(decodeURIComponent(escape(atob(t.slice(4))))); return o && o.acts ? o : null; } catch (e) { return null; }
   }
 
+  // ---------- Quantité d'achat des perfectionnements ----------
+  var BUYKEY = 'premier-mix:buyN', buyN = 1;
+  try { var bv = localStorage.getItem(BUYKEY); buyN = bv === 'max' ? 'max' : [1, 10, 25].indexOf(+bv) >= 0 ? +bv : 1; } catch (e) { buyN = 1; }
+  function setBuyN(v) {
+    buyN = v;
+    try { localStorage.setItem(BUYKEY, String(v)); } catch (e) { /* stockage indisponible */ }
+    $('buyN').querySelectorAll('button').forEach(function (b) { var d = b.getAttribute('data-n'); b.setAttribute('aria-pressed', String(d === String(v))); });
+  }
+
   // ---------- Événements ----------
   function bind() {
+    setBuyN(buyN);
+    $('buyN').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-n]'); if (!b) return;
+      var d = b.getAttribute('data-n'); setBuyN(d === 'max' ? 'max' : +d); render();
+    });
     $('acts').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-do]');
       if (!b || b.disabled) return;
@@ -4949,7 +4990,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       markCloud();
       if (what === 'go') { if (!G.startAct(S, id)) G.tapAct(S, id); }
       else if (what === 'mix') { openMix(id); return; }
-      else if (what === 'up') { G.upgradeAct(S, id); }
+      else if (what === 'up') { G.upgradeActN(S, id, buyN); }
       else if (what === 'auto') { if (G.buyAuto(S, id)) { toast(G.ACT_BY[id].autoRole + ' s’occupe de « ' + G.ACT_BY[id].name + ' ».'); markCloud(); } }
       render();
     });
@@ -5169,8 +5210,11 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   };
   G.hooks.eventSpawn = function (x) { toast('Sortie de studio : une rencontre t’attend.', 4200); blip(7); };
   G.hooks.eventExpire = function () { if (!ev.open) toast('L’occasion est passée.'); };
-  G.hooks.upgrade = function (act, lvl) {
-    if (G.milestoneMult(lvl) !== G.milestoneMult(lvl - 1)) toast('Palier atteint : les gains de « ' + act.name + ' » sont doublés.');
+  G.hooks.upgrade = function (act, lvl, from) {
+    if (from == null) from = lvl - 1;
+    var k = Math.round(Math.log2(G.milestoneMult(lvl) / G.milestoneMult(from)));
+    if (k === 1) toast('Palier atteint : les gains de « ' + act.name + ' » sont doublés.');
+    else if (k > 1) toast(k + ' paliers atteints : les gains de « ' + act.name + ' » sont multipliés par ' + Math.pow(2, k) + '.');
   };
 
   function boot(hot) {
