@@ -10,7 +10,7 @@
   var dark = false, reduce = false, mobile = false;
   var cur = { place: null, tier: -1, key: '', def: null };
   var itemNodes = {}, staffNodes = {}, deskNodes = [], player = null, anims = [], blinkers = [], spinners = [];
-  var view = null, pickFn = null;
+  var view = null, pickFn = null, deco = {}, decoKey = '';
   var cam = { yaw: 0.72, pitch: 0.62, zoom: 1, fit: 12, target: null, pan: null, yawBase: 0.72 };
   var ZMIN = 0.28, ZMAX = 1.25, PITCH0 = 0.62, camMoved = false, camFn = null;
   var ins = { t: 0, b: 0 }; // zones de l'écran couvertes par l'interface (px), pour cadrer la pièce dans la partie visible
@@ -434,27 +434,27 @@
   // Agencement vérifié par un test de collisions (boîtes englobantes) avec tout le matériel et toute l'équipe.
   // sofas: [x, z, rotY, couleur, largeur]; rotY = 0: assise tournée vers le fond de la pièce, -PI/2: dos au mur de gauche.
   var PLACES = {
-    chambre: { edrums: [2.68, -0.42, -Math.PI / 2], W: 6.4, D: 5, H: 2.7, floor: ['wood', '#b98a5e', '#9c6f48'], wall: 0x9cc3d5, wall2: 0xb7d3df, desk: [1.15, -2.13, 1.9],
+    chambre: { shelf: [-1.45, 1.55], neon: [0.45, 2.02], edrums: [2.68, -0.42, -Math.PI / 2], W: 6.4, D: 5, H: 2.7, floor: ['wood', '#b98a5e', '#9c6f48'], wall: 0x9cc3d5, wall2: 0xb7d3df, desk: [1.15, -2.13, 1.9],
       staff: [[2.1, 0.75]], lounge: [[-1.95, -1.0, -Math.PI / 2]], board: [-1.0, -1.55],
       slots: { micro: [-0.45, -1.35, 0.4], formation: [-1.0, -2.33, 0], distrib: { w: 'b', u: -1.0, y: 2.5 }, playlists: { w: 'b', u: -2.5, y: 2.45 } },
       foam: [{ w: 'b', u0: 0.15, u1: 2.05, y0: 1.35, y1: 2.45 }, { w: 'l', u0: -2.4, u1: -0.9, y0: 1.2, y1: 2.3 }] },
-    garage: { edrums: [-2.6, 0.45, 0], W: 8.4, D: 6.2, H: 3.0, floor: ['concrete'], wall: 0xc9c2b5, wall2: 0xd8d1c4, brick: 'blocks', desk: [1.1, -2.73, 2.2],
+    garage: { shelf: { w: 'b', u: 3.45, y: 1.4 }, neon: [-2.35, 2.3], edrums: [-2.6, 0.45, 0], W: 8.4, D: 6.2, H: 3.0, floor: ['concrete'], wall: 0xc9c2b5, wall2: 0xd8d1c4, brick: 'blocks', desk: [1.1, -2.73, 2.2],
       staff: [[2.75, 0.55], [0.2, 0.95]], sofas: [[-3.75, -1.95, -Math.PI / 2, 0x7a6a4f, 1.9]], board: [-2.0, -2.2],
       slots: { micro: [-0.25, -1.85, 0.4], formation: [-0.95, -2.93, 0], distrib: { w: 'b', u: 3.4, y: 2.6 }, preamps: [3.05, -2.83, 0],
         playlists: { w: 'l', u: -2.0, y: 2.75 } },
       foam: [{ w: 'b', u0: 0.0, u1: 2.2, y0: 1.5, y1: 2.7 }, { w: 'l', u0: -2.9, u1: -1.0, y0: 1.5, y1: 2.4 }] },
-    local: { edrums: [1.25, 2.6, 0], W: 10.5, D: 7.4, H: 3.2, floor: ['wood', '#5b4030', '#4a3426'], wall: 0xece7df, wall2: 0xf4f0ea, brick: 'bricks', desk: [1.4, -3.33, 2.4],
+    local: { shelf: { w: 'b', u: 4.4, y: 1.45 }, neon: [-0.6, 1.9], edrums: [1.25, 2.6, 0], W: 10.5, D: 7.4, H: 3.2, floor: ['wood', '#5b4030', '#4a3426'], wall: 0xece7df, wall2: 0xf4f0ea, brick: 'bricks', desk: [1.4, -3.33, 2.4],
       staff: [[0.9, 0.35], [3.3, 0.35], [3.3, 2.45]], sofas: [[-4.68, 1.0, -Math.PI / 2, 0x2f6f73, 2.2]], board: [-2.3, -0.4],
       slots: { cabine: [-4.2, -2.7, 0], console: [-2.1, -3.28, 0], micro: [-0.55, -2.15, 0.4], formation: [-5.08, -1.1, Math.PI / 2], preamps: [3.45, -3.43, 0],
         distrib: { w: 'b', u: 4.4, y: 2.6 }, playlists: { w: 'b', u: -2.1, y: 2.75 }, label: { w: 'b', u: -0.6, y: 2.9 }, orchestre: [-1.4, 1.9, 0] },
       foam: [{ w: 'b', u0: 0.2, u1: 2.6, y0: 1.6, y1: 2.9 }] },
-    pro: { edrums: [-4.7, -2.6, 0], W: 13, D: 9.5, H: 3.6, floor: ['wood', '#a77b52', '#8e6542'], wall: 0x3b4250, wall2: 0x4a5263, slats: true, desk: [1.6, -4.38, 2.8],
+    pro: { shelf: [1.6, 1.3], neon: [-1.6, 2.32], edrums: [-4.7, -2.6, 0], W: 13, D: 9.5, H: 3.6, floor: ['wood', '#a77b52', '#8e6542'], wall: 0x3b4250, wall2: 0x4a5263, slats: true, desk: [1.6, -4.38, 2.8],
       staff: [[1.3, 0.3], [3.4, 0.3], [5.5, 0.3], [1.3, 2.4], [3.4, 2.4], [5.5, 2.4]], sofas: [[3.4, 4.1, 0, 0x3b2f2a, 2.6]], board: [-1.4, 0.4],
       slots: { studioA: [-4.7, -2.95, 0], cabine: [5.45, -3.76, 0], console: [-1.6, -4.33, 0], neve: [-1.45, -2.75, 0], preamps: [3.75, -4.48, 0], assistant: [4.03, -3.35, -Math.PI / 2],
         orchestre: [-4.6, 2.0, 0.4], management: [-1.25, 3.0, 0], micro: [0.3, -2.3, 0.4], formation: [-6.33, -0.35, Math.PI / 2],
         distrib: { w: 'b', u: 1.6, y: 3.0 }, playlists: { w: 'b', u: 3.75, y: 3.4 }, label: { w: 'l', u: 4.1, y: 2.9 }, mentor: { w: 'b', u: -1.6, y: 3.4 }, disques: { w: 'l', u: 1.6, y: 3.3 } },
       foam: [{ w: 'b', u0: 0.2, u1: 3.0, y0: 1.65, y1: 2.3 }] },
-    complexe: { edrums: [-6.6, -3.9, 0], W: 17, D: 12, H: 4.2, floor: ['marble'], wall: 0xe9e1d3, wall2: 0xf1ebe0, gold: true, desk: [1.6, -5.63, 3.2],
+    complexe: { shelf: [0.9, 1.6], neon: [-3.1, 1.95], edrums: [-6.6, -3.9, 0], W: 17, D: 12, H: 4.2, floor: ['marble'], wall: 0xe9e1d3, wall2: 0xf1ebe0, gold: true, desk: [1.6, -5.63, 3.2],
       staff: [[0.9, 0.6], [3.1, 0.6], [5.3, 0.6], [7.5, 0.6], [0.9, 2.8], [3.1, 2.8], [5.3, 2.8], [7.5, 2.8]],
       sofas: [[5.3, 5.2, 0, 0x7d1f2b, 3.0], [3.05, 4.55, -Math.PI / 2, 0x7d1f2b, 1.6]], board: [-2.6, 1.0],
       slots: { studioA: [-6.7, -4.2, 0], cabine: [7.45, -5.0, 0], console: [-3.1, -5.58, 0], neve: [-3.1, -3.85, 0], preamps: [4.2, -5.73, 0], assistant: [5.85, -5.6, 0],
@@ -477,25 +477,78 @@
   // ---------- Pièce ----------
   function floorMat(f, W, D) {
     var k = f[0];
-    if (k === 'wood') return texMat('floor-' + f[1], 256, 256, function (c, w, h) { planks(c, w, h, f[1], f[2]); }, { rep: [W / 2.5, D / 2.5] });
-    if (k === 'concrete') return texMat('concrete', 256, 256, concrete, { rep: [W / 3, D / 3] });
-    return texMat('marble', 256, 256, marble, { rep: [W / 2, D / 2], r: 0.35 });
+    if (k === 'wood') return texMat('floor-' + f[1] + '-' + W, 256, 256, function (c, w, h) { planks(c, w, h, f[1], f[2]); }, { rep: [W / 2.5, D / 2.5] });
+    if (k === 'concrete') return texMat('concrete-' + W, 256, 256, concrete, { rep: [W / 3, D / 3] });
+    return texMat('marble-' + W, 256, 256, marble, { rep: [W / 2, D / 2], r: 0.35 });
   }
   function buildRoom(def, tier) {
     var g = grp(null), W = def.W, D = def.D, H = def.H;
-    mesh(g, G('box'), floorMat(def.floor, W, D), 0, -0.05, 0, W, 0.1, D).castShadow = false;
+    mesh(g, G('box'), floorMat(deco.floor || def.floor, W, D), 0, -0.05, 0, W, 0.1, D).castShadow = false;
     // socle visible sous la pièce (effet maquette)
     mesh(g, G('box'), M(dark ? 0x2a2f3a : 0x6d625a), 0, -0.35, 0, W + 0.02, 0.5, D + 0.02).castShadow = false;
-    var wallM = M(def.wall), wall2M = M(def.wall2);
-    var backM = def.brick === 'bricks' ? texMat('bricks', 256, 256, bricks, { rep: [W / 3, H / 2] }) : def.brick === 'blocks' ? texMat('blocks', 256, 256, blocks, { rep: [W / 3, H / 2] }) : def.slats ? texMat('slats', 256, 128, slats, { rep: [W / 2, 1] }) : wallM;
+    var wallM = M(deco.wall ? deco.wall[0] : def.wall), wall2M = M(deco.wall ? deco.wall[1] : def.wall2);
+    var backM = deco.wall ? wallM : def.brick === 'bricks' ? texMat('bricks', 256, 256, bricks, { rep: [W / 3, H / 2] }) : def.brick === 'blocks' ? texMat('blocks', 256, 256, blocks, { rep: [W / 3, H / 2] }) : def.slats ? texMat('slats', 256, 128, slats, { rep: [W / 2, 1] }) : wallM;
     var bw = mesh(g, G('box'), backM, 0, H / 2, -D / 2 - 0.06, W + 0.24, H, 0.12); bw.castShadow = false;
-    var lw = mesh(g, G('box'), def.slats ? texMat('slats', 256, 128, slats, { rep: [W / 2, 1] }) : wall2M, -W / 2 - 0.06, H / 2, 0, 0.12, H, D); lw.castShadow = false;
+    var lw = mesh(g, G('box'), def.slats && !deco.wall ? texMat('slats', 256, 128, slats, { rep: [W / 2, 1] }) : wall2M, -W / 2 - 0.06, H / 2, 0, 0.12, H, D); lw.castShadow = false;
     // plinthes
     box(g, W, 0.1, 0.03, M(def.gold ? C.gold : 0xf3f0ea), 0, 0, -D / 2 + 0.015);
     box(g, 0.03, 0.1, D, M(def.gold ? C.gold : 0xf3f0ea), -W / 2 + 0.015, 0, 0);
     if (def.gold) { box(g, W, 0.08, 0.04, M(C.gold, { m: 0.8, r: 0.3 }), 0, H - 0.3, -D / 2 + 0.02); box(g, 0.04, 0.08, D, M(C.gold, { m: 0.8, r: 0.3 }), -W / 2 + 0.02, H - 0.3, 0); }
     decor[cur.placeKey](g, def, tier);
+    if (def.shelf) buildShelf(g, def);
+    if (def.neon && deco.neon) buildNeon(g, def, deco.neon);
     return g;
+  }
+  // Étagère à souvenirs: une coupe par famille du palmarès décrochée au niveau Or. Elle ouvre l'atelier de décoration.
+  function buildShelf(g0, def) {
+    var sp = def.shelf, g = sp.w === 'b' ? grp(g0, sp.u, sp.y, -def.D / 2 + 0.03, 0) : grp(g0, -def.W / 2 + 0.03, sp[1], sp[0], Math.PI / 2); g.name = 'étagère à souvenirs';
+    var wood = M(C.woodD), cups = Math.max(0, Math.min(8, deco.cups || 0));
+    box(g, 1.2, 0.04, 0.24, wood, 0, 0, 0.12); box(g, 1.2, 0.04, 0.24, wood, 0, 0.42, 0.12);
+    box(g, 0.04, 0.46, 0.24, wood, -0.6, 0, 0.12); box(g, 0.04, 0.46, 0.24, wood, 0.6, 0, 0.12);
+    var gold = M(C.gold, { m: 0.85, r: 0.25 }), plate = M(0x2b2b2b);
+    for (var i = 0; i < 8; i++) {
+      var x = -0.47 + (i % 4) * 0.31, y = i < 4 ? 0.04 : 0.46;
+      if (i < cups) { cyl(g, 0.05, 0.03, plate, x, y, 0.13, 10); cyl(g, 0.015, 0.09, gold, x, y + 0.03, 0.13, 8); cyl(g, 0.055, 0.1, gold, x, y + 0.12, 0.13, 12, 0.03); }
+    }
+    if (!cups) { var bx = box(g, 0.22, 0.16, 0.16, M(0xc9a37a), -0.3, 0.04, 0.12); bx.rotation.y = 0.2; sph(g, 0.08, M(0x7ec8e3), 0.25, 0.12, 0.12, 12); }
+    // pot de peinture: la décoration s'ouvre ici
+    var pot = grp(g, 0.42, 0.04, 0.12); cyl(pot, 0.07, 0.14, M(0xf3f0ea, { m: 0.3, r: 0.4 }), 0, 0, 0, 14); cyl(pot, 0.072, 0.03, M(0xff8a3d), 0, 0.12, 0, 14);
+    g.traverse(function (o) { if (o.isMesh) o.userData.pick = { type: 'hot', id: 'deco' }; });
+    cur.shelf = g;
+  }
+  // Néon mural dessiné sur une toile (texte ou pictogramme lumineux).
+  function neonDraw(kind, col) {
+    return function (c, w, h) {
+      c.clearRect(0, 0, w, h); c.lineJoin = 'round'; c.lineCap = 'round';
+      function glow(fn) { c.save(); c.strokeStyle = col; c.shadowColor = col; c.shadowBlur = 22; c.lineWidth = 9; fn(); c.stroke(); c.restore(); c.save(); c.strokeStyle = '#fff'; c.lineWidth = 3.5; fn(); c.stroke(); c.restore(); }
+      if (kind === 'text') {
+        c.font = '800 70px "Trebuchet MS", system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.save(); c.shadowColor = col; c.shadowBlur = 24; c.strokeStyle = col; c.lineWidth = 8; c.strokeText('PREMIER MIX', w / 2, h / 2); c.restore();
+        c.save(); c.strokeStyle = '#fff'; c.lineWidth = 2.5; c.strokeText('PREMIER MIX', w / 2, h / 2); c.restore();
+        return;
+      }
+      var cx = w / 2, cy = h / 2, r = h * 0.36;
+      glow(function () {
+        c.beginPath();
+        if (kind === 'heart') { c.moveTo(cx, cy + r); c.bezierCurveTo(cx - r * 1.9, cy - r * 0.2, cx - r * 0.7, cy - r * 1.5, cx, cy - r * 0.45); c.bezierCurveTo(cx + r * 0.7, cy - r * 1.5, cx + r * 1.9, cy - r * 0.2, cx, cy + r); }
+        else if (kind === 'star') { for (var i = 0; i < 10; i++) { var a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r * 1.1; c[i ? 'lineTo' : 'moveTo'](cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } c.closePath(); }
+        else if (kind === 'bolt') { var p = [[0.15, -1.1], [-0.55, 0.12], [-0.02, 0.12], [-0.22, 1.1], [0.55, -0.2], [0.04, -0.2], [0.15, -1.1]]; p.forEach(function (q, i) { c[i ? 'lineTo' : 'moveTo'](cx + q[0] * r, cy + q[1] * r); }); }
+        else { // double croche
+          c.moveTo(cx - r * 0.55, cy + r * 0.65); c.lineTo(cx - r * 0.55, cy - r * 0.85); c.lineTo(cx + r * 0.75, cy - r * 1.05); c.lineTo(cx + r * 0.75, cy + r * 0.45);
+          c.moveTo(cx - r * 0.55, cy - r * 0.45); c.lineTo(cx + r * 0.75, cy - r * 0.65);
+          c.moveTo(cx - r * 0.55 + r * 0.38, cy + r * 0.65); c.ellipse(cx - r * 0.85, cy + r * 0.65, r * 0.32, r * 0.22, -0.4, 0, Math.PI * 2);
+          c.moveTo(cx + r * 0.75 + r * 0.38, cy + r * 0.45); c.ellipse(cx + r * 0.45, cy + r * 0.45, r * 0.32, r * 0.22, -0.4, 0, Math.PI * 2);
+        }
+      });
+    };
+  }
+  function buildNeon(g0, def, n) {
+    var sp = def.neon, text = n.k === 'text', w = text ? 1.5 : 0.75, h = text ? 0.32 : 0.6;
+    var key = 'neon-' + n.k + n.c, t = canvasTex(key, text ? 512 : 256, text ? 110 : 205, neonDraw(n.k, n.c));
+    var mat = MATS[key] || (MATS[key] = new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false }));
+    var m = mesh(g0, new THREE.PlaneGeometry(1, 1), mat, sp[0], sp[1] + h / 2, -def.D / 2 + 0.02, w, h, 1, false);
+    m.name = 'néon'; m.castShadow = false;
+    var l = new THREE.PointLight(new THREE.Color(n.c), 0.9, 3, 2); l.position.set(sp[0], sp[1] + h / 2, -def.D / 2 + 0.5); g0.add(l);
   }
   function windowL(g0, def, z, w, h, y) {
     var g = grp(g0); g.name = 'fenêtre';
@@ -533,6 +586,7 @@
     var l = new THREE.PointLight(0xffcf8a, 2.2, 6, 1.6); l.position.set(x, y - 0.6, z); g.add(l);
   }
   function rug(g, x, z, w, d, col, col2) {
+    if (deco.rug) { col = deco.rug[0]; col2 = deco.rug[1]; }
     box(g, w, 0.015, d, M(col), x, 0, z).castShadow = false;
     box(g, w * 0.8, 0.017, d * 0.7, M(col2), x, 0, z).castShadow = false;
   }
@@ -801,7 +855,9 @@
     if (!scene) return;
     scene.background = new THREE.Color(dark ? 0x141a24 : 0xdfe9ee);
     hemi.intensity = dark ? 0.55 : 1.05; hemi.color.set(dark ? 0xb8c4ff : 0xfff4e6); hemi.groundColor.set(dark ? 0x2b2433 : 0x6b5a4a);
+    if (deco.light) { hemi.color.lerp(new THREE.Color(deco.light), dark ? 0.75 : 0.6); hemi.intensity *= 1.05; }
     sun.intensity = dark ? 0.55 : 1.7; sun.color.set(dark ? 0x9fb4ff : 0xfff0dc);
+    if (deco.light) sun.color.lerp(new THREE.Color(deco.light), 0.35);
     fill.intensity = dark ? 0.15 : 0.35;
   }
 
@@ -810,7 +866,7 @@
     cur.placeKey = key; cur.def = PLACES[key]; cur.tier = tier;
     if (roomG) { world.remove(roomG); disposeTree(roomG); }
     Object.keys(itemNodes).forEach(function (id) { itemsG.remove(itemNodes[id]); });
-    itemNodes = {}; blinkers = []; fallbackUsed = 0; cur.key = ''; cur.edrums = null; cur.edrumsSeen = false;
+    itemNodes = {}; blinkers = []; fallbackUsed = 0; cur.key = ''; cur.edrums = null; cur.edrumsSeen = false; cur.shelf = null;
     Object.keys(staffNodes).forEach(removeStaff);
     deskNodes.forEach(function (d) { world.remove(d); }); deskNodes = [];
     roomG = buildRoom(cur.def, tier); world.add(roomG);
@@ -906,6 +962,8 @@
       n = itemNodes.studioA;
       if (n && !n.userData.ghost) { var k = n.getObjectByName('kit'); if (k) { p = k.getWorldPosition(new V3()); p.y += 1.45; } }
       if (!p && cur.edrums) { p = cur.edrums.getWorldPosition(new V3()); p.y += 1.45; }
+    } else if (kind === 'shelf') {
+      if (cur.shelf) { p = cur.shelf.getWorldPosition(new V3()); p.y += 0.75; p.x += 0.2; }
     } else if (kind === 'piano') {
       n = itemNodes.orchestre;
       if (n && !n.userData.ghost) { p = n.getWorldPosition(new V3()); p.y += 1.55; }
@@ -1152,6 +1210,17 @@
   S3.update = function (v) {
     if (!S3.ok) return;
     view = v;
+    var dk = JSON.stringify(v.deco || {});
+    if (dk !== decoKey) {
+      deco = v.deco || {}; var had = decoKey !== '';
+      decoKey = dk;
+      if (had && cur.placeKey && v.place === cur.placeKey && v.tier === cur.tier) {
+        var keep = { yaw: cam.yaw, pitch: cam.pitch, zoom: cam.zoom, pan: cam.pan ? cam.pan.clone() : null };
+        setPlace(cur.placeKey, cur.tier);
+        cam.yaw = keep.yaw; cam.pitch = keep.pitch; cam.zoom = keep.zoom; if (keep.pan && cam.pan) cam.pan.copy(keep.pan);
+        applyCam(); camChanged();
+      } else applyTheme();
+    }
     if (v.place !== cur.placeKey || v.tier !== cur.tier) {
       var moved = cur.placeKey && v.place !== cur.placeKey;
       setPlace(v.place, v.tier);

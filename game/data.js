@@ -70,7 +70,9 @@
     // Clash de beatmakers (mini-jeu de rythme)
     battleLevel: 3, battleFirst: 45, battleEvery: 210, battleUp: 3, battleBars: 8, battlePerfect: 0.07, battleGood: 0.14,
     // Atelier piano: une inspiration récompensée toutes les pianoEvery secondes de jeu
-    pianoEvery: 240
+    pianoEvery: 240,
+    // Tendances de la semaine (une par semaine du Top 50)
+    trendAct: 1.25, trendOrder: 0.4, trendOrderReward: 1.3, trendGenre: 0.6, trendMood: 0.4, trendSales: 1.3
   };
 
   // dur: secondes, pay: euros, xp: points d'expertise
@@ -772,6 +774,53 @@
       'La Machine', 'Prince Charley', 'Mamadou Bass', 'Capitaine Clap', 'Zélie Swing', 'Oscar Offbeat', 'Duchesse Dub', 'Toto Trap']
   };
 
+
+  // Décoration du studio: purement esthétique, appliquée à tous les lieux et conservée après une tournée.
+  // need: { m: mesure du palmarès, n: seuil, t: texte } ; sans need, l'option est offerte.
+  var DECO = {
+    slots: [
+      { id: 'wall', name: 'Peinture des murs', options: [
+        { id: 'origine', name: 'D’origine' },
+        { id: 'craie', name: 'Blanc craie', v: [0xf2efe8, 0xf8f5ef] },
+        { id: 'sauge', name: 'Vert sauge', v: [0x9fb59a, 0xb4c8af], need: { m: 'tier', n: 2, t: 'Emménage dans le garage' } },
+        { id: 'terracotta', name: 'Terracotta', v: [0xc8735a, 0xd9896f], need: { m: 'projects', n: 3, t: 'Termine 3 projets de création' } },
+        { id: 'nuit', name: 'Bleu nuit', v: [0x2d3550, 0x3a4462], need: { m: 'league', n: 2, t: 'Monte en ligue Régionale au clash' } },
+        { id: 'aubergine', name: 'Aubergine', v: [0x5b3b5e, 0x6e4a72], need: { m: 'pianoBest', n: 9, t: 'Rejoue 9 notes à l’atelier piano' } },
+        { id: 'sable-or', name: 'Sable doré', v: [0xe6d3a8, 0xefe0bd], need: { m: 'num1', n: 3, t: 'Passe 3 semaines numéro 1 du Top 50' } }
+      ] },
+      { id: 'floor', name: 'Sol', options: [
+        { id: 'origine', name: 'D’origine' },
+        { id: 'chene', name: 'Chêne clair', v: ['wood', '#cfa06c', '#b38452'] },
+        { id: 'noyer', name: 'Noyer', v: ['wood', '#5b4030', '#4a3426'], need: { m: 'items', n: 8, t: 'Installe 8 équipements' } },
+        { id: 'beton', name: 'Béton ciré', v: ['concrete'], need: { m: 'battles', n: 5, t: 'Remporte 5 clashs' } },
+        { id: 'marbre', name: 'Marbre', v: ['marble'], need: { m: 'tours', n: 1, t: 'Pars en tournée mondiale' } }
+      ] },
+      { id: 'rug', name: 'Tapis', options: [
+        { id: 'origine', name: 'D’origine' },
+        { id: 'bleu', name: 'Bleu océan', v: [0x2f4f8a, 0x4a6fb0] },
+        { id: 'vert', name: 'Vert forêt', v: [0x2f6b4f, 0x4c8c6a], need: { m: 'contacts', n: 6, t: 'Rencontre 6 contacts' } },
+        { id: 'rouge', name: 'Tapis rouge', v: [0x8c1c2c, 0xa52a3a], need: { m: 'chartBest', n: 41, t: 'Classe un titre dans le top 10' } },
+        { id: 'or', name: 'Or', v: [0xb8902f, 0xd9b04f], need: { m: 'projBest', n: 9, t: 'Obtiens 9/10 auprès des critiques' } }
+      ] },
+      { id: 'light', name: 'Ambiance lumineuse', options: [
+        { id: 'origine', name: 'Naturelle' },
+        { id: 'chaud', name: 'Chaleureuse', v: 0xffc89a },
+        { id: 'froid', name: 'Fraîche', v: 0xbcd6ff, need: { m: 'mixes', n: 10, t: 'Mixe 10 morceaux' } },
+        { id: 'violet', name: 'Violette', v: 0xd2b2ff, need: { m: 'league', n: 3, t: 'Monte en ligue Nationale au clash' } },
+        { id: 'rose', name: 'Rose bonbon', v: 0xffbcd6, need: { m: 'outings', n: 15, t: 'Vis 15 sorties de studio' } },
+        { id: 'vert', name: 'Aurore', v: 0xbff5d2, need: { m: 'rdNodes', n: 6, t: 'Termine 6 recherches' } }
+      ] },
+      { id: 'neon', name: 'Néon mural', options: [
+        { id: 'aucun', name: 'Aucun' },
+        { id: 'nom', name: 'Premier Mix', v: { k: 'text', c: '#ff8a3d' } },
+        { id: 'note', name: 'Double croche', v: { k: 'note', c: '#66ccff' }, need: { m: 'battles', n: 1, t: 'Remporte un clash' } },
+        { id: 'coeur', name: 'Cœur', v: { k: 'heart', c: '#ff5c8a' }, need: { m: 'contacts', n: 12, t: 'Rencontre 12 contacts' } },
+        { id: 'eclair', name: 'Éclair', v: { k: 'bolt', c: '#ffd166' }, need: { m: 'league', n: 4, t: 'Monte en ligue Internationale' } },
+        { id: 'etoile', name: 'Étoile', v: { k: 'star', c: '#c792ff' }, need: { m: 'chartBest', n: 50, t: 'Classe un titre numéro 1' } }
+      ] }
+    ]
+  };
+
   // Commandes: clients par type de production
   var CLIENTS = {
     beat: ['Rappeur', ['Kaïs', 'Lil Néo', 'Sami B', 'Zoya']], mix: ['Groupe', ['Les Rivages', 'Fuzz Club', 'Velvet Garage']],
@@ -801,7 +850,7 @@
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);

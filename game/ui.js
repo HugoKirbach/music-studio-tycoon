@@ -168,6 +168,95 @@
 
 
 
+
+  // ---------- Tendances de la semaine ----------
+  var RULE_TXT = { rapide: ['Tempo rapide', 'Les clashs vont 10 % plus vite, et la victoire rapporte 25 % de plus.'], 'sans-clap': ['Sans clap', 'La piste Clap reste muette pendant les clashs : concentre-toi sur les trois autres.'], prime: ['Grosse prime', 'Les victoires en clash rapportent 50 % de plus.'] };
+  var trv = { key: '' };
+  function renderTrends() {
+    var tr = G.trendFor(S);
+    setHidden($('trendCard'), !tr);
+    if (!tr) return;
+    setText($('trendLeft'), 'Nouvelles tendances dans ' + clock(S.charts.left));
+    var key = JSON.stringify(tr) + G.battleOpen(S) + G.projOpen(S);
+    if (key === trv.key) return;
+    trv.key = key;
+    var A = G.ACT_BY[tr.act], T = D.TUNING, rows = [];
+    rows.push(['🔥', A.name + ' en vogue', 'Gains de cette production +' + Math.round((T.trendAct - 1) * 100) + ' %, et ses commandes clients sont plus nombreuses et mieux payées (+' + Math.round((T.trendOrderReward - 1) * 100) + ' %).']);
+    rows.push(['🎧', 'Le public veut du ' + G.PJ_G[tr.g].name + ' sur le thème « ' + G.PJ_M[tr.m].name.toLowerCase() + ' »', G.projOpen(S) ? 'Un projet de création dans ce genre ou cette ambiance plaît davantage aux critiques et se vend mieux.' : 'Les projets de création s’ouvriront au niveau ' + T.projLevel + '.']);
+    if (G.battleOpen(S)) rows.push(['🥁', 'Clash : ' + RULE_TXT[tr.rule][0], RULE_TXT[tr.rule][1]]);
+    $('trendList').innerHTML = rows.map(function (r) { return '<li><i aria-hidden="true">' + r[0] + '</i><div><b>' + esc(r[1]) + '</b><span>' + esc(r[2]) + '</span></div></li>'; }).join('');
+  }
+
+  // ---------- Atelier de décoration ----------
+  var dv = { open: false, opener: null };
+  function decoCups() { var n = 0; G.TROPHIES.forEach(function (t) { if ((S.trophies[t.id] || 0) >= 3 || (t.levels.length < 3 && (S.trophies[t.id] || 0) >= t.levels.length)) n++; }); return n; }
+  function decoView() {
+    var o = {};
+    G.DECO.slots.forEach(function (s) { var x = G.decoOpt(s.id, S.deco[s.id]); if (x && x.v !== undefined) o[s.id] = x.v; });
+    o.cups = Math.min(8, decoCups());
+    return o;
+  }
+  function hexCss(n) { return '#' + ('000000' + n.toString(16)).slice(-6); }
+  function swatch(slot, o) {
+    var v = o.v;
+    if (v === undefined) return '';
+    if (slot === 'wall' || slot === 'rug') return 'linear-gradient(135deg,' + hexCss(v[0]) + ' 0 55%,' + hexCss(v[1]) + ' 55%)';
+    if (slot === 'light') return 'radial-gradient(circle at 50% 30%,' + hexCss(v) + ', #3a3d45)';
+    if (slot === 'floor') return v[0] === 'wood' ? 'repeating-linear-gradient(90deg,' + v[1] + ' 0 18px,' + v[2] + ' 18px 20px)' : v[0] === 'marble' ? 'linear-gradient(135deg,#f2efe9,#d9d5cf 60%,#ece8e2)' : 'linear-gradient(135deg,#a9a49b,#8f8a82)';
+    if (slot === 'neon') return '#1b1d22';
+    return '';
+  }
+  var NEON_GLYPH = { text: 'PM', note: '♫', heart: '♥', bolt: 'ϟ', star: '★' };
+  function renderDeco() {
+    var box = $('decoSlots'), fresh = {};
+    G.decoNew(S).forEach(function (k) { fresh[k] = 1; });
+    var n = decoCups();
+    setText($('decoCups'), 'Ton étagère expose ' + Math.min(8, n) + ' coupe' + (n > 1 ? 's' : '') + ' sur 8 : une par famille du palmarès décrochée au niveau Or.');
+    box.innerHTML = G.DECO.slots.map(function (s) {
+      return '<section class="deco-slot"><h3>' + esc(s.name) + '</h3><div class="deco-opts" role="group" aria-label="' + esc(s.name) + '">' + s.options.map(function (o) {
+        var ok = G.decoUnlocked(S, s.id, o.id), on = S.deco[s.id] === o.id, pr = G.decoProgress(S, s.id, o.id), sw = swatch(s.id, o);
+        var glyph = s.id === 'neon' && o.v ? '<span style="color:' + o.v.c + '">' + NEON_GLYPH[o.v.k] + '</span>' : '';
+        return '<button type="button" class="dopt" data-slot="' + s.id + '" data-opt="' + o.id + '" aria-pressed="' + on + '"' + (ok ? '' : ' disabled') + '>' +
+          (fresh[s.id + ':' + o.id] ? '<span class="new">Nouveau</span>' : '') +
+          '<span class="sw" style="' + (sw ? '--sw:' + sw : '') + '" aria-hidden="true">' + glyph + '</span>' +
+          '<span>' + esc(o.name) + '</span>' +
+          (ok ? (on ? '<small>Installé</small>' : '<small>' + (o.need ? 'Débloqué' : 'Offert') + '</small>') : '<small>' + esc(o.need.t) + '</small><span class="meter" aria-hidden="true"><i style="width:' + Math.round(pr.v / pr.n * 100) + '%"></i></span>') +
+          '</button>';
+      }).join('') + '</div></section>';
+    }).join('');
+  }
+  function openDeco() {
+    if (dv.open) return;
+    dv.open = true; dv.opener = document.activeElement;
+    renderDeco();
+    G.seeDeco(S); saveLocal();
+    $('decoScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    $('decoScrim').querySelector('.sheet').scrollTop = 0;
+    var first = $('decoSlots').querySelector('.dopt[aria-pressed="true"]'); (first || $('decoClose')).focus();
+  }
+  function closeDeco() {
+    if (!dv.open) return;
+    dv.open = false;
+    $('decoScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    var o = dv.opener; dv.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+    render();
+  }
+  function bindDeco() {
+    $('decoSlots').addEventListener('click', function (e) {
+      var b = e.target.closest('.dopt'); if (!b || b.disabled) return;
+      var slot = b.getAttribute('data-slot'), id = b.getAttribute('data-opt');
+      if (G.setDeco(S, slot, id)) {
+        saveLocal(); markCloud(); blip(6);
+        renderDeco(); renderScene(true);
+        var nb = $('decoSlots').querySelector('[data-slot="' + slot + '"][data-opt="' + id + '"]'); if (nb) nb.focus();
+      }
+    });
+    $('decoClose').addEventListener('click', closeDeco);
+    $('decoScrim').addEventListener('click', function (e) { if (e.target === $('decoScrim')) closeDeco(); });
+    document.addEventListener('keydown', function (e) { if (dv.open && e.key === 'Escape') { e.preventDefault(); closeDeco(); } });
+  }
+
   // ---------- Atelier piano ----------
   // Notes MIDI de do4 à sol5; touches du clavier selon la position physique (QWERTY comme AZERTY).
   var PI_LOW = 60, PI_HIGH = 79, PI_SCALE = [60, 62, 64, 67, 69, 72, 74, 76];
@@ -341,6 +430,7 @@
 
   // ---------- Icônes dans la scène 3D ----------
   var HOT_DRUM = '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="9" rx="8" ry="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 9v6c0 1.8 3.6 3.2 8 3.2s8-1.4 8-3.2V9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 2l-4 6M20 3l-6 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  var HOT_DECO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h12v5H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16 6.5h3v5.5h-8v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><rect x="9" y="15" width="4" height="6" rx="1" fill="currentColor"/></svg>';
   var HOT_PIANO = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 5v14M12 5v14M16 5v14" stroke="currentColor" stroke-width="1.6"/><rect x="6.6" y="5" width="2.8" height="8" fill="currentColor"/><rect x="14.6" y="5" width="2.8" height="8" fill="currentColor"/></svg>';
   function hotspots() {
     var list = [];
@@ -350,6 +440,9 @@
         label: R ? 'Clash de beatmakers : ' + R.name + ' te défie' : 'Clash de beatmakers : prochain défi dans ' + clock(S.battle.cd),
         html: HOT_DRUM + '<span>Clash</span>' + (R ? '<i class="bang" aria-hidden="true">!</i>' : '<small>' + clock(S.battle.cd) + '</small>') });
     }
+    var dn = G.decoNew(S).length;
+    list.push({ id: 'deco', anchor: 'shelf', hot: dn > 0, label: 'Décoration du studio' + (dn ? ' : ' + dn + ' nouveauté' + (dn > 1 ? 's' : '') : ''),
+      html: HOT_DECO + '<span>Déco</span>' + (dn ? '<i class="bang" aria-hidden="true">' + dn + '</i>' : '') });
     if (G.pianoOpen(S)) {
       var ready = S.piano.cd <= 0;
       list.push({ id: 'piano', anchor: 'piano', hot: ready, label: 'Atelier piano' + (ready ? ' : inspiration disponible' : ''),
@@ -360,6 +453,7 @@
   function onHotspot(id) {
     if (id === 'clash') { if (S.battle.rival) openClash(); else toast('Pas de rival pour l’instant : prochain défi dans ' + clock(S.battle.cd) + '.'); }
     else if (id === 'piano') openPiano();
+    else if (id === 'deco') openDeco();
   }
 
   // ---------- Clash de beatmakers ----------
@@ -381,7 +475,7 @@
       var bar = '<span class="league-bar" aria-hidden="true">' + D.BATTLE.leagues.map(function (x, i) { return '<i class="' + (i < B.league ? 'on' : '') + '"></i>'; }).join('') + '</span>';
       var prog = up ? B.pts + ' / ' + D.TUNING.battleUp + ' victoires pour monter en ligue ' + D.BATTLE.leagues[B.league].name + '.' : 'Tu es au sommet : ligue Légende.';
       $('clashBody').innerHTML = R
-        ? '<article class="card clash-card hot"><span class="who-r"></span><p class="proj-meta">Score à battre : <b>' + Math.round(R.target * 100) + ' %</b> · ' + L.bpm + ' BPM · ' + prog + '</p>' + bar +
+        ? '<article class="card clash-card hot"><span class="who-r"></span><p class="proj-meta">Score à battre : <b>' + Math.round(R.target * 100) + ' %</b> · ' + Math.round(L.bpm * (R.rule === 'rapide' ? 1.1 : 1)) + ' BPM · ' + prog + '</p>' + (R.rule ? '<p class="proj-meta"><span class="vogue">' + esc(RULE_TXT[R.rule][0]) + '</span> ' + esc(RULE_TXT[R.rule][1]) + '</p>' : '') + bar +
           '<div class="proj-row"><button class="btn primary" type="button" data-cl="go">Relever le défi</button><button class="btn sm" type="button" data-cl="no">Décliner</button></div></article>'
         : '<article class="card clash-card"><p class="proj-meta" id="clWait"></p>' + bar + '<p class="proj-meta">' + prog + ' ' + B.wins + ' victoire' + (B.wins > 1 ? 's' : '') + ', ' + B.losses + ' défaite' + (B.losses > 1 ? 's' : '') + (B.best ? ', meilleur combo ' + B.best : '') + '.</p></article>';
       var w = $('clashBody').querySelector('.who-r'); if (w) w.textContent = R.name + ' te défie !';
@@ -435,7 +529,7 @@
     cl.open = true; cl.playing = false; cl.done = false; cl.cfg = cfg; cl.opener = document.activeElement;
     setText($('clLeague'), 'Ligue ' + cfg.leagueName);
     $('clTitle').textContent = cfg.rival.name + ' te défie';
-    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + ' % à battre · ' + cfg.bpm + ' BPM');
+    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + ' % à battre · ' + cfg.bpm + ' BPM' + (cfg.rule ? ' · ' + RULE_TXT[cfg.rule][0] : ''));
     var snd = S.sound && vol.sfx > 0;
     setText($('clTip'), snd ? 'Le son est activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.' : 'Le son est coupé : tu peux jouer quand même, mais le clash est bien plus amusant en musique.');
     $('clSoundOn').hidden = snd;
@@ -640,6 +734,7 @@
           '<li class="' + L.pubG + '">Public ' + esc(G.PJ_P[L.pub].name.toLowerCase()) + ' : ' + (L.pubG === 'top' ? 'la cible idéale.' : L.pubG === 'bad' ? 'pas du tout sa cible.' : 'une cible correcte.') + '</li>' +
           '<li class="' + (L.acc >= 85 ? 'top' : L.acc < 50 ? 'bad' : 'ok') + '">Réglages des phases justes à ' + L.acc + ' %. Le carnet garde la zone probable.</li>' +
           '<li class="' + (L.fit >= 75 ? 'top' : L.fit < 45 ? 'bad' : 'ok') + '">Apport de l’équipe : ' + L.fit + ' %.</li>' +
+          (L.tg || L.tm ? '<li class="top">Dans l’air du temps : ' + (L.tg && L.tm ? 'genre et ambiance à la mode' : L.tg ? 'genre à la mode, ventes boostées' : 'ambiance à la mode') + '.</li>' : '') +
           (L.fresh < 0 ? '<li class="bad">' + (L.fresh <= -1.5 ? 'Déjà entendu : le public se lasse de cette association.' : 'Encore ce genre : un peu de lassitude.') + '</li>' : '') +
           '</ul><p class="proj-meta">' + (L.pos ? 'Entré au Top 50 à la place ' + L.pos + '. Ventes attendues : ' + eur(L.sales) + ' sur ' + D.PROJECTS.sales.length + ' semaines s’il reste classé (budget ' + eur(L.cost) + ').' : 'Pas assez fort pour entrer au Top 50 : aucune vente.') + '</p>' +
           '<button class="btn sm" type="button" data-pj="dismiss">Ranger le compte rendu</button></article>';
@@ -681,9 +776,14 @@
     if (!G.genreOpen(S, cf.genre)) cf.genre = 'rap';
     if (!G.formatOpen(S, cf.fmt)) cf.fmt = 'single';
     $('pjFmt').innerHTML = PR.formats.map(function (f) { var ok = G.formatOpen(S, f.id); return pickBtn('fmt', f.id, f.name, cf.fmt === f.id, !ok, ok ? (f.cost > 1 ? '×' + nf1.format(f.cost) + ' budget' : '') : 'dès ' + D.TIERS[f.tier].name.toLowerCase()); }).join('');
+    var trd = G.trendFor(S);
     $('pjGenre').innerHTML = PR.genres.map(function (g) { var ok = G.genreOpen(S, g.id); return pickBtn('genre', g.id, g.name, cf.genre === g.id, !ok, ok ? '' : 'recherche ' + G.RD_BY[g.rd].name); }).join('');
     $('pjMood').innerHTML = PR.moods.map(function (m) { return pickBtn('mood', m.id, m.name, cf.mood === m.id, false, '', pjGrade('m', cf.genre, m.id)); }).join('');
     $('pjPub').innerHTML = PR.pubs.map(function (p) { return pickBtn('pub', p.id, p.name, cf.pub === p.id, false, '', pjGrade('p', cf.genre, p.id)); }).join('');
+    if (trd) [['pjGenre', 'genre', trd.g], ['pjMood', 'mood', trd.m]].forEach(function (q) {
+      var b = $(q[0]).querySelector('[data-' + q[1] + '="' + q[2] + '"]');
+      if (b && !b.disabled) { var s = document.createElement('span'); s.className = 'tr'; s.textContent = 'tendance'; b.appendChild(s); }
+    });
     var known = Object.keys(S.proj.book.c).length;
     $('pjLegend').innerHTML = '<span>Carnet du studio, ' + known + ' association' + (known > 1 ? 's' : '') + ' découverte' + (known > 1 ? 's' : '') + ' :</span><span><i class="gd-l top"></i>idéal</span><span><i class="gd-l ok"></i>neutre</span><span><i class="gd-l bad"></i>à éviter</span><span><i class="gd-l"></i>inconnu</span>';
     var h = S.proj.book.h[cf.genre], staff = S.team.staff;
@@ -844,6 +944,7 @@
       (active ? '' : '<div class="o-btns"><button class="btn sm primary" type="button" data-oact="accept">Accepter</button><button class="btn sm" type="button" data-oact="decline">Refuser</button></div>');
     el.querySelector('.o-head b').textContent = x.client + ' · ' + x.kind;
     el.querySelector('.o-head .p').textContent = '+' + eur(x.reward);
+    if (x.trend) { var vt = document.createElement('span'); vt.className = 'vogue'; vt.textContent = 'Tendance'; el.querySelector('.o-head b').appendChild(document.createTextNode(' ')); el.querySelector('.o-head b').appendChild(vt); }
     el.querySelector('.o-what').innerHTML = '<b>' + x.n + ' ×</b> ' + esc(act.name) + ' · qualité ' + starsHtml(x.q) + ' min.' + (needMix ? ' <span class="need-mix">Exige un mix</span>' : '');
     var r = { root: el, x: x, active: active };
     el.querySelectorAll('[data-k]').forEach(function (n) { r[n.getAttribute('data-k')] = n; });
@@ -940,6 +1041,7 @@
     bindProj();
     bindClash();
     bindPiano();
+    bindDeco();
     $('rd').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-rd]'), sp = e.target.closest('button[data-spec]');
       if (b && !b.disabled) { if (G.research(S, b.getAttribute('data-rd'))) saveLocal(); renderRd(true); render(); }
@@ -1113,6 +1215,9 @@
       var d = G.duration(S, act), pct = a.run ? Math.min(1, a.prog / d) : 0;
       var pay = G.payout(S, act), xp = G.xpGain(S, act), plan = G.upPlan(S, act, buyN), cost = plan.cost;
       setText(r.rank, 'Rang ' + a.lvl);
+      var vg = G.trendAct(S, act.id) > 1;
+      if (r.vogue === undefined) { r.vogue = document.createElement('span'); r.vogue.className = 'vogue'; r.vogue.textContent = 'En vogue +' + Math.round((D.TUNING.trendAct - 1) * 100) + ' %'; r.rank.parentNode.insertBefore(r.vogue, r.rank); }
+      setHidden(r.vogue, !vg);
       var wm = byAct[act.id];
       setHidden(r.who, !wm);
       if (wm) { var wt = wm.name + (G.working(wm) ? '' : wm.rest > 0 ? ' · en vacances' : ' · en formation'); if (r.who._t !== wt) { r.who._t = wt; r.who.lastChild.textContent = wt; r.who.firstChild.style.background = shirtCol(wm); } }
@@ -1159,6 +1264,7 @@
     renderRd();
     renderProj();
     renderClash();
+    renderTrends();
     if (pjv.open) pjFoot();
     renderScene();
     var hint = $('hint');
@@ -1238,7 +1344,7 @@
     S3.update({
       tier: ti, place: D.TIERS[ti].place, owned: S.owned, live: live,
       ghosts: visibleItems().out.slice(0, 2).map(function (i) { return i.id; }),
-      cap: G.teamOpen(S) ? G.teamCap(S) : 0, edrums: G.battleOpen(S),
+      cap: G.teamOpen(S) ? G.teamCap(S) : 0, edrums: G.battleOpen(S), deco: decoView(),
       staff: S.team.staff.map(function (m) { return { id: m.id, look: m.look, role: m.role, morale: m.morale, act: m.act, status: memberStatus(m) }; })
     });
     if (S3.setHotspots) hotspots();
@@ -1782,7 +1888,7 @@
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
-    closeMix(); closeProj(); cl.playing = false; closeClash(); closePiano(); cl.key = ''; cl.wasOpen = null; pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
+    closeMix(); closeProj(); cl.playing = false; closeClash(); closePiano(); closeDeco(); trv.key = ''; cl.key = ''; cl.wasOpen = null; pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -2039,6 +2145,11 @@
   };
   G.hooks.research = function (n) { markCloud(); rdv.key = ''; if (!quiet) { toast('Recherche terminée : ' + n.name + '.', 4500); blip(10); } };
   G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
+  G.hooks.trend = function (tr) {
+    trv.key = ''; markCloud();
+    if (quiet) return;
+    toast('Nouvelles tendances : ' + G.ACT_BY[tr.act].name.toLowerCase() + ' en vogue, le public veut du ' + G.PJ_G[tr.g].name + '. Détails dans le Top 50.', 6500);
+  };
   G.hooks.battleNew = function (r) { cl.key = ''; markCloud(); if (!quiet) { toast(r.name + ' te défie en clash de beatmakers ! Rendez-vous dans Productions.', 6000); blip(10); } };
   G.hooks.battleDone = function () { cl.key = ''; markCloud(); };
   G.hooks.projectStart = function (c) { markCloud(); if (!quiet) { toast('« ' + c.title + ' » est lancé : écriture en cours.', 4000); blip(6); } };

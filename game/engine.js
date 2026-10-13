@@ -28,6 +28,9 @@
   EVENTS.forEach(function (x) { EVENT_BY[x.id] = x; });
   var OLD_TROPHY = {}; // ancien trophée à niveau unique -> [famille, niveau]
   TROPHIES.forEach(function (t) { TROPHY_BY[t.id] = t; (t.old || []).forEach(function (o, i) { if (o) OLD_TROPHY[o] = [t.id, i + 1]; }); });
+  var DECO = D.DECO || { slots: [] }, DECO_BY = {};
+  DECO.slots.forEach(function (s) { DECO_BY[s.id] = {}; s.options.forEach(function (o) { DECO_BY[s.id][o.id] = o; }); });
+  var RULES = ['rapide', 'sans-clap', 'prime'];
   var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
 
@@ -44,10 +47,11 @@
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 } };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco() };
   }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newBattle() { return { league: 1, pts: 0, wins: 0, losses: 0, best: 0, cd: T.battleFirst, rival: null }; }
+  function newDeco() { var d = { seen: {} }; DECO.slots.forEach(function (s) { d[s.id] = s.options[0].id; }); return d; }
   function newRd() { return { pts: 0, total: 0, nodes: {}, spec: {} }; }
   function newOrders() { return { offers: [], active: [], cd: T.orderFirst, rep: 0, done: 0, failed: 0, nextId: 1 }; }
   function newCharts() { return { week: 1, left: T.weekLen, rivals: [], mine: [], free: 0, best: 0, num1: 0, releases: 0, nextId: 1 }; }
@@ -112,6 +116,10 @@
       if (o.rd.spec && typeof o.rd.spec === 'object') RESEARCH.specs.forEach(function (t) { var id = o.rd.spec[t.tier]; if (SPEC_BY[id] && SPEC_BY[id].tier === t.tier) S.rd.spec[t.tier] = id; });
     }
     if (o.proj && typeof o.proj === 'object') hydrateProj(S, o.proj);
+    if (o.deco && typeof o.deco === 'object') {
+      DECO.slots.forEach(function (s) { if (DECO_BY[s.id][o.deco[s.id]]) S.deco[s.id] = o.deco[s.id]; });
+      if (o.deco.seen && typeof o.deco.seen === 'object') Object.keys(o.deco.seen).forEach(function (k) { var p = k.split(':'); if (DECO_BY[p[0]] && DECO_BY[p[0]][p[1]]) S.deco.seen[k] = 1; });
+    }
     if (o.piano && typeof o.piano === 'object') {
       S.piano.best = Math.max(0, Math.min(60, Math.floor(num(o.piano.best, 0)))); S.piano.plays = Math.max(0, Math.floor(num(o.piano.plays, 0)));
       S.piano.cd = Math.max(0, Math.min(T.pianoEvery, num(o.piano.cd, 0)));
@@ -123,7 +131,7 @@
       B.cd = Math.max(0, num(b.cd, T.battleFirst));
       var r = b.rival;
       if (r && typeof r === 'object') B.rival = { name: String(r.name || 'Rival').slice(0, 30), league: Math.max(1, Math.min(L, Math.floor(num(r.league, B.league)))),
-        target: Math.max(0.3, Math.min(0.95, num(r.target, 0.5))), seed: Math.floor(num(r.seed, 1)) >>> 0 };
+        target: Math.max(0.3, Math.min(0.95, num(r.target, 0.5))), seed: Math.floor(num(r.seed, 1)) >>> 0, rule: RULES.indexOf(r.rule) >= 0 ? r.rule : null };
     }
     return S;
   }
@@ -155,7 +163,7 @@
     return { id: Math.max(1, Math.floor(num(x.id, 1))), act: x.act, n: n, q: Math.max(1, Math.min(5, Math.floor(num(x.q, 1)))),
       got: Math.max(0, Math.min(n, Math.floor(num(x.got, 0)))), time: Math.max(1, num(x.time, 60)), left: Math.max(0, num(x.left, 60)),
       life: Math.max(0, num(x.life, T.orderOfferLife)), reward: Math.max(0, num(x.reward, 0)), xp: Math.max(0, num(x.xp, 0)),
-      client: String(x.client || 'Client').slice(0, 30), kind: String(x.kind || '').slice(0, 30) };
+      client: String(x.client || 'Client').slice(0, 30), kind: String(x.kind || '').slice(0, 30), trend: !!x.trend };
   }
   function hydrateOrders(S, o) {
     var r = S.orders;
@@ -184,6 +192,8 @@
       mx = Math.max(mx, e.id); c.mine.push(e);
     });
     c.nextId = Math.max(mx + 1, Math.floor(num(o.nextId, 1)));
+    var tr = o.trend;
+    if (tr && typeof tr === 'object' && PJ_G[tr.g] && PJ_M[tr.m] && ACT_BY[tr.act] && RULES.indexOf(tr.rule) >= 0) c.trend = { w: Math.max(1, Math.floor(num(tr.w, 1))), g: tr.g, m: tr.m, act: tr.act, rule: tr.rule };
   }
   function hydrateTeam(S, t) {
     var tm = S.team, used = {}, maxId = 0;
@@ -302,7 +312,7 @@
   function duration(S, act) { return act.dur / stats(S).g.speed / staffFx(S, act.id).sp; }
   function payout(S, act) {
     var a = S.acts[act.id], st = stats(S);
-    return act.pay * (1 + T.upGain * a.lvl) * milestoneMult(a.lvl) * st.g.gain * (st.g.act[act.id] || 1) * st.vm * levelMult(S) * boostMult(S) * staffFx(S, act.id).gn;
+    return act.pay * (1 + T.upGain * a.lvl) * milestoneMult(a.lvl) * st.g.gain * (st.g.act[act.id] || 1) * st.vm * levelMult(S) * boostMult(S) * staffFx(S, act.id).gn * trendAct(S, act.id);
   }
   function xpGain(S, act) { return act.xp * stats(S).g.xp; }
   function upCost(S, act) { return Math.ceil(act.upCost * Math.pow(T.upGrowth, S.acts[act.id].lvl)); }
@@ -695,7 +705,10 @@
     // les productions les plus récentes sont plus demandées
     var w = open.map(function (a, i) { return Math.pow(i + 1, 1.5); }), tot = w.reduce(function (x, y) { return x + y; }, 0), r = rand() * tot, k = 0;
     while (k < open.length - 1 && r > w[k]) { r -= w[k]; k++; }
-    var act = open[k], d = duration(S, act);
+    var act = open[k], tr = trendFor(S), hot = false;
+    if (tr && ACT_BY[tr.act] && isUnlocked(S, ACT_BY[tr.act]) && rand() < T.trendOrder) act = ACT_BY[tr.act];
+    hot = !!tr && tr.act === act.id;
+    var d = duration(S, act);
     var span = T.orderTimeMin + rand() * (T.orderTimeMax - T.orderTimeMin);
     var n = Math.max(2, Math.min(40, Math.round(span / d)));
     var bq = baseQuality(S, act.id), q = Math.max(1, Math.min(5, bq - 1 + Math.floor(rand() * 3)));
@@ -704,8 +717,8 @@
     var time = Math.round(Math.max(n * d * T.orderDeadlineK + 30, q > bq ? n * (d + 45) + 60 : 0));
     var o = S.orders;
     return { id: o.nextId++, act: act.id, n: n, q: q, got: 0, time: time, left: time, life: T.orderOfferLife,
-      reward: rawPayout(S, act) * n * (T.orderRewardBase + T.orderRewardQ * q) * (1 + o.rep / 100) * rdFx(S).orderReward, xp: xpGain(S, act) * n * 0.5,
-      client: names[Math.floor(rand() * names.length)], kind: cl[0] };
+      reward: rawPayout(S, act) / trendAct(S, act.id) * n * (T.orderRewardBase + T.orderRewardQ * q) * (1 + o.rep / 100) * rdFx(S).orderReward * (hot ? T.trendOrderReward : 1), xp: xpGain(S, act) * n * 0.5,
+      client: names[Math.floor(rand() * names.length)], kind: cl[0], trend: hot };
   }
   function acceptOrder(S, id) {
     var o = S.orders, i = -1;
@@ -852,6 +865,7 @@
     if (!chartsOpen(S)) return;
     var c = S.charts;
     if (!c.rivals.length) initRivals(S);
+    if (!c.trend || c.trend.w !== c.week) { c.trend = makeTrend(S); if (hooks.trend) hooks.trend(c.trend); }
     c.left -= dt;
     if (c.left <= 0) weekEnd(S);
   }
@@ -890,6 +904,7 @@
     if (S.money < cost) return null;
     S.money -= cost;
     c.cost = cost; c.phase = 0; c.t = 0; c.fit = [];
+    var tr = trendFor(S); c.tg = !!tr && tr.g === c.genre; c.tm = !!tr && tr.m === c.mood;
     S.proj.cur = c;
     if (hooks.projectStart) hooks.projectStart(c);
     return c;
@@ -921,7 +936,7 @@
     var h = S.proj.hist, same = h.some(function (x) { return x.g === c.genre && x.m === c.mood; }), again = h.length && h[0].g === c.genre;
     var crea = 0; RESEARCH.nodes.forEach(function (n) { if (n.b === 'crea' && S.rd.nodes[n.id]) crea += 0.1; });
     var parts = { base: 1, combo: cg === 'top' ? 1.5 : cg === 'bad' ? -2 : 0, pub: pg === 'top' ? 1 : pg === 'bad' ? -1.5 : 0, sliders: 3.5 * acc, team: 3 * fit,
-      studio: Math.min(1, 0.25 * tierIndex(S)) + crea, fresh: same ? -1.5 : again ? -0.5 : 0 };
+      studio: Math.min(1, 0.25 * tierIndex(S)) + crea, fresh: same ? -1.5 : again ? -0.5 : 0, trend: (c.tg ? T.trendGenre : 0) + (c.tm ? T.trendMood : 0) };
     var s = 0; Object.keys(parts).forEach(function (k) { s += parts[k]; });
     return { score: Math.max(0, Math.min(10, s + (rand() - 0.5) * 0.8)), parts: parts, combo: cg, pubG: pg, acc: acc, fit: fit };
   }
@@ -946,7 +961,7 @@
     P.hist.unshift({ g: c.genre, m: c.mood }); P.hist = P.hist.slice(0, 4);
     P.done++; P.best = Math.max(P.best, avg);
     // sortie dans le Top 50 et ventes réparties sur les semaines de classement
-    var sales = c.cost * (0.15 + 0.02 * avg * avg) * f.roi;
+    var sales = c.cost * (0.15 + 0.02 * avg * avg) * f.roi * (c.tg ? T.trendSales : 1);
     var c2 = S.charts; if (!c2.rivals.length) initRivals(S);
     var e = { id: c2.nextId++, t: c.title, act: bestAct(S).id, q: Math.max(1, Math.min(5, Math.round(avg / 2))),
       s: potential(S) * (0.25 + 0.18 * avg) * f.chart * (1 + S.orders.rep / 200) * rdFx(S).chartScore,
@@ -959,7 +974,7 @@
     addRp(S, T.rpProj * avg * f.time);
     if (avg >= 8) S.orders.rep = Math.min(T.repMax, S.orders.rep + Math.round(avg - 6));
     var res = { title: c.title, genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt, sl: c.sl.slice(), avg: avg, notes: notes, combo: r.combo, pubG: r.pubG,
-      acc: Math.round(r.acc * 100), fit: Math.round(r.fit * 100), fresh: r.parts.fresh, pos: inChart ? e.pos : 0, sales: sales, cost: c.cost };
+      acc: Math.round(r.acc * 100), fit: Math.round(r.fit * 100), fresh: r.parts.fresh, pos: inChart ? e.pos : 0, sales: sales, cost: c.cost, tg: !!c.tg, tm: !!c.tm };
     P.last = res;
     checkTrophies(S);
     if (hooks.projectDone) hooks.projectDone(res);
@@ -983,7 +998,7 @@
         sl: [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, num(l.sl && l.sl[i], 50))); }), avg: Math.max(0, Math.min(10, num(l.avg, 0))),
         notes: l.notes.slice(0, PJ.critics.length).map(function (x) { return { name: String((x && x.name) || 'Critique').slice(0, 30), n: Math.max(0, Math.min(10, num(x && x.n, 0))) }; }),
         combo: G3.indexOf(l.combo) >= 0 ? l.combo : 'ok', pubG: G3.indexOf(l.pubG) >= 0 ? l.pubG : 'ok', acc: Math.max(0, Math.min(100, num(l.acc, 0))), fit: Math.max(0, Math.min(100, num(l.fit, 0))),
-        fresh: Math.min(0, num(l.fresh, 0)), pos: Math.max(0, Math.floor(num(l.pos, 0))), sales: Math.max(0, num(l.sales, 0)), cost: Math.max(0, num(l.cost, 0)) };
+        fresh: Math.min(0, num(l.fresh, 0)), pos: Math.max(0, Math.floor(num(l.pos, 0))), sales: Math.max(0, num(l.sales, 0)), cost: Math.max(0, num(l.cost, 0)), tg: !!l.tg, tm: !!l.tm };
     }
     var c = o.cur;
     if (c && typeof c === 'object' && PJ_G[c.genre] && PJ_M[c.mood] && PJ_P[c.pub] && PJ_F[c.fmt]) {
@@ -992,12 +1007,42 @@
       P.cur = { title: String(c.title || 'Projet').slice(0, 40), genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt,
         sl: [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, Math.round(num(c.sl && c.sl[i], 50)))); }),
         team: [0, 1, 2].map(function (i) { var id = c.team && c.team[i]; return id && ids[id] ? id : null; }),
-        cost: Math.max(0, num(c.cost, 0)), phase: ph, t: Math.max(0, Math.min(projTime(c.fmt, ph), num(c.t, 0))),
+        cost: Math.max(0, num(c.cost, 0)), phase: ph, t: Math.max(0, Math.min(projTime(c.fmt, ph), num(c.t, 0))), tg: !!c.tg, tm: !!c.tm,
         fit: [0, 1, 2].slice(0, ph).map(function (i) { return Math.max(0, Math.min(1, num(c.fit && c.fit[i], 0.35))); }) };
     }
   }
   function dismissProject(S) { if (S.proj) S.proj.last = null; }
 
+
+
+  // ---------- Tendances de la semaine ----------
+  function trendFor(S) { var c = S.charts; return c && c.trend && c.trend.w === c.week && S.level >= T.chartLevel ? c.trend : null; }
+  function trendAct(S, id) { var c = S.charts, t = c && c.trend; return t && t.act === id && t.w === c.week && S.level >= T.chartLevel ? T.trendAct : 1; }
+  function pickNot(list, prev) { var l = list.length > 1 ? list.filter(function (x) { return x !== prev; }) : list; return l[Math.floor(rand() * l.length)]; }
+  function makeTrend(S) {
+    var p = S.charts.trend || {};
+    var gs = PJ.genres.filter(function (g) { return genreOpen(S, g.id); }).map(function (g) { return g.id; });
+    var acts = ACTS.filter(function (a) { return isUnlocked(S, a); }).map(function (a) { return a.id; });
+    return { w: S.charts.week, g: pickNot(gs.length ? gs : [PJ.genres[0].id], p.g), m: pickNot(PJ.moods.map(function (m) { return m.id; }), p.m),
+      act: pickNot(acts.length ? acts : [ACTS[0].id], p.act), rule: pickNot(RULES, p.rule) };
+  }
+
+  // ---------- Décoration du studio ----------
+  function decoOpt(slot, id) { return DECO_BY[slot] && DECO_BY[slot][id]; }
+  function decoUnlocked(S, slot, id) { var o = decoOpt(slot, id); return !!o && (!o.need || trophyMetric(S, o.need.m) >= o.need.n); }
+  function decoProgress(S, slot, id) { var o = decoOpt(slot, id); if (!o || !o.need) return null; return { v: Math.min(o.need.n, trophyMetric(S, o.need.m)), n: o.need.n }; }
+  function setDeco(S, slot, id) {
+    if (!decoUnlocked(S, slot, id)) return false;
+    S.deco[slot] = id; S.deco.seen[slot + ':' + id] = 1;
+    return true;
+  }
+  // Options débloquées par un exploit et pas encore vues dans l'atelier de décoration.
+  function decoNew(S) {
+    var out = [];
+    DECO.slots.forEach(function (s) { s.options.forEach(function (o) { if (o.need && !S.deco.seen[s.id + ':' + o.id] && decoUnlocked(S, s.id, o.id)) out.push(s.id + ':' + o.id); }); });
+    return out;
+  }
+  function seeDeco(S) { decoNew(S).forEach(function (k) { S.deco.seen[k] = 1; }); }
 
   // ---------- Atelier piano ----------
   function pianoOpen(S) { return !!S.owned.clavier; }
@@ -1025,7 +1070,8 @@
   function makeRival(S) {
     var L = league(S), used = S.battle.rival ? S.battle.rival.name : '';
     var names = BT.rivals.filter(function (n) { return n !== used; });
-    return { name: names[Math.floor(rand() * names.length)], league: S.battle.league, target: Math.min(0.95, L.target + (rand() - 0.5) * 0.08), seed: Math.floor(rand() * 4294967295) >>> 0 };
+    var tr = trendFor(S);
+    return { name: names[Math.floor(rand() * names.length)], league: S.battle.league, target: Math.min(0.95, L.target + (rand() - 0.5) * 0.08), seed: Math.floor(rand() * 4294967295) >>> 0, rule: tr ? tr.rule : null };
   }
   function tickBattle(S, dt) {
     if (!battleOpen(S)) return;
@@ -1066,7 +1112,9 @@
     var B = S.battle, R = B.rival;
     if (!battleOpen(S) || !R) return null;
     var L = BT.leagues[R.league - 1];
-    return { rival: R, league: R.league, leagueName: L.name, bpm: L.bpm, bars: T.battleBars, notes: battlePattern(R.seed, L.dens, T.battleBars) };
+    var notes = battlePattern(R.seed, L.dens, T.battleBars);
+    if (R.rule === 'sans-clap') notes = notes.filter(function (n) { return n.l !== 3; });
+    return { rival: R, league: R.league, leagueName: L.name, bpm: Math.round(L.bpm * (R.rule === 'rapide' ? 1.1 : 1)), bars: T.battleBars, notes: notes, rule: R.rule || null };
   }
   // res: { score 0 à 1, combo }. Renvoie le résultat et applique les récompenses.
   function finishBattle(S, res) {
@@ -1077,7 +1125,7 @@
     B.best = Math.max(B.best, combo);
     if (win) {
       B.wins++;
-      var cash = ref * (0.8 + 0.4 * R.league) * (0.75 + score * 0.5) * rdFx(S).event, xp = xpNeeded(S.level) * 0.08 * R.league;
+      var cash = ref * (0.8 + 0.4 * R.league) * (0.75 + score * 0.5) * rdFx(S).event * (R.rule === 'prime' ? 1.5 : R.rule === 'rapide' ? 1.25 : 1), xp = xpNeeded(S.level) * 0.08 * R.league;
       S.money += cash; S.lifetime += cash; addXp(S, xp); addRp(S, Math.max(30, rdRate(S) * 120) * R.league);
       S.orders.rep = Math.min(T.repMax, S.orders.rep + 1 + Math.floor(R.league / 2));
       out.cash = cash; out.xp = xp;
@@ -1388,7 +1436,8 @@
     projTime: projTime, phaseFit: phaseFit, projBusy: projBusy, startProject: startProject, cancelProject: cancelProject, tickProject: tickProject,
     finishProject: finishProject, dismissProject: dismissProject, comboGrade: comboGrade, pubGrade: pubGrade,
     TROPHY_LEVELS: TLV, trophyTotal: trophyTotal, trophyLevel: trophyLevel, levelName: levelName, choiceInfo: choiceInfo,
-    BATTLE: BT, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
+    BATTLE: BT, DECO: DECO, decoOpt: decoOpt, decoUnlocked: decoUnlocked, decoProgress: decoProgress, setDeco: setDeco, decoNew: decoNew, seeDeco: seeDeco,
+    trendFor: trendFor, trendAct: trendAct, makeTrend: makeTrend, RULES: RULES, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;

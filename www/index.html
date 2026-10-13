@@ -341,6 +341,30 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .buyn span { padding: 0 6px 0 5px; font: 800 11px var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
 .buyn button { min-width: 44px; min-height: 34px; padding: 4px 8px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: 800 13.5px var(--f-body); }
 .buyn button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-s); }
+/* Tendances */
+.trend-card { display: grid; gap: 8px; margin-bottom: 12px; border-left: 4px solid var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--card)); }
+.trend-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.trend-head h3 { font-size: 17px; margin: 0; }
+.trend-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.trend-list li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; align-items: start; font-size: 13.5px; }
+.trend-list li i { font-style: normal; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--panel-2); font-size: 14px; }
+.trend-list li b { display: block; font-size: 14px; }
+.trend-list li span { color: var(--ink-soft); }
+.vogue { font: 800 11.5px var(--f-body); padding: 2px 8px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 16%, var(--card)); color: var(--accent); white-space: nowrap; }
+.pk .tr { font: 800 10.5px var(--f-body); padding: 1px 6px; border-radius: 8px; background: var(--accent); color: #fff; }
+.pk[aria-pressed="true"] .tr { background: #fff; color: var(--accent); }
+/* Atelier de décoration */
+.deco-sheet { width: min(640px, 100%); }
+.deco-slot { display: grid; gap: 8px; margin-top: 6px; }
+.deco-slot h3 { font-size: 16px; margin: 6px 0 0; }
+.deco-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; }
+.dopt { position: relative; display: grid; gap: 5px; align-content: start; padding: 8px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); color: var(--ink); text-align: left; font: 700 13px var(--f-body); min-width: 0; }
+.dopt[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.dopt:disabled { opacity: 0.6; cursor: default; }
+.dopt .sw { height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--sw, var(--panel-2)); display: grid; place-items: center; color: #fff; font: 800 15px var(--f-title); text-shadow: 0 0 8px currentColor; overflow: hidden; }
+.dopt small { font-size: 11.5px; color: var(--ink-soft); font-weight: 700; }
+.dopt .meter { height: 5px; }
+.dopt .new { position: absolute; top: -6px; right: -6px; font: 800 10.5px var(--f-body); padding: 2px 6px; border-radius: 8px; background: var(--bad); color: #fff; }
 /* Icônes cliquables dans la scène 3D */
 .hot3d { position: absolute; left: 0; top: 0; z-index: 3; display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px 5px 7px; border: 2px solid transparent; border-radius: 999px; background: var(--hud); color: var(--ink); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28); font: 800 13px var(--f-body); white-space: nowrap; pointer-events: auto; cursor: pointer; will-change: transform; }
 .hot3d::after { content: ''; position: absolute; left: 50%; bottom: -7px; margin-left: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: var(--hud); }
@@ -730,6 +754,10 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
         <h2 id="chartTitle">Top 50 <small id="chartWeek"></small></h2>
         <div class="card chart-lock" id="chartLock"><b>Le Top 50 t’attend</b><span id="chartLockText"></span></div>
         <div id="chartOpen">
+          <article class="card trend-card" id="trendCard" hidden>
+            <div class="trend-head"><h3>Tendances de la semaine</h3><span class="rep-chip" id="trendLeft"></span></div>
+            <ul class="trend-list" id="trendList"></ul>
+          </article>
           <p class="hint">Chaque semaine de jeu (3 minutes), tes titres classés rapportent selon leur place. La qualité compte : mixe toi-même tes productions pour viser le haut du classement.</p>
           <h3 class="sec">Sortir un titre</h3>
           <div class="list" id="releaseList"></div>
@@ -838,6 +866,16 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <div class="pf"><span class="lbl">Les trois phases</span><div id="pjPhases"></div></div>
     <p class="small-note" id="pjTeamNote"></p>
     <div class="pj-foot"><div><b id="pjCost"></b><small id="pjInfo"></small></div><button class="btn sm" id="pjClose" type="button">Fermer</button><button class="btn primary" id="pjGo" type="button">Lancer le projet</button></div>
+  </div>
+</div>
+<div class="scrim" id="decoScrim" hidden>
+  <div class="sheet deco-sheet" role="dialog" aria-modal="true" aria-labelledby="decoTitle">
+    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Étagère à souvenirs</p>
+    <h2 id="decoTitle">Décoration du studio</h2>
+    <p class="ev-text">Fais du studio le tien. C’est purement esthétique : ton style te suit dans tous tes lieux et reste après une tournée mondiale. De nouvelles options se débloquent avec tes exploits.</p>
+    <p class="small-note" id="decoCups"></p>
+    <div id="decoSlots"></div>
+    <button class="pad" id="decoClose" type="button"><b>Retour au studio</b></button>
   </div>
 </div>
 <div class="scrim" id="pianoScrim" hidden>
@@ -1005,7 +1043,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     // Clash de beatmakers (mini-jeu de rythme)
     battleLevel: 3, battleFirst: 45, battleEvery: 210, battleUp: 3, battleBars: 8, battlePerfect: 0.07, battleGood: 0.14,
     // Atelier piano: une inspiration récompensée toutes les pianoEvery secondes de jeu
-    pianoEvery: 240
+    pianoEvery: 240,
+    // Tendances de la semaine (une par semaine du Top 50)
+    trendAct: 1.25, trendOrder: 0.4, trendOrderReward: 1.3, trendGenre: 0.6, trendMood: 0.4, trendSales: 1.3
   };
 
   // dur: secondes, pay: euros, xp: points d'expertise
@@ -1707,6 +1747,53 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       'La Machine', 'Prince Charley', 'Mamadou Bass', 'Capitaine Clap', 'Zélie Swing', 'Oscar Offbeat', 'Duchesse Dub', 'Toto Trap']
   };
 
+
+  // Décoration du studio: purement esthétique, appliquée à tous les lieux et conservée après une tournée.
+  // need: { m: mesure du palmarès, n: seuil, t: texte } ; sans need, l'option est offerte.
+  var DECO = {
+    slots: [
+      { id: 'wall', name: 'Peinture des murs', options: [
+        { id: 'origine', name: 'D’origine' },
+        { id: 'craie', name: 'Blanc craie', v: [0xf2efe8, 0xf8f5ef] },
+        { id: 'sauge', name: 'Vert sauge', v: [0x9fb59a, 0xb4c8af], need: { m: 'tier', n: 2, t: 'Emménage dans le garage' } },
+        { id: 'terracotta', name: 'Terracotta', v: [0xc8735a, 0xd9896f], need: { m: 'projects', n: 3, t: 'Termine 3 projets de création' } },
+        { id: 'nuit', name: 'Bleu nuit', v: [0x2d3550, 0x3a4462], need: { m: 'league', n: 2, t: 'Monte en ligue Régionale au clash' } },
+        { id: 'aubergine', name: 'Aubergine', v: [0x5b3b5e, 0x6e4a72], need: { m: 'pianoBest', n: 9, t: 'Rejoue 9 notes à l’atelier piano' } },
+        { id: 'sable-or', name: 'Sable doré', v: [0xe6d3a8, 0xefe0bd], need: { m: 'num1', n: 3, t: 'Passe 3 semaines numéro 1 du Top 50' } }
+      ] },
+      { id: 'floor', name: 'Sol', options: [
+        { id: 'origine', name: 'D’origine' },
+        { id: 'chene', name: 'Chêne clair', v: ['wood', '#cfa06c', '#b38452'] },
+        { id: 'noyer', name: 'Noyer', v: ['wood', '#5b4030', '#4a3426'], need: { m: 'items', n: 8, t: 'Installe 8 équipements' } },
+        { id: 'beton', name: 'Béton ciré', v: ['concrete'], need: { m: 'battles', n: 5, t: 'Remporte 5 clashs' } },
+        { id: 'marbre', name: 'Marbre', v: ['marble'], need: { m: 'tours', n: 1, t: 'Pars en tournée mondiale' } }
+      ] },
+      { id: 'rug', name: 'Tapis', options: [
+        { id: 'origine', name: 'D’origine' },
+        { id: 'bleu', name: 'Bleu océan', v: [0x2f4f8a, 0x4a6fb0] },
+        { id: 'vert', name: 'Vert forêt', v: [0x2f6b4f, 0x4c8c6a], need: { m: 'contacts', n: 6, t: 'Rencontre 6 contacts' } },
+        { id: 'rouge', name: 'Tapis rouge', v: [0x8c1c2c, 0xa52a3a], need: { m: 'chartBest', n: 41, t: 'Classe un titre dans le top 10' } },
+        { id: 'or', name: 'Or', v: [0xb8902f, 0xd9b04f], need: { m: 'projBest', n: 9, t: 'Obtiens 9/10 auprès des critiques' } }
+      ] },
+      { id: 'light', name: 'Ambiance lumineuse', options: [
+        { id: 'origine', name: 'Naturelle' },
+        { id: 'chaud', name: 'Chaleureuse', v: 0xffc89a },
+        { id: 'froid', name: 'Fraîche', v: 0xbcd6ff, need: { m: 'mixes', n: 10, t: 'Mixe 10 morceaux' } },
+        { id: 'violet', name: 'Violette', v: 0xd2b2ff, need: { m: 'league', n: 3, t: 'Monte en ligue Nationale au clash' } },
+        { id: 'rose', name: 'Rose bonbon', v: 0xffbcd6, need: { m: 'outings', n: 15, t: 'Vis 15 sorties de studio' } },
+        { id: 'vert', name: 'Aurore', v: 0xbff5d2, need: { m: 'rdNodes', n: 6, t: 'Termine 6 recherches' } }
+      ] },
+      { id: 'neon', name: 'Néon mural', options: [
+        { id: 'aucun', name: 'Aucun' },
+        { id: 'nom', name: 'Premier Mix', v: { k: 'text', c: '#ff8a3d' } },
+        { id: 'note', name: 'Double croche', v: { k: 'note', c: '#66ccff' }, need: { m: 'battles', n: 1, t: 'Remporte un clash' } },
+        { id: 'coeur', name: 'Cœur', v: { k: 'heart', c: '#ff5c8a' }, need: { m: 'contacts', n: 12, t: 'Rencontre 12 contacts' } },
+        { id: 'eclair', name: 'Éclair', v: { k: 'bolt', c: '#ffd166' }, need: { m: 'league', n: 4, t: 'Monte en ligue Internationale' } },
+        { id: 'etoile', name: 'Étoile', v: { k: 'star', c: '#c792ff' }, need: { m: 'chartBest', n: 50, t: 'Classe un titre numéro 1' } }
+      ] }
+    ]
+  };
+
   // Commandes: clients par type de production
   var CLIENTS = {
     beat: ['Rappeur', ['Kaïs', 'Lil Néo', 'Sami B', 'Zoya']], mix: ['Groupe', ['Les Rivages', 'Fuzz Club', 'Velvet Garage']],
@@ -1736,7 +1823,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1771,6 +1858,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   EVENTS.forEach(function (x) { EVENT_BY[x.id] = x; });
   var OLD_TROPHY = {}; // ancien trophée à niveau unique -> [famille, niveau]
   TROPHIES.forEach(function (t) { TROPHY_BY[t.id] = t; (t.old || []).forEach(function (o, i) { if (o) OLD_TROPHY[o] = [t.id, i + 1]; }); });
+  var DECO = D.DECO || { slots: [] }, DECO_BY = {};
+  DECO.slots.forEach(function (s) { DECO_BY[s.id] = {}; s.options.forEach(function (o) { DECO_BY[s.id][o.id] = o; }); });
+  var RULES = ['rapide', 'sans-clap', 'prime'];
   var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
 
@@ -1787,10 +1877,11 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 } };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco() };
   }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newBattle() { return { league: 1, pts: 0, wins: 0, losses: 0, best: 0, cd: T.battleFirst, rival: null }; }
+  function newDeco() { var d = { seen: {} }; DECO.slots.forEach(function (s) { d[s.id] = s.options[0].id; }); return d; }
   function newRd() { return { pts: 0, total: 0, nodes: {}, spec: {} }; }
   function newOrders() { return { offers: [], active: [], cd: T.orderFirst, rep: 0, done: 0, failed: 0, nextId: 1 }; }
   function newCharts() { return { week: 1, left: T.weekLen, rivals: [], mine: [], free: 0, best: 0, num1: 0, releases: 0, nextId: 1 }; }
@@ -1855,6 +1946,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (o.rd.spec && typeof o.rd.spec === 'object') RESEARCH.specs.forEach(function (t) { var id = o.rd.spec[t.tier]; if (SPEC_BY[id] && SPEC_BY[id].tier === t.tier) S.rd.spec[t.tier] = id; });
     }
     if (o.proj && typeof o.proj === 'object') hydrateProj(S, o.proj);
+    if (o.deco && typeof o.deco === 'object') {
+      DECO.slots.forEach(function (s) { if (DECO_BY[s.id][o.deco[s.id]]) S.deco[s.id] = o.deco[s.id]; });
+      if (o.deco.seen && typeof o.deco.seen === 'object') Object.keys(o.deco.seen).forEach(function (k) { var p = k.split(':'); if (DECO_BY[p[0]] && DECO_BY[p[0]][p[1]]) S.deco.seen[k] = 1; });
+    }
     if (o.piano && typeof o.piano === 'object') {
       S.piano.best = Math.max(0, Math.min(60, Math.floor(num(o.piano.best, 0)))); S.piano.plays = Math.max(0, Math.floor(num(o.piano.plays, 0)));
       S.piano.cd = Math.max(0, Math.min(T.pianoEvery, num(o.piano.cd, 0)));
@@ -1866,7 +1961,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       B.cd = Math.max(0, num(b.cd, T.battleFirst));
       var r = b.rival;
       if (r && typeof r === 'object') B.rival = { name: String(r.name || 'Rival').slice(0, 30), league: Math.max(1, Math.min(L, Math.floor(num(r.league, B.league)))),
-        target: Math.max(0.3, Math.min(0.95, num(r.target, 0.5))), seed: Math.floor(num(r.seed, 1)) >>> 0 };
+        target: Math.max(0.3, Math.min(0.95, num(r.target, 0.5))), seed: Math.floor(num(r.seed, 1)) >>> 0, rule: RULES.indexOf(r.rule) >= 0 ? r.rule : null };
     }
     return S;
   }
@@ -1898,7 +1993,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     return { id: Math.max(1, Math.floor(num(x.id, 1))), act: x.act, n: n, q: Math.max(1, Math.min(5, Math.floor(num(x.q, 1)))),
       got: Math.max(0, Math.min(n, Math.floor(num(x.got, 0)))), time: Math.max(1, num(x.time, 60)), left: Math.max(0, num(x.left, 60)),
       life: Math.max(0, num(x.life, T.orderOfferLife)), reward: Math.max(0, num(x.reward, 0)), xp: Math.max(0, num(x.xp, 0)),
-      client: String(x.client || 'Client').slice(0, 30), kind: String(x.kind || '').slice(0, 30) };
+      client: String(x.client || 'Client').slice(0, 30), kind: String(x.kind || '').slice(0, 30), trend: !!x.trend };
   }
   function hydrateOrders(S, o) {
     var r = S.orders;
@@ -1927,6 +2022,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       mx = Math.max(mx, e.id); c.mine.push(e);
     });
     c.nextId = Math.max(mx + 1, Math.floor(num(o.nextId, 1)));
+    var tr = o.trend;
+    if (tr && typeof tr === 'object' && PJ_G[tr.g] && PJ_M[tr.m] && ACT_BY[tr.act] && RULES.indexOf(tr.rule) >= 0) c.trend = { w: Math.max(1, Math.floor(num(tr.w, 1))), g: tr.g, m: tr.m, act: tr.act, rule: tr.rule };
   }
   function hydrateTeam(S, t) {
     var tm = S.team, used = {}, maxId = 0;
@@ -2045,7 +2142,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function duration(S, act) { return act.dur / stats(S).g.speed / staffFx(S, act.id).sp; }
   function payout(S, act) {
     var a = S.acts[act.id], st = stats(S);
-    return act.pay * (1 + T.upGain * a.lvl) * milestoneMult(a.lvl) * st.g.gain * (st.g.act[act.id] || 1) * st.vm * levelMult(S) * boostMult(S) * staffFx(S, act.id).gn;
+    return act.pay * (1 + T.upGain * a.lvl) * milestoneMult(a.lvl) * st.g.gain * (st.g.act[act.id] || 1) * st.vm * levelMult(S) * boostMult(S) * staffFx(S, act.id).gn * trendAct(S, act.id);
   }
   function xpGain(S, act) { return act.xp * stats(S).g.xp; }
   function upCost(S, act) { return Math.ceil(act.upCost * Math.pow(T.upGrowth, S.acts[act.id].lvl)); }
@@ -2438,7 +2535,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     // les productions les plus récentes sont plus demandées
     var w = open.map(function (a, i) { return Math.pow(i + 1, 1.5); }), tot = w.reduce(function (x, y) { return x + y; }, 0), r = rand() * tot, k = 0;
     while (k < open.length - 1 && r > w[k]) { r -= w[k]; k++; }
-    var act = open[k], d = duration(S, act);
+    var act = open[k], tr = trendFor(S), hot = false;
+    if (tr && ACT_BY[tr.act] && isUnlocked(S, ACT_BY[tr.act]) && rand() < T.trendOrder) act = ACT_BY[tr.act];
+    hot = !!tr && tr.act === act.id;
+    var d = duration(S, act);
     var span = T.orderTimeMin + rand() * (T.orderTimeMax - T.orderTimeMin);
     var n = Math.max(2, Math.min(40, Math.round(span / d)));
     var bq = baseQuality(S, act.id), q = Math.max(1, Math.min(5, bq - 1 + Math.floor(rand() * 3)));
@@ -2447,8 +2547,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var time = Math.round(Math.max(n * d * T.orderDeadlineK + 30, q > bq ? n * (d + 45) + 60 : 0));
     var o = S.orders;
     return { id: o.nextId++, act: act.id, n: n, q: q, got: 0, time: time, left: time, life: T.orderOfferLife,
-      reward: rawPayout(S, act) * n * (T.orderRewardBase + T.orderRewardQ * q) * (1 + o.rep / 100) * rdFx(S).orderReward, xp: xpGain(S, act) * n * 0.5,
-      client: names[Math.floor(rand() * names.length)], kind: cl[0] };
+      reward: rawPayout(S, act) / trendAct(S, act.id) * n * (T.orderRewardBase + T.orderRewardQ * q) * (1 + o.rep / 100) * rdFx(S).orderReward * (hot ? T.trendOrderReward : 1), xp: xpGain(S, act) * n * 0.5,
+      client: names[Math.floor(rand() * names.length)], kind: cl[0], trend: hot };
   }
   function acceptOrder(S, id) {
     var o = S.orders, i = -1;
@@ -2595,6 +2695,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (!chartsOpen(S)) return;
     var c = S.charts;
     if (!c.rivals.length) initRivals(S);
+    if (!c.trend || c.trend.w !== c.week) { c.trend = makeTrend(S); if (hooks.trend) hooks.trend(c.trend); }
     c.left -= dt;
     if (c.left <= 0) weekEnd(S);
   }
@@ -2633,6 +2734,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (S.money < cost) return null;
     S.money -= cost;
     c.cost = cost; c.phase = 0; c.t = 0; c.fit = [];
+    var tr = trendFor(S); c.tg = !!tr && tr.g === c.genre; c.tm = !!tr && tr.m === c.mood;
     S.proj.cur = c;
     if (hooks.projectStart) hooks.projectStart(c);
     return c;
@@ -2664,7 +2766,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var h = S.proj.hist, same = h.some(function (x) { return x.g === c.genre && x.m === c.mood; }), again = h.length && h[0].g === c.genre;
     var crea = 0; RESEARCH.nodes.forEach(function (n) { if (n.b === 'crea' && S.rd.nodes[n.id]) crea += 0.1; });
     var parts = { base: 1, combo: cg === 'top' ? 1.5 : cg === 'bad' ? -2 : 0, pub: pg === 'top' ? 1 : pg === 'bad' ? -1.5 : 0, sliders: 3.5 * acc, team: 3 * fit,
-      studio: Math.min(1, 0.25 * tierIndex(S)) + crea, fresh: same ? -1.5 : again ? -0.5 : 0 };
+      studio: Math.min(1, 0.25 * tierIndex(S)) + crea, fresh: same ? -1.5 : again ? -0.5 : 0, trend: (c.tg ? T.trendGenre : 0) + (c.tm ? T.trendMood : 0) };
     var s = 0; Object.keys(parts).forEach(function (k) { s += parts[k]; });
     return { score: Math.max(0, Math.min(10, s + (rand() - 0.5) * 0.8)), parts: parts, combo: cg, pubG: pg, acc: acc, fit: fit };
   }
@@ -2689,7 +2791,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     P.hist.unshift({ g: c.genre, m: c.mood }); P.hist = P.hist.slice(0, 4);
     P.done++; P.best = Math.max(P.best, avg);
     // sortie dans le Top 50 et ventes réparties sur les semaines de classement
-    var sales = c.cost * (0.15 + 0.02 * avg * avg) * f.roi;
+    var sales = c.cost * (0.15 + 0.02 * avg * avg) * f.roi * (c.tg ? T.trendSales : 1);
     var c2 = S.charts; if (!c2.rivals.length) initRivals(S);
     var e = { id: c2.nextId++, t: c.title, act: bestAct(S).id, q: Math.max(1, Math.min(5, Math.round(avg / 2))),
       s: potential(S) * (0.25 + 0.18 * avg) * f.chart * (1 + S.orders.rep / 200) * rdFx(S).chartScore,
@@ -2702,7 +2804,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     addRp(S, T.rpProj * avg * f.time);
     if (avg >= 8) S.orders.rep = Math.min(T.repMax, S.orders.rep + Math.round(avg - 6));
     var res = { title: c.title, genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt, sl: c.sl.slice(), avg: avg, notes: notes, combo: r.combo, pubG: r.pubG,
-      acc: Math.round(r.acc * 100), fit: Math.round(r.fit * 100), fresh: r.parts.fresh, pos: inChart ? e.pos : 0, sales: sales, cost: c.cost };
+      acc: Math.round(r.acc * 100), fit: Math.round(r.fit * 100), fresh: r.parts.fresh, pos: inChart ? e.pos : 0, sales: sales, cost: c.cost, tg: !!c.tg, tm: !!c.tm };
     P.last = res;
     checkTrophies(S);
     if (hooks.projectDone) hooks.projectDone(res);
@@ -2726,7 +2828,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
         sl: [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, num(l.sl && l.sl[i], 50))); }), avg: Math.max(0, Math.min(10, num(l.avg, 0))),
         notes: l.notes.slice(0, PJ.critics.length).map(function (x) { return { name: String((x && x.name) || 'Critique').slice(0, 30), n: Math.max(0, Math.min(10, num(x && x.n, 0))) }; }),
         combo: G3.indexOf(l.combo) >= 0 ? l.combo : 'ok', pubG: G3.indexOf(l.pubG) >= 0 ? l.pubG : 'ok', acc: Math.max(0, Math.min(100, num(l.acc, 0))), fit: Math.max(0, Math.min(100, num(l.fit, 0))),
-        fresh: Math.min(0, num(l.fresh, 0)), pos: Math.max(0, Math.floor(num(l.pos, 0))), sales: Math.max(0, num(l.sales, 0)), cost: Math.max(0, num(l.cost, 0)) };
+        fresh: Math.min(0, num(l.fresh, 0)), pos: Math.max(0, Math.floor(num(l.pos, 0))), sales: Math.max(0, num(l.sales, 0)), cost: Math.max(0, num(l.cost, 0)), tg: !!l.tg, tm: !!l.tm };
     }
     var c = o.cur;
     if (c && typeof c === 'object' && PJ_G[c.genre] && PJ_M[c.mood] && PJ_P[c.pub] && PJ_F[c.fmt]) {
@@ -2735,12 +2837,42 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       P.cur = { title: String(c.title || 'Projet').slice(0, 40), genre: c.genre, mood: c.mood, pub: c.pub, fmt: c.fmt,
         sl: [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, Math.round(num(c.sl && c.sl[i], 50)))); }),
         team: [0, 1, 2].map(function (i) { var id = c.team && c.team[i]; return id && ids[id] ? id : null; }),
-        cost: Math.max(0, num(c.cost, 0)), phase: ph, t: Math.max(0, Math.min(projTime(c.fmt, ph), num(c.t, 0))),
+        cost: Math.max(0, num(c.cost, 0)), phase: ph, t: Math.max(0, Math.min(projTime(c.fmt, ph), num(c.t, 0))), tg: !!c.tg, tm: !!c.tm,
         fit: [0, 1, 2].slice(0, ph).map(function (i) { return Math.max(0, Math.min(1, num(c.fit && c.fit[i], 0.35))); }) };
     }
   }
   function dismissProject(S) { if (S.proj) S.proj.last = null; }
 
+
+
+  // ---------- Tendances de la semaine ----------
+  function trendFor(S) { var c = S.charts; return c && c.trend && c.trend.w === c.week && S.level >= T.chartLevel ? c.trend : null; }
+  function trendAct(S, id) { var c = S.charts, t = c && c.trend; return t && t.act === id && t.w === c.week && S.level >= T.chartLevel ? T.trendAct : 1; }
+  function pickNot(list, prev) { var l = list.length > 1 ? list.filter(function (x) { return x !== prev; }) : list; return l[Math.floor(rand() * l.length)]; }
+  function makeTrend(S) {
+    var p = S.charts.trend || {};
+    var gs = PJ.genres.filter(function (g) { return genreOpen(S, g.id); }).map(function (g) { return g.id; });
+    var acts = ACTS.filter(function (a) { return isUnlocked(S, a); }).map(function (a) { return a.id; });
+    return { w: S.charts.week, g: pickNot(gs.length ? gs : [PJ.genres[0].id], p.g), m: pickNot(PJ.moods.map(function (m) { return m.id; }), p.m),
+      act: pickNot(acts.length ? acts : [ACTS[0].id], p.act), rule: pickNot(RULES, p.rule) };
+  }
+
+  // ---------- Décoration du studio ----------
+  function decoOpt(slot, id) { return DECO_BY[slot] && DECO_BY[slot][id]; }
+  function decoUnlocked(S, slot, id) { var o = decoOpt(slot, id); return !!o && (!o.need || trophyMetric(S, o.need.m) >= o.need.n); }
+  function decoProgress(S, slot, id) { var o = decoOpt(slot, id); if (!o || !o.need) return null; return { v: Math.min(o.need.n, trophyMetric(S, o.need.m)), n: o.need.n }; }
+  function setDeco(S, slot, id) {
+    if (!decoUnlocked(S, slot, id)) return false;
+    S.deco[slot] = id; S.deco.seen[slot + ':' + id] = 1;
+    return true;
+  }
+  // Options débloquées par un exploit et pas encore vues dans l'atelier de décoration.
+  function decoNew(S) {
+    var out = [];
+    DECO.slots.forEach(function (s) { s.options.forEach(function (o) { if (o.need && !S.deco.seen[s.id + ':' + o.id] && decoUnlocked(S, s.id, o.id)) out.push(s.id + ':' + o.id); }); });
+    return out;
+  }
+  function seeDeco(S) { decoNew(S).forEach(function (k) { S.deco.seen[k] = 1; }); }
 
   // ---------- Atelier piano ----------
   function pianoOpen(S) { return !!S.owned.clavier; }
@@ -2768,7 +2900,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function makeRival(S) {
     var L = league(S), used = S.battle.rival ? S.battle.rival.name : '';
     var names = BT.rivals.filter(function (n) { return n !== used; });
-    return { name: names[Math.floor(rand() * names.length)], league: S.battle.league, target: Math.min(0.95, L.target + (rand() - 0.5) * 0.08), seed: Math.floor(rand() * 4294967295) >>> 0 };
+    var tr = trendFor(S);
+    return { name: names[Math.floor(rand() * names.length)], league: S.battle.league, target: Math.min(0.95, L.target + (rand() - 0.5) * 0.08), seed: Math.floor(rand() * 4294967295) >>> 0, rule: tr ? tr.rule : null };
   }
   function tickBattle(S, dt) {
     if (!battleOpen(S)) return;
@@ -2809,7 +2942,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var B = S.battle, R = B.rival;
     if (!battleOpen(S) || !R) return null;
     var L = BT.leagues[R.league - 1];
-    return { rival: R, league: R.league, leagueName: L.name, bpm: L.bpm, bars: T.battleBars, notes: battlePattern(R.seed, L.dens, T.battleBars) };
+    var notes = battlePattern(R.seed, L.dens, T.battleBars);
+    if (R.rule === 'sans-clap') notes = notes.filter(function (n) { return n.l !== 3; });
+    return { rival: R, league: R.league, leagueName: L.name, bpm: Math.round(L.bpm * (R.rule === 'rapide' ? 1.1 : 1)), bars: T.battleBars, notes: notes, rule: R.rule || null };
   }
   // res: { score 0 à 1, combo }. Renvoie le résultat et applique les récompenses.
   function finishBattle(S, res) {
@@ -2820,7 +2955,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     B.best = Math.max(B.best, combo);
     if (win) {
       B.wins++;
-      var cash = ref * (0.8 + 0.4 * R.league) * (0.75 + score * 0.5) * rdFx(S).event, xp = xpNeeded(S.level) * 0.08 * R.league;
+      var cash = ref * (0.8 + 0.4 * R.league) * (0.75 + score * 0.5) * rdFx(S).event * (R.rule === 'prime' ? 1.5 : R.rule === 'rapide' ? 1.25 : 1), xp = xpNeeded(S.level) * 0.08 * R.league;
       S.money += cash; S.lifetime += cash; addXp(S, xp); addRp(S, Math.max(30, rdRate(S) * 120) * R.league);
       S.orders.rep = Math.min(T.repMax, S.orders.rep + 1 + Math.floor(R.league / 2));
       out.cash = cash; out.xp = xp;
@@ -3131,7 +3266,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     projTime: projTime, phaseFit: phaseFit, projBusy: projBusy, startProject: startProject, cancelProject: cancelProject, tickProject: tickProject,
     finishProject: finishProject, dismissProject: dismissProject, comboGrade: comboGrade, pubGrade: pubGrade,
     TROPHY_LEVELS: TLV, trophyTotal: trophyTotal, trophyLevel: trophyLevel, levelName: levelName, choiceInfo: choiceInfo,
-    BATTLE: BT, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
+    BATTLE: BT, DECO: DECO, decoOpt: decoOpt, decoUnlocked: decoUnlocked, decoProgress: decoProgress, setDeco: setDeco, decoNew: decoNew, seeDeco: seeDeco,
+    trendFor: trendFor, trendAct: trendAct, makeTrend: makeTrend, RULES: RULES, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;
@@ -3150,7 +3286,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   var dark = false, reduce = false, mobile = false;
   var cur = { place: null, tier: -1, key: '', def: null };
   var itemNodes = {}, staffNodes = {}, deskNodes = [], player = null, anims = [], blinkers = [], spinners = [];
-  var view = null, pickFn = null;
+  var view = null, pickFn = null, deco = {}, decoKey = '';
   var cam = { yaw: 0.72, pitch: 0.62, zoom: 1, fit: 12, target: null, pan: null, yawBase: 0.72 };
   var ZMIN = 0.28, ZMAX = 1.25, PITCH0 = 0.62, camMoved = false, camFn = null;
   var ins = { t: 0, b: 0 }; // zones de l'écran couvertes par l'interface (px), pour cadrer la pièce dans la partie visible
@@ -3574,27 +3710,27 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   // Agencement vérifié par un test de collisions (boîtes englobantes) avec tout le matériel et toute l'équipe.
   // sofas: [x, z, rotY, couleur, largeur]; rotY = 0: assise tournée vers le fond de la pièce, -PI/2: dos au mur de gauche.
   var PLACES = {
-    chambre: { edrums: [2.68, -0.42, -Math.PI / 2], W: 6.4, D: 5, H: 2.7, floor: ['wood', '#b98a5e', '#9c6f48'], wall: 0x9cc3d5, wall2: 0xb7d3df, desk: [1.15, -2.13, 1.9],
+    chambre: { shelf: [-1.45, 1.55], neon: [0.45, 2.02], edrums: [2.68, -0.42, -Math.PI / 2], W: 6.4, D: 5, H: 2.7, floor: ['wood', '#b98a5e', '#9c6f48'], wall: 0x9cc3d5, wall2: 0xb7d3df, desk: [1.15, -2.13, 1.9],
       staff: [[2.1, 0.75]], lounge: [[-1.95, -1.0, -Math.PI / 2]], board: [-1.0, -1.55],
       slots: { micro: [-0.45, -1.35, 0.4], formation: [-1.0, -2.33, 0], distrib: { w: 'b', u: -1.0, y: 2.5 }, playlists: { w: 'b', u: -2.5, y: 2.45 } },
       foam: [{ w: 'b', u0: 0.15, u1: 2.05, y0: 1.35, y1: 2.45 }, { w: 'l', u0: -2.4, u1: -0.9, y0: 1.2, y1: 2.3 }] },
-    garage: { edrums: [-2.6, 0.45, 0], W: 8.4, D: 6.2, H: 3.0, floor: ['concrete'], wall: 0xc9c2b5, wall2: 0xd8d1c4, brick: 'blocks', desk: [1.1, -2.73, 2.2],
+    garage: { shelf: { w: 'b', u: 3.45, y: 1.4 }, neon: [-2.35, 2.3], edrums: [-2.6, 0.45, 0], W: 8.4, D: 6.2, H: 3.0, floor: ['concrete'], wall: 0xc9c2b5, wall2: 0xd8d1c4, brick: 'blocks', desk: [1.1, -2.73, 2.2],
       staff: [[2.75, 0.55], [0.2, 0.95]], sofas: [[-3.75, -1.95, -Math.PI / 2, 0x7a6a4f, 1.9]], board: [-2.0, -2.2],
       slots: { micro: [-0.25, -1.85, 0.4], formation: [-0.95, -2.93, 0], distrib: { w: 'b', u: 3.4, y: 2.6 }, preamps: [3.05, -2.83, 0],
         playlists: { w: 'l', u: -2.0, y: 2.75 } },
       foam: [{ w: 'b', u0: 0.0, u1: 2.2, y0: 1.5, y1: 2.7 }, { w: 'l', u0: -2.9, u1: -1.0, y0: 1.5, y1: 2.4 }] },
-    local: { edrums: [1.25, 2.6, 0], W: 10.5, D: 7.4, H: 3.2, floor: ['wood', '#5b4030', '#4a3426'], wall: 0xece7df, wall2: 0xf4f0ea, brick: 'bricks', desk: [1.4, -3.33, 2.4],
+    local: { shelf: { w: 'b', u: 4.4, y: 1.45 }, neon: [-0.6, 1.9], edrums: [1.25, 2.6, 0], W: 10.5, D: 7.4, H: 3.2, floor: ['wood', '#5b4030', '#4a3426'], wall: 0xece7df, wall2: 0xf4f0ea, brick: 'bricks', desk: [1.4, -3.33, 2.4],
       staff: [[0.9, 0.35], [3.3, 0.35], [3.3, 2.45]], sofas: [[-4.68, 1.0, -Math.PI / 2, 0x2f6f73, 2.2]], board: [-2.3, -0.4],
       slots: { cabine: [-4.2, -2.7, 0], console: [-2.1, -3.28, 0], micro: [-0.55, -2.15, 0.4], formation: [-5.08, -1.1, Math.PI / 2], preamps: [3.45, -3.43, 0],
         distrib: { w: 'b', u: 4.4, y: 2.6 }, playlists: { w: 'b', u: -2.1, y: 2.75 }, label: { w: 'b', u: -0.6, y: 2.9 }, orchestre: [-1.4, 1.9, 0] },
       foam: [{ w: 'b', u0: 0.2, u1: 2.6, y0: 1.6, y1: 2.9 }] },
-    pro: { edrums: [-4.7, -2.6, 0], W: 13, D: 9.5, H: 3.6, floor: ['wood', '#a77b52', '#8e6542'], wall: 0x3b4250, wall2: 0x4a5263, slats: true, desk: [1.6, -4.38, 2.8],
+    pro: { shelf: [1.6, 1.3], neon: [-1.6, 2.32], edrums: [-4.7, -2.6, 0], W: 13, D: 9.5, H: 3.6, floor: ['wood', '#a77b52', '#8e6542'], wall: 0x3b4250, wall2: 0x4a5263, slats: true, desk: [1.6, -4.38, 2.8],
       staff: [[1.3, 0.3], [3.4, 0.3], [5.5, 0.3], [1.3, 2.4], [3.4, 2.4], [5.5, 2.4]], sofas: [[3.4, 4.1, 0, 0x3b2f2a, 2.6]], board: [-1.4, 0.4],
       slots: { studioA: [-4.7, -2.95, 0], cabine: [5.45, -3.76, 0], console: [-1.6, -4.33, 0], neve: [-1.45, -2.75, 0], preamps: [3.75, -4.48, 0], assistant: [4.03, -3.35, -Math.PI / 2],
         orchestre: [-4.6, 2.0, 0.4], management: [-1.25, 3.0, 0], micro: [0.3, -2.3, 0.4], formation: [-6.33, -0.35, Math.PI / 2],
         distrib: { w: 'b', u: 1.6, y: 3.0 }, playlists: { w: 'b', u: 3.75, y: 3.4 }, label: { w: 'l', u: 4.1, y: 2.9 }, mentor: { w: 'b', u: -1.6, y: 3.4 }, disques: { w: 'l', u: 1.6, y: 3.3 } },
       foam: [{ w: 'b', u0: 0.2, u1: 3.0, y0: 1.65, y1: 2.3 }] },
-    complexe: { edrums: [-6.6, -3.9, 0], W: 17, D: 12, H: 4.2, floor: ['marble'], wall: 0xe9e1d3, wall2: 0xf1ebe0, gold: true, desk: [1.6, -5.63, 3.2],
+    complexe: { shelf: [0.9, 1.6], neon: [-3.1, 1.95], edrums: [-6.6, -3.9, 0], W: 17, D: 12, H: 4.2, floor: ['marble'], wall: 0xe9e1d3, wall2: 0xf1ebe0, gold: true, desk: [1.6, -5.63, 3.2],
       staff: [[0.9, 0.6], [3.1, 0.6], [5.3, 0.6], [7.5, 0.6], [0.9, 2.8], [3.1, 2.8], [5.3, 2.8], [7.5, 2.8]],
       sofas: [[5.3, 5.2, 0, 0x7d1f2b, 3.0], [3.05, 4.55, -Math.PI / 2, 0x7d1f2b, 1.6]], board: [-2.6, 1.0],
       slots: { studioA: [-6.7, -4.2, 0], cabine: [7.45, -5.0, 0], console: [-3.1, -5.58, 0], neve: [-3.1, -3.85, 0], preamps: [4.2, -5.73, 0], assistant: [5.85, -5.6, 0],
@@ -3617,25 +3753,78 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   // ---------- Pièce ----------
   function floorMat(f, W, D) {
     var k = f[0];
-    if (k === 'wood') return texMat('floor-' + f[1], 256, 256, function (c, w, h) { planks(c, w, h, f[1], f[2]); }, { rep: [W / 2.5, D / 2.5] });
-    if (k === 'concrete') return texMat('concrete', 256, 256, concrete, { rep: [W / 3, D / 3] });
-    return texMat('marble', 256, 256, marble, { rep: [W / 2, D / 2], r: 0.35 });
+    if (k === 'wood') return texMat('floor-' + f[1] + '-' + W, 256, 256, function (c, w, h) { planks(c, w, h, f[1], f[2]); }, { rep: [W / 2.5, D / 2.5] });
+    if (k === 'concrete') return texMat('concrete-' + W, 256, 256, concrete, { rep: [W / 3, D / 3] });
+    return texMat('marble-' + W, 256, 256, marble, { rep: [W / 2, D / 2], r: 0.35 });
   }
   function buildRoom(def, tier) {
     var g = grp(null), W = def.W, D = def.D, H = def.H;
-    mesh(g, G('box'), floorMat(def.floor, W, D), 0, -0.05, 0, W, 0.1, D).castShadow = false;
+    mesh(g, G('box'), floorMat(deco.floor || def.floor, W, D), 0, -0.05, 0, W, 0.1, D).castShadow = false;
     // socle visible sous la pièce (effet maquette)
     mesh(g, G('box'), M(dark ? 0x2a2f3a : 0x6d625a), 0, -0.35, 0, W + 0.02, 0.5, D + 0.02).castShadow = false;
-    var wallM = M(def.wall), wall2M = M(def.wall2);
-    var backM = def.brick === 'bricks' ? texMat('bricks', 256, 256, bricks, { rep: [W / 3, H / 2] }) : def.brick === 'blocks' ? texMat('blocks', 256, 256, blocks, { rep: [W / 3, H / 2] }) : def.slats ? texMat('slats', 256, 128, slats, { rep: [W / 2, 1] }) : wallM;
+    var wallM = M(deco.wall ? deco.wall[0] : def.wall), wall2M = M(deco.wall ? deco.wall[1] : def.wall2);
+    var backM = deco.wall ? wallM : def.brick === 'bricks' ? texMat('bricks', 256, 256, bricks, { rep: [W / 3, H / 2] }) : def.brick === 'blocks' ? texMat('blocks', 256, 256, blocks, { rep: [W / 3, H / 2] }) : def.slats ? texMat('slats', 256, 128, slats, { rep: [W / 2, 1] }) : wallM;
     var bw = mesh(g, G('box'), backM, 0, H / 2, -D / 2 - 0.06, W + 0.24, H, 0.12); bw.castShadow = false;
-    var lw = mesh(g, G('box'), def.slats ? texMat('slats', 256, 128, slats, { rep: [W / 2, 1] }) : wall2M, -W / 2 - 0.06, H / 2, 0, 0.12, H, D); lw.castShadow = false;
+    var lw = mesh(g, G('box'), def.slats && !deco.wall ? texMat('slats', 256, 128, slats, { rep: [W / 2, 1] }) : wall2M, -W / 2 - 0.06, H / 2, 0, 0.12, H, D); lw.castShadow = false;
     // plinthes
     box(g, W, 0.1, 0.03, M(def.gold ? C.gold : 0xf3f0ea), 0, 0, -D / 2 + 0.015);
     box(g, 0.03, 0.1, D, M(def.gold ? C.gold : 0xf3f0ea), -W / 2 + 0.015, 0, 0);
     if (def.gold) { box(g, W, 0.08, 0.04, M(C.gold, { m: 0.8, r: 0.3 }), 0, H - 0.3, -D / 2 + 0.02); box(g, 0.04, 0.08, D, M(C.gold, { m: 0.8, r: 0.3 }), -W / 2 + 0.02, H - 0.3, 0); }
     decor[cur.placeKey](g, def, tier);
+    if (def.shelf) buildShelf(g, def);
+    if (def.neon && deco.neon) buildNeon(g, def, deco.neon);
     return g;
+  }
+  // Étagère à souvenirs: une coupe par famille du palmarès décrochée au niveau Or. Elle ouvre l'atelier de décoration.
+  function buildShelf(g0, def) {
+    var sp = def.shelf, g = sp.w === 'b' ? grp(g0, sp.u, sp.y, -def.D / 2 + 0.03, 0) : grp(g0, -def.W / 2 + 0.03, sp[1], sp[0], Math.PI / 2); g.name = 'étagère à souvenirs';
+    var wood = M(C.woodD), cups = Math.max(0, Math.min(8, deco.cups || 0));
+    box(g, 1.2, 0.04, 0.24, wood, 0, 0, 0.12); box(g, 1.2, 0.04, 0.24, wood, 0, 0.42, 0.12);
+    box(g, 0.04, 0.46, 0.24, wood, -0.6, 0, 0.12); box(g, 0.04, 0.46, 0.24, wood, 0.6, 0, 0.12);
+    var gold = M(C.gold, { m: 0.85, r: 0.25 }), plate = M(0x2b2b2b);
+    for (var i = 0; i < 8; i++) {
+      var x = -0.47 + (i % 4) * 0.31, y = i < 4 ? 0.04 : 0.46;
+      if (i < cups) { cyl(g, 0.05, 0.03, plate, x, y, 0.13, 10); cyl(g, 0.015, 0.09, gold, x, y + 0.03, 0.13, 8); cyl(g, 0.055, 0.1, gold, x, y + 0.12, 0.13, 12, 0.03); }
+    }
+    if (!cups) { var bx = box(g, 0.22, 0.16, 0.16, M(0xc9a37a), -0.3, 0.04, 0.12); bx.rotation.y = 0.2; sph(g, 0.08, M(0x7ec8e3), 0.25, 0.12, 0.12, 12); }
+    // pot de peinture: la décoration s'ouvre ici
+    var pot = grp(g, 0.42, 0.04, 0.12); cyl(pot, 0.07, 0.14, M(0xf3f0ea, { m: 0.3, r: 0.4 }), 0, 0, 0, 14); cyl(pot, 0.072, 0.03, M(0xff8a3d), 0, 0.12, 0, 14);
+    g.traverse(function (o) { if (o.isMesh) o.userData.pick = { type: 'hot', id: 'deco' }; });
+    cur.shelf = g;
+  }
+  // Néon mural dessiné sur une toile (texte ou pictogramme lumineux).
+  function neonDraw(kind, col) {
+    return function (c, w, h) {
+      c.clearRect(0, 0, w, h); c.lineJoin = 'round'; c.lineCap = 'round';
+      function glow(fn) { c.save(); c.strokeStyle = col; c.shadowColor = col; c.shadowBlur = 22; c.lineWidth = 9; fn(); c.stroke(); c.restore(); c.save(); c.strokeStyle = '#fff'; c.lineWidth = 3.5; fn(); c.stroke(); c.restore(); }
+      if (kind === 'text') {
+        c.font = '800 70px "Trebuchet MS", system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.save(); c.shadowColor = col; c.shadowBlur = 24; c.strokeStyle = col; c.lineWidth = 8; c.strokeText('PREMIER MIX', w / 2, h / 2); c.restore();
+        c.save(); c.strokeStyle = '#fff'; c.lineWidth = 2.5; c.strokeText('PREMIER MIX', w / 2, h / 2); c.restore();
+        return;
+      }
+      var cx = w / 2, cy = h / 2, r = h * 0.36;
+      glow(function () {
+        c.beginPath();
+        if (kind === 'heart') { c.moveTo(cx, cy + r); c.bezierCurveTo(cx - r * 1.9, cy - r * 0.2, cx - r * 0.7, cy - r * 1.5, cx, cy - r * 0.45); c.bezierCurveTo(cx + r * 0.7, cy - r * 1.5, cx + r * 1.9, cy - r * 0.2, cx, cy + r); }
+        else if (kind === 'star') { for (var i = 0; i < 10; i++) { var a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r * 1.1; c[i ? 'lineTo' : 'moveTo'](cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } c.closePath(); }
+        else if (kind === 'bolt') { var p = [[0.15, -1.1], [-0.55, 0.12], [-0.02, 0.12], [-0.22, 1.1], [0.55, -0.2], [0.04, -0.2], [0.15, -1.1]]; p.forEach(function (q, i) { c[i ? 'lineTo' : 'moveTo'](cx + q[0] * r, cy + q[1] * r); }); }
+        else { // double croche
+          c.moveTo(cx - r * 0.55, cy + r * 0.65); c.lineTo(cx - r * 0.55, cy - r * 0.85); c.lineTo(cx + r * 0.75, cy - r * 1.05); c.lineTo(cx + r * 0.75, cy + r * 0.45);
+          c.moveTo(cx - r * 0.55, cy - r * 0.45); c.lineTo(cx + r * 0.75, cy - r * 0.65);
+          c.moveTo(cx - r * 0.55 + r * 0.38, cy + r * 0.65); c.ellipse(cx - r * 0.85, cy + r * 0.65, r * 0.32, r * 0.22, -0.4, 0, Math.PI * 2);
+          c.moveTo(cx + r * 0.75 + r * 0.38, cy + r * 0.45); c.ellipse(cx + r * 0.45, cy + r * 0.45, r * 0.32, r * 0.22, -0.4, 0, Math.PI * 2);
+        }
+      });
+    };
+  }
+  function buildNeon(g0, def, n) {
+    var sp = def.neon, text = n.k === 'text', w = text ? 1.5 : 0.75, h = text ? 0.32 : 0.6;
+    var key = 'neon-' + n.k + n.c, t = canvasTex(key, text ? 512 : 256, text ? 110 : 205, neonDraw(n.k, n.c));
+    var mat = MATS[key] || (MATS[key] = new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false }));
+    var m = mesh(g0, new THREE.PlaneGeometry(1, 1), mat, sp[0], sp[1] + h / 2, -def.D / 2 + 0.02, w, h, 1, false);
+    m.name = 'néon'; m.castShadow = false;
+    var l = new THREE.PointLight(new THREE.Color(n.c), 0.9, 3, 2); l.position.set(sp[0], sp[1] + h / 2, -def.D / 2 + 0.5); g0.add(l);
   }
   function windowL(g0, def, z, w, h, y) {
     var g = grp(g0); g.name = 'fenêtre';
@@ -3673,6 +3862,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var l = new THREE.PointLight(0xffcf8a, 2.2, 6, 1.6); l.position.set(x, y - 0.6, z); g.add(l);
   }
   function rug(g, x, z, w, d, col, col2) {
+    if (deco.rug) { col = deco.rug[0]; col2 = deco.rug[1]; }
     box(g, w, 0.015, d, M(col), x, 0, z).castShadow = false;
     box(g, w * 0.8, 0.017, d * 0.7, M(col2), x, 0, z).castShadow = false;
   }
@@ -3941,7 +4131,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (!scene) return;
     scene.background = new THREE.Color(dark ? 0x141a24 : 0xdfe9ee);
     hemi.intensity = dark ? 0.55 : 1.05; hemi.color.set(dark ? 0xb8c4ff : 0xfff4e6); hemi.groundColor.set(dark ? 0x2b2433 : 0x6b5a4a);
+    if (deco.light) { hemi.color.lerp(new THREE.Color(deco.light), dark ? 0.75 : 0.6); hemi.intensity *= 1.05; }
     sun.intensity = dark ? 0.55 : 1.7; sun.color.set(dark ? 0x9fb4ff : 0xfff0dc);
+    if (deco.light) sun.color.lerp(new THREE.Color(deco.light), 0.35);
     fill.intensity = dark ? 0.15 : 0.35;
   }
 
@@ -3950,7 +4142,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     cur.placeKey = key; cur.def = PLACES[key]; cur.tier = tier;
     if (roomG) { world.remove(roomG); disposeTree(roomG); }
     Object.keys(itemNodes).forEach(function (id) { itemsG.remove(itemNodes[id]); });
-    itemNodes = {}; blinkers = []; fallbackUsed = 0; cur.key = ''; cur.edrums = null; cur.edrumsSeen = false;
+    itemNodes = {}; blinkers = []; fallbackUsed = 0; cur.key = ''; cur.edrums = null; cur.edrumsSeen = false; cur.shelf = null;
     Object.keys(staffNodes).forEach(removeStaff);
     deskNodes.forEach(function (d) { world.remove(d); }); deskNodes = [];
     roomG = buildRoom(cur.def, tier); world.add(roomG);
@@ -4046,6 +4238,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       n = itemNodes.studioA;
       if (n && !n.userData.ghost) { var k = n.getObjectByName('kit'); if (k) { p = k.getWorldPosition(new V3()); p.y += 1.45; } }
       if (!p && cur.edrums) { p = cur.edrums.getWorldPosition(new V3()); p.y += 1.45; }
+    } else if (kind === 'shelf') {
+      if (cur.shelf) { p = cur.shelf.getWorldPosition(new V3()); p.y += 0.75; p.x += 0.2; }
     } else if (kind === 'piano') {
       n = itemNodes.orchestre;
       if (n && !n.userData.ghost) { p = n.getWorldPosition(new V3()); p.y += 1.55; }
@@ -4292,6 +4486,17 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   S3.update = function (v) {
     if (!S3.ok) return;
     view = v;
+    var dk = JSON.stringify(v.deco || {});
+    if (dk !== decoKey) {
+      deco = v.deco || {}; var had = decoKey !== '';
+      decoKey = dk;
+      if (had && cur.placeKey && v.place === cur.placeKey && v.tier === cur.tier) {
+        var keep = { yaw: cam.yaw, pitch: cam.pitch, zoom: cam.zoom, pan: cam.pan ? cam.pan.clone() : null };
+        setPlace(cur.placeKey, cur.tier);
+        cam.yaw = keep.yaw; cam.pitch = keep.pitch; cam.zoom = keep.zoom; if (keep.pan && cam.pan) cam.pan.copy(keep.pan);
+        applyCam(); camChanged();
+      } else applyTheme();
+    }
     if (v.place !== cur.placeKey || v.tier !== cur.tier) {
       var moved = cur.placeKey && v.place !== cur.placeKey;
       setPlace(v.place, v.tier);
@@ -4518,6 +4723,95 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
 
 
+
+  // ---------- Tendances de la semaine ----------
+  var RULE_TXT = { rapide: ['Tempo rapide', 'Les clashs vont 10 % plus vite, et la victoire rapporte 25 % de plus.'], 'sans-clap': ['Sans clap', 'La piste Clap reste muette pendant les clashs : concentre-toi sur les trois autres.'], prime: ['Grosse prime', 'Les victoires en clash rapportent 50 % de plus.'] };
+  var trv = { key: '' };
+  function renderTrends() {
+    var tr = G.trendFor(S);
+    setHidden($('trendCard'), !tr);
+    if (!tr) return;
+    setText($('trendLeft'), 'Nouvelles tendances dans ' + clock(S.charts.left));
+    var key = JSON.stringify(tr) + G.battleOpen(S) + G.projOpen(S);
+    if (key === trv.key) return;
+    trv.key = key;
+    var A = G.ACT_BY[tr.act], T = D.TUNING, rows = [];
+    rows.push(['🔥', A.name + ' en vogue', 'Gains de cette production +' + Math.round((T.trendAct - 1) * 100) + ' %, et ses commandes clients sont plus nombreuses et mieux payées (+' + Math.round((T.trendOrderReward - 1) * 100) + ' %).']);
+    rows.push(['🎧', 'Le public veut du ' + G.PJ_G[tr.g].name + ' sur le thème « ' + G.PJ_M[tr.m].name.toLowerCase() + ' »', G.projOpen(S) ? 'Un projet de création dans ce genre ou cette ambiance plaît davantage aux critiques et se vend mieux.' : 'Les projets de création s’ouvriront au niveau ' + T.projLevel + '.']);
+    if (G.battleOpen(S)) rows.push(['🥁', 'Clash : ' + RULE_TXT[tr.rule][0], RULE_TXT[tr.rule][1]]);
+    $('trendList').innerHTML = rows.map(function (r) { return '<li><i aria-hidden="true">' + r[0] + '</i><div><b>' + esc(r[1]) + '</b><span>' + esc(r[2]) + '</span></div></li>'; }).join('');
+  }
+
+  // ---------- Atelier de décoration ----------
+  var dv = { open: false, opener: null };
+  function decoCups() { var n = 0; G.TROPHIES.forEach(function (t) { if ((S.trophies[t.id] || 0) >= 3 || (t.levels.length < 3 && (S.trophies[t.id] || 0) >= t.levels.length)) n++; }); return n; }
+  function decoView() {
+    var o = {};
+    G.DECO.slots.forEach(function (s) { var x = G.decoOpt(s.id, S.deco[s.id]); if (x && x.v !== undefined) o[s.id] = x.v; });
+    o.cups = Math.min(8, decoCups());
+    return o;
+  }
+  function hexCss(n) { return '#' + ('000000' + n.toString(16)).slice(-6); }
+  function swatch(slot, o) {
+    var v = o.v;
+    if (v === undefined) return '';
+    if (slot === 'wall' || slot === 'rug') return 'linear-gradient(135deg,' + hexCss(v[0]) + ' 0 55%,' + hexCss(v[1]) + ' 55%)';
+    if (slot === 'light') return 'radial-gradient(circle at 50% 30%,' + hexCss(v) + ', #3a3d45)';
+    if (slot === 'floor') return v[0] === 'wood' ? 'repeating-linear-gradient(90deg,' + v[1] + ' 0 18px,' + v[2] + ' 18px 20px)' : v[0] === 'marble' ? 'linear-gradient(135deg,#f2efe9,#d9d5cf 60%,#ece8e2)' : 'linear-gradient(135deg,#a9a49b,#8f8a82)';
+    if (slot === 'neon') return '#1b1d22';
+    return '';
+  }
+  var NEON_GLYPH = { text: 'PM', note: '♫', heart: '♥', bolt: 'ϟ', star: '★' };
+  function renderDeco() {
+    var box = $('decoSlots'), fresh = {};
+    G.decoNew(S).forEach(function (k) { fresh[k] = 1; });
+    var n = decoCups();
+    setText($('decoCups'), 'Ton étagère expose ' + Math.min(8, n) + ' coupe' + (n > 1 ? 's' : '') + ' sur 8 : une par famille du palmarès décrochée au niveau Or.');
+    box.innerHTML = G.DECO.slots.map(function (s) {
+      return '<section class="deco-slot"><h3>' + esc(s.name) + '</h3><div class="deco-opts" role="group" aria-label="' + esc(s.name) + '">' + s.options.map(function (o) {
+        var ok = G.decoUnlocked(S, s.id, o.id), on = S.deco[s.id] === o.id, pr = G.decoProgress(S, s.id, o.id), sw = swatch(s.id, o);
+        var glyph = s.id === 'neon' && o.v ? '<span style="color:' + o.v.c + '">' + NEON_GLYPH[o.v.k] + '</span>' : '';
+        return '<button type="button" class="dopt" data-slot="' + s.id + '" data-opt="' + o.id + '" aria-pressed="' + on + '"' + (ok ? '' : ' disabled') + '>' +
+          (fresh[s.id + ':' + o.id] ? '<span class="new">Nouveau</span>' : '') +
+          '<span class="sw" style="' + (sw ? '--sw:' + sw : '') + '" aria-hidden="true">' + glyph + '</span>' +
+          '<span>' + esc(o.name) + '</span>' +
+          (ok ? (on ? '<small>Installé</small>' : '<small>' + (o.need ? 'Débloqué' : 'Offert') + '</small>') : '<small>' + esc(o.need.t) + '</small><span class="meter" aria-hidden="true"><i style="width:' + Math.round(pr.v / pr.n * 100) + '%"></i></span>') +
+          '</button>';
+      }).join('') + '</div></section>';
+    }).join('');
+  }
+  function openDeco() {
+    if (dv.open) return;
+    dv.open = true; dv.opener = document.activeElement;
+    renderDeco();
+    G.seeDeco(S); saveLocal();
+    $('decoScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    $('decoScrim').querySelector('.sheet').scrollTop = 0;
+    var first = $('decoSlots').querySelector('.dopt[aria-pressed="true"]'); (first || $('decoClose')).focus();
+  }
+  function closeDeco() {
+    if (!dv.open) return;
+    dv.open = false;
+    $('decoScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    var o = dv.opener; dv.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+    render();
+  }
+  function bindDeco() {
+    $('decoSlots').addEventListener('click', function (e) {
+      var b = e.target.closest('.dopt'); if (!b || b.disabled) return;
+      var slot = b.getAttribute('data-slot'), id = b.getAttribute('data-opt');
+      if (G.setDeco(S, slot, id)) {
+        saveLocal(); markCloud(); blip(6);
+        renderDeco(); renderScene(true);
+        var nb = $('decoSlots').querySelector('[data-slot="' + slot + '"][data-opt="' + id + '"]'); if (nb) nb.focus();
+      }
+    });
+    $('decoClose').addEventListener('click', closeDeco);
+    $('decoScrim').addEventListener('click', function (e) { if (e.target === $('decoScrim')) closeDeco(); });
+    document.addEventListener('keydown', function (e) { if (dv.open && e.key === 'Escape') { e.preventDefault(); closeDeco(); } });
+  }
+
   // ---------- Atelier piano ----------
   // Notes MIDI de do4 à sol5; touches du clavier selon la position physique (QWERTY comme AZERTY).
   var PI_LOW = 60, PI_HIGH = 79, PI_SCALE = [60, 62, 64, 67, 69, 72, 74, 76];
@@ -4691,6 +4985,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
   // ---------- Icônes dans la scène 3D ----------
   var HOT_DRUM = '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="9" rx="8" ry="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 9v6c0 1.8 3.6 3.2 8 3.2s8-1.4 8-3.2V9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 2l-4 6M20 3l-6 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  var HOT_DECO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h12v5H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16 6.5h3v5.5h-8v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><rect x="9" y="15" width="4" height="6" rx="1" fill="currentColor"/></svg>';
   var HOT_PIANO = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 5v14M12 5v14M16 5v14" stroke="currentColor" stroke-width="1.6"/><rect x="6.6" y="5" width="2.8" height="8" fill="currentColor"/><rect x="14.6" y="5" width="2.8" height="8" fill="currentColor"/></svg>';
   function hotspots() {
     var list = [];
@@ -4700,6 +4995,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
         label: R ? 'Clash de beatmakers : ' + R.name + ' te défie' : 'Clash de beatmakers : prochain défi dans ' + clock(S.battle.cd),
         html: HOT_DRUM + '<span>Clash</span>' + (R ? '<i class="bang" aria-hidden="true">!</i>' : '<small>' + clock(S.battle.cd) + '</small>') });
     }
+    var dn = G.decoNew(S).length;
+    list.push({ id: 'deco', anchor: 'shelf', hot: dn > 0, label: 'Décoration du studio' + (dn ? ' : ' + dn + ' nouveauté' + (dn > 1 ? 's' : '') : ''),
+      html: HOT_DECO + '<span>Déco</span>' + (dn ? '<i class="bang" aria-hidden="true">' + dn + '</i>' : '') });
     if (G.pianoOpen(S)) {
       var ready = S.piano.cd <= 0;
       list.push({ id: 'piano', anchor: 'piano', hot: ready, label: 'Atelier piano' + (ready ? ' : inspiration disponible' : ''),
@@ -4710,6 +5008,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function onHotspot(id) {
     if (id === 'clash') { if (S.battle.rival) openClash(); else toast('Pas de rival pour l’instant : prochain défi dans ' + clock(S.battle.cd) + '.'); }
     else if (id === 'piano') openPiano();
+    else if (id === 'deco') openDeco();
   }
 
   // ---------- Clash de beatmakers ----------
@@ -4731,7 +5030,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var bar = '<span class="league-bar" aria-hidden="true">' + D.BATTLE.leagues.map(function (x, i) { return '<i class="' + (i < B.league ? 'on' : '') + '"></i>'; }).join('') + '</span>';
       var prog = up ? B.pts + ' / ' + D.TUNING.battleUp + ' victoires pour monter en ligue ' + D.BATTLE.leagues[B.league].name + '.' : 'Tu es au sommet : ligue Légende.';
       $('clashBody').innerHTML = R
-        ? '<article class="card clash-card hot"><span class="who-r"></span><p class="proj-meta">Score à battre : <b>' + Math.round(R.target * 100) + ' %</b> · ' + L.bpm + ' BPM · ' + prog + '</p>' + bar +
+        ? '<article class="card clash-card hot"><span class="who-r"></span><p class="proj-meta">Score à battre : <b>' + Math.round(R.target * 100) + ' %</b> · ' + Math.round(L.bpm * (R.rule === 'rapide' ? 1.1 : 1)) + ' BPM · ' + prog + '</p>' + (R.rule ? '<p class="proj-meta"><span class="vogue">' + esc(RULE_TXT[R.rule][0]) + '</span> ' + esc(RULE_TXT[R.rule][1]) + '</p>' : '') + bar +
           '<div class="proj-row"><button class="btn primary" type="button" data-cl="go">Relever le défi</button><button class="btn sm" type="button" data-cl="no">Décliner</button></div></article>'
         : '<article class="card clash-card"><p class="proj-meta" id="clWait"></p>' + bar + '<p class="proj-meta">' + prog + ' ' + B.wins + ' victoire' + (B.wins > 1 ? 's' : '') + ', ' + B.losses + ' défaite' + (B.losses > 1 ? 's' : '') + (B.best ? ', meilleur combo ' + B.best : '') + '.</p></article>';
       var w = $('clashBody').querySelector('.who-r'); if (w) w.textContent = R.name + ' te défie !';
@@ -4785,7 +5084,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     cl.open = true; cl.playing = false; cl.done = false; cl.cfg = cfg; cl.opener = document.activeElement;
     setText($('clLeague'), 'Ligue ' + cfg.leagueName);
     $('clTitle').textContent = cfg.rival.name + ' te défie';
-    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + ' % à battre · ' + cfg.bpm + ' BPM');
+    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + ' % à battre · ' + cfg.bpm + ' BPM' + (cfg.rule ? ' · ' + RULE_TXT[cfg.rule][0] : ''));
     var snd = S.sound && vol.sfx > 0;
     setText($('clTip'), snd ? 'Le son est activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.' : 'Le son est coupé : tu peux jouer quand même, mais le clash est bien plus amusant en musique.');
     $('clSoundOn').hidden = snd;
@@ -4990,6 +5289,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
           '<li class="' + L.pubG + '">Public ' + esc(G.PJ_P[L.pub].name.toLowerCase()) + ' : ' + (L.pubG === 'top' ? 'la cible idéale.' : L.pubG === 'bad' ? 'pas du tout sa cible.' : 'une cible correcte.') + '</li>' +
           '<li class="' + (L.acc >= 85 ? 'top' : L.acc < 50 ? 'bad' : 'ok') + '">Réglages des phases justes à ' + L.acc + ' %. Le carnet garde la zone probable.</li>' +
           '<li class="' + (L.fit >= 75 ? 'top' : L.fit < 45 ? 'bad' : 'ok') + '">Apport de l’équipe : ' + L.fit + ' %.</li>' +
+          (L.tg || L.tm ? '<li class="top">Dans l’air du temps : ' + (L.tg && L.tm ? 'genre et ambiance à la mode' : L.tg ? 'genre à la mode, ventes boostées' : 'ambiance à la mode') + '.</li>' : '') +
           (L.fresh < 0 ? '<li class="bad">' + (L.fresh <= -1.5 ? 'Déjà entendu : le public se lasse de cette association.' : 'Encore ce genre : un peu de lassitude.') + '</li>' : '') +
           '</ul><p class="proj-meta">' + (L.pos ? 'Entré au Top 50 à la place ' + L.pos + '. Ventes attendues : ' + eur(L.sales) + ' sur ' + D.PROJECTS.sales.length + ' semaines s’il reste classé (budget ' + eur(L.cost) + ').' : 'Pas assez fort pour entrer au Top 50 : aucune vente.') + '</p>' +
           '<button class="btn sm" type="button" data-pj="dismiss">Ranger le compte rendu</button></article>';
@@ -5031,9 +5331,14 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (!G.genreOpen(S, cf.genre)) cf.genre = 'rap';
     if (!G.formatOpen(S, cf.fmt)) cf.fmt = 'single';
     $('pjFmt').innerHTML = PR.formats.map(function (f) { var ok = G.formatOpen(S, f.id); return pickBtn('fmt', f.id, f.name, cf.fmt === f.id, !ok, ok ? (f.cost > 1 ? '×' + nf1.format(f.cost) + ' budget' : '') : 'dès ' + D.TIERS[f.tier].name.toLowerCase()); }).join('');
+    var trd = G.trendFor(S);
     $('pjGenre').innerHTML = PR.genres.map(function (g) { var ok = G.genreOpen(S, g.id); return pickBtn('genre', g.id, g.name, cf.genre === g.id, !ok, ok ? '' : 'recherche ' + G.RD_BY[g.rd].name); }).join('');
     $('pjMood').innerHTML = PR.moods.map(function (m) { return pickBtn('mood', m.id, m.name, cf.mood === m.id, false, '', pjGrade('m', cf.genre, m.id)); }).join('');
     $('pjPub').innerHTML = PR.pubs.map(function (p) { return pickBtn('pub', p.id, p.name, cf.pub === p.id, false, '', pjGrade('p', cf.genre, p.id)); }).join('');
+    if (trd) [['pjGenre', 'genre', trd.g], ['pjMood', 'mood', trd.m]].forEach(function (q) {
+      var b = $(q[0]).querySelector('[data-' + q[1] + '="' + q[2] + '"]');
+      if (b && !b.disabled) { var s = document.createElement('span'); s.className = 'tr'; s.textContent = 'tendance'; b.appendChild(s); }
+    });
     var known = Object.keys(S.proj.book.c).length;
     $('pjLegend').innerHTML = '<span>Carnet du studio, ' + known + ' association' + (known > 1 ? 's' : '') + ' découverte' + (known > 1 ? 's' : '') + ' :</span><span><i class="gd-l top"></i>idéal</span><span><i class="gd-l ok"></i>neutre</span><span><i class="gd-l bad"></i>à éviter</span><span><i class="gd-l"></i>inconnu</span>';
     var h = S.proj.book.h[cf.genre], staff = S.team.staff;
@@ -5194,6 +5499,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       (active ? '' : '<div class="o-btns"><button class="btn sm primary" type="button" data-oact="accept">Accepter</button><button class="btn sm" type="button" data-oact="decline">Refuser</button></div>');
     el.querySelector('.o-head b').textContent = x.client + ' · ' + x.kind;
     el.querySelector('.o-head .p').textContent = '+' + eur(x.reward);
+    if (x.trend) { var vt = document.createElement('span'); vt.className = 'vogue'; vt.textContent = 'Tendance'; el.querySelector('.o-head b').appendChild(document.createTextNode(' ')); el.querySelector('.o-head b').appendChild(vt); }
     el.querySelector('.o-what').innerHTML = '<b>' + x.n + ' ×</b> ' + esc(act.name) + ' · qualité ' + starsHtml(x.q) + ' min.' + (needMix ? ' <span class="need-mix">Exige un mix</span>' : '');
     var r = { root: el, x: x, active: active };
     el.querySelectorAll('[data-k]').forEach(function (n) { r[n.getAttribute('data-k')] = n; });
@@ -5290,6 +5596,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     bindProj();
     bindClash();
     bindPiano();
+    bindDeco();
     $('rd').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-rd]'), sp = e.target.closest('button[data-spec]');
       if (b && !b.disabled) { if (G.research(S, b.getAttribute('data-rd'))) saveLocal(); renderRd(true); render(); }
@@ -5463,6 +5770,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var d = G.duration(S, act), pct = a.run ? Math.min(1, a.prog / d) : 0;
       var pay = G.payout(S, act), xp = G.xpGain(S, act), plan = G.upPlan(S, act, buyN), cost = plan.cost;
       setText(r.rank, 'Rang ' + a.lvl);
+      var vg = G.trendAct(S, act.id) > 1;
+      if (r.vogue === undefined) { r.vogue = document.createElement('span'); r.vogue.className = 'vogue'; r.vogue.textContent = 'En vogue +' + Math.round((D.TUNING.trendAct - 1) * 100) + ' %'; r.rank.parentNode.insertBefore(r.vogue, r.rank); }
+      setHidden(r.vogue, !vg);
       var wm = byAct[act.id];
       setHidden(r.who, !wm);
       if (wm) { var wt = wm.name + (G.working(wm) ? '' : wm.rest > 0 ? ' · en vacances' : ' · en formation'); if (r.who._t !== wt) { r.who._t = wt; r.who.lastChild.textContent = wt; r.who.firstChild.style.background = shirtCol(wm); } }
@@ -5509,6 +5819,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     renderRd();
     renderProj();
     renderClash();
+    renderTrends();
     if (pjv.open) pjFoot();
     renderScene();
     var hint = $('hint');
@@ -5588,7 +5899,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     S3.update({
       tier: ti, place: D.TIERS[ti].place, owned: S.owned, live: live,
       ghosts: visibleItems().out.slice(0, 2).map(function (i) { return i.id; }),
-      cap: G.teamOpen(S) ? G.teamCap(S) : 0, edrums: G.battleOpen(S),
+      cap: G.teamOpen(S) ? G.teamCap(S) : 0, edrums: G.battleOpen(S), deco: decoView(),
       staff: S.team.staff.map(function (m) { return { id: m.id, look: m.look, role: m.role, morale: m.morale, act: m.act, status: memberStatus(m) }; })
     });
     if (S3.setHotspots) hotspots();
@@ -6132,7 +6443,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
-    closeMix(); closeProj(); cl.playing = false; closeClash(); closePiano(); cl.key = ''; cl.wasOpen = null; pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
+    closeMix(); closeProj(); cl.playing = false; closeClash(); closePiano(); closeDeco(); trv.key = ''; cl.key = ''; cl.wasOpen = null; pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -6389,6 +6700,11 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   };
   G.hooks.research = function (n) { markCloud(); rdv.key = ''; if (!quiet) { toast('Recherche terminée : ' + n.name + '.', 4500); blip(10); } };
   G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
+  G.hooks.trend = function (tr) {
+    trv.key = ''; markCloud();
+    if (quiet) return;
+    toast('Nouvelles tendances : ' + G.ACT_BY[tr.act].name.toLowerCase() + ' en vogue, le public veut du ' + G.PJ_G[tr.g].name + '. Détails dans le Top 50.', 6500);
+  };
   G.hooks.battleNew = function (r) { cl.key = ''; markCloud(); if (!quiet) { toast(r.name + ' te défie en clash de beatmakers ! Rendez-vous dans Productions.', 6000); blip(10); } };
   G.hooks.battleDone = function () { cl.key = ''; markCloud(); };
   G.hooks.projectStart = function (c) { markCloud(); if (!quiet) { toast('« ' + c.title + ' » est lancé : écriture en cours.', 4000); blip(6); } };

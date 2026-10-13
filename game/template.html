@@ -341,6 +341,30 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .buyn span { padding: 0 6px 0 5px; font: 800 11px var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
 .buyn button { min-width: 44px; min-height: 34px; padding: 4px 8px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: 800 13.5px var(--f-body); }
 .buyn button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-s); }
+/* Tendances */
+.trend-card { display: grid; gap: 8px; margin-bottom: 12px; border-left: 4px solid var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--card)); }
+.trend-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.trend-head h3 { font-size: 17px; margin: 0; }
+.trend-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.trend-list li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; align-items: start; font-size: 13.5px; }
+.trend-list li i { font-style: normal; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--panel-2); font-size: 14px; }
+.trend-list li b { display: block; font-size: 14px; }
+.trend-list li span { color: var(--ink-soft); }
+.vogue { font: 800 11.5px var(--f-body); padding: 2px 8px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 16%, var(--card)); color: var(--accent); white-space: nowrap; }
+.pk .tr { font: 800 10.5px var(--f-body); padding: 1px 6px; border-radius: 8px; background: var(--accent); color: #fff; }
+.pk[aria-pressed="true"] .tr { background: #fff; color: var(--accent); }
+/* Atelier de décoration */
+.deco-sheet { width: min(640px, 100%); }
+.deco-slot { display: grid; gap: 8px; margin-top: 6px; }
+.deco-slot h3 { font-size: 16px; margin: 6px 0 0; }
+.deco-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; }
+.dopt { position: relative; display: grid; gap: 5px; align-content: start; padding: 8px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); color: var(--ink); text-align: left; font: 700 13px var(--f-body); min-width: 0; }
+.dopt[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.dopt:disabled { opacity: 0.6; cursor: default; }
+.dopt .sw { height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--sw, var(--panel-2)); display: grid; place-items: center; color: #fff; font: 800 15px var(--f-title); text-shadow: 0 0 8px currentColor; overflow: hidden; }
+.dopt small { font-size: 11.5px; color: var(--ink-soft); font-weight: 700; }
+.dopt .meter { height: 5px; }
+.dopt .new { position: absolute; top: -6px; right: -6px; font: 800 10.5px var(--f-body); padding: 2px 6px; border-radius: 8px; background: var(--bad); color: #fff; }
 /* Icônes cliquables dans la scène 3D */
 .hot3d { position: absolute; left: 0; top: 0; z-index: 3; display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px 5px 7px; border: 2px solid transparent; border-radius: 999px; background: var(--hud); color: var(--ink); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28); font: 800 13px var(--f-body); white-space: nowrap; pointer-events: auto; cursor: pointer; will-change: transform; }
 .hot3d::after { content: ''; position: absolute; left: 50%; bottom: -7px; margin-left: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: var(--hud); }
@@ -730,6 +754,10 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
         <h2 id="chartTitle">Top 50 <small id="chartWeek"></small></h2>
         <div class="card chart-lock" id="chartLock"><b>Le Top 50 t’attend</b><span id="chartLockText"></span></div>
         <div id="chartOpen">
+          <article class="card trend-card" id="trendCard" hidden>
+            <div class="trend-head"><h3>Tendances de la semaine</h3><span class="rep-chip" id="trendLeft"></span></div>
+            <ul class="trend-list" id="trendList"></ul>
+          </article>
           <p class="hint">Chaque semaine de jeu (3 minutes), tes titres classés rapportent selon leur place. La qualité compte : mixe toi-même tes productions pour viser le haut du classement.</p>
           <h3 class="sec">Sortir un titre</h3>
           <div class="list" id="releaseList"></div>
@@ -838,6 +866,16 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <div class="pf"><span class="lbl">Les trois phases</span><div id="pjPhases"></div></div>
     <p class="small-note" id="pjTeamNote"></p>
     <div class="pj-foot"><div><b id="pjCost"></b><small id="pjInfo"></small></div><button class="btn sm" id="pjClose" type="button">Fermer</button><button class="btn primary" id="pjGo" type="button">Lancer le projet</button></div>
+  </div>
+</div>
+<div class="scrim" id="decoScrim" hidden>
+  <div class="sheet deco-sheet" role="dialog" aria-modal="true" aria-labelledby="decoTitle">
+    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Étagère à souvenirs</p>
+    <h2 id="decoTitle">Décoration du studio</h2>
+    <p class="ev-text">Fais du studio le tien. C’est purement esthétique : ton style te suit dans tous tes lieux et reste après une tournée mondiale. De nouvelles options se débloquent avec tes exploits.</p>
+    <p class="small-note" id="decoCups"></p>
+    <div id="decoSlots"></div>
+    <button class="pad" id="decoClose" type="button"><b>Retour au studio</b></button>
   </div>
 </div>
 <div class="scrim" id="pianoScrim" hidden>
