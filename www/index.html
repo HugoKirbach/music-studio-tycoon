@@ -64,6 +64,8 @@ output { font-variant-numeric: tabular-nums; }
 .menu-toggle svg { width: 20px; height: 20px; transition: transform 0.2s; }
 .menu-toggle span { writing-mode: vertical-rl; transform: rotate(180deg); }
 .game.collapsed .menu-toggle svg { transform: rotate(180deg); }
+.cam-reset { position: absolute; z-index: 6; left: 16px; bottom: calc(var(--sheet-h, 0px) + 16px); display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 6px 12px; border: 0; border-radius: 12px; background: var(--hud); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: var(--shadow); font: 800 13px var(--f-body); color: var(--ink); }
+.cam-reset svg { width: 18px; height: 18px; }
 .pane { display: none; }
 .game[data-view="prod"] #prod, .game[data-view="shop"] #shop, .game[data-view="team"] #team, .game[data-view="charts"] #charts, .game[data-view="trophies"] #trophies, .game[data-view="account"] #account { display: block; }
 .pane > h2 { font-size: 24px; margin: 2px 0 12px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
@@ -433,6 +435,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   <div class="stage" id="stage">
     <div class="stage-fallback" id="stageFallback" hidden><p>La vue 3D n’est pas disponible sur cet appareil. Le jeu fonctionne normalement avec les panneaux.</p></div>
     <div class="pick-tip" id="pickTip" hidden></div>
+    <button class="cam-reset" id="camReset" type="button" hidden title="Revenir à la vue d’ensemble (double-clic ou touche 0)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6M15 4h5v5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Vue d’ensemble</button>
     <button class="menu-toggle" id="menuToggle" type="button" aria-controls="panel" aria-expanded="true" title="Replier le menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="menuToggleText">Masquer</span></button>
     <div class="banner" id="cloudBanner" hidden>
       <p id="cloudMsg"></p>
@@ -621,7 +624,8 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           </div>
         </div>
         <h3 class="sec">La vue 3D</h3>
-        <p class="small-note">Fais glisser pour tourner autour du studio, pince ou utilise la molette pour zoomer, double-clique pour recadrer. Touche un équipement ou un membre de l’équipe pour en savoir plus.</p>
+        <p class="small-note"><b>Sur PC :</b> glisse pour tourner autour du studio, clic droit (ou Maj + glisser) pour te déplacer, molette pour zoomer vers le curseur, flèches du clavier pour te déplacer, + et − pour zoomer, double-clic ou touche 0 pour revenir à la vue d’ensemble.</p>
+        <p class="small-note"><b>Sur mobile :</b> glisse avec un doigt pour tourner, avec deux doigts pour te déplacer, pince pour zoomer, touche deux fois pour revenir à la vue d’ensemble. Touche un équipement ou un membre de l’équipe pour en savoir plus.</p>
         <p class="small-note">Quand tu es absent, le studio continue de tourner à moitié de sa vitesse pendant six heures au maximum.</p>
       </section>
     </div>
@@ -2027,7 +2031,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   var cur = { place: null, tier: -1, key: '', def: null };
   var itemNodes = {}, staffNodes = {}, deskNodes = [], player = null, anims = [], blinkers = [], spinners = [];
   var view = null, pickFn = null;
-  var cam = { yaw: 0.72, pitch: 0.62, zoom: 1, fit: 12, target: null, yawBase: 0.72 };
+  var cam = { yaw: 0.72, pitch: 0.62, zoom: 1, fit: 12, target: null, pan: null, yawBase: 0.72 };
+  var ZMIN = 0.28, ZMAX = 1.25, PITCH0 = 0.62, camMoved = false, camFn = null;
   var ins = { t: 0, b: 0 }; // zones de l'écran couvertes par l'interface (px), pour cadrer la pièce dans la partie visible
 
   // ---------- Outils de construction ----------
@@ -2725,17 +2730,59 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var yTop = 0.95 - 2 * ins.t / hh, yBot = -0.97 + 2 * ins.b / hh;
     if (yTop - yBot < 0.5) { var mid0 = (yTop + yBot) / 2; yTop = mid0 + 0.25; yBot = mid0 - 0.25; }
     for (var it = 0; it < 22; it++) {
-      var mid = (lo + hi) / 2; placeCam(mid, cam.yawBase, cam.pitch); camera.updateMatrixWorld();
+      var mid = (lo + hi) / 2; placeCam(mid, cam.yawBase, cam.pitch, false); camera.updateMatrixWorld();
       var ok = pts.every(function (p) { v.copy(p).project(camera); return Math.abs(v.x) < 0.97 && v.y < yTop && v.y > yBot; });
       if (ok) hi = mid; else lo = mid;
     }
     cam.fit = hi;
   }
-  function placeCam(dist, yaw, pitch) {
-    camera.position.set(cam.target.x + Math.sin(yaw) * Math.cos(pitch) * dist, cam.target.y + Math.sin(pitch) * dist, cam.target.z + Math.cos(yaw) * Math.cos(pitch) * dist);
-    camera.lookAt(cam.target);
+  var tgt = null;
+  function placeCam(dist, yaw, pitch, withPan) {
+    tgt = tgt || new V3();
+    tgt.copy(cam.target); if (withPan) tgt.add(cam.pan);
+    camera.position.set(tgt.x + Math.sin(yaw) * Math.cos(pitch) * dist, tgt.y + Math.sin(pitch) * dist, tgt.z + Math.cos(yaw) * Math.cos(pitch) * dist);
+    camera.lookAt(tgt);
   }
-  function applyCam() { placeCam(cam.fit * cam.zoom, cam.yaw, cam.pitch); }
+  function applyCam() { placeCam(cam.fit * cam.zoom, cam.yaw, cam.pitch, true); }
+  // Déplacement latéral de la caméra (en pixels d'écran), limité à la pièce.
+  function clampPan() {
+    if (!cur.def) return;
+    var hx = cur.def.W * 0.45, hz = cur.def.D * 0.45;
+    cam.pan.x = Math.max(-hx - cam.target.x, Math.min(hx - cam.target.x, cam.pan.x));
+    cam.pan.z = Math.max(-hz - cam.target.z, Math.min(hz - cam.target.z, cam.pan.z));
+    cam.pan.y = 0;
+  }
+  function panBy(dx, dy) {
+    var h = Math.max(1, host.clientHeight), k = 0.536 * cam.fit * cam.zoom / h;
+    var rx = Math.cos(cam.yaw), rz = -Math.sin(cam.yaw), fx = -Math.sin(cam.yaw), fz = -Math.cos(cam.yaw), g = dy * k / Math.max(0.5, Math.sin(cam.pitch));
+    cam.pan.x += -dx * k * rx + g * fx;
+    cam.pan.z += -dx * k * rz + g * fz;
+    clampPan(); camChanged();
+  }
+  // Zoom vers un point de l'écran: le point visé reste sous le curseur (approximativement).
+  var groundPlane = null;
+  function zoomAt(f, cx, cy) {
+    var z0 = cam.zoom, z1 = Math.max(ZMIN, Math.min(ZMAX, z0 * f));
+    if (z1 === z0) return;
+    if (cx != null) {
+      groundPlane = groundPlane || new THREE.Plane(new V3(0, 1, 0), -0.5);
+      var r = canvas.getBoundingClientRect(), hit = new V3();
+      ndc.set((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(ndc, camera);
+      if (ray.ray.intersectPlane(groundPlane, hit)) {
+        var c = cam.target.clone().add(cam.pan), t = 1 - z1 / z0;
+        cam.pan.x += (hit.x - c.x) * t; cam.pan.z += (hit.z - c.z) * t;
+      }
+    }
+    cam.zoom = z1;
+    if (z1 >= 0.999) { cam.pan.multiplyScalar(0.85); }
+    clampPan(); camChanged();
+  }
+  function camChanged() {
+    var m = Math.abs(cam.zoom - 1) > 0.02 || cam.pan.lengthSq() > 0.01 || Math.abs(cam.yaw - cam.yawBase) > 0.03 || Math.abs(cam.pitch - PITCH0) > 0.03;
+    if (m !== camMoved) { camMoved = m; if (camFn) camFn(m); }
+  }
+  function resetCam() { cam.zoom = 1; cam.yaw = cam.yawBase; cam.pitch = PITCH0; cam.pan.set(0, 0, 0); camChanged(); }
   // Décale l'image pour centrer la pièce entre le haut et le bas couverts par l'interface.
   function applyOffset() {
     var w = Math.max(1, host.clientWidth), h = Math.max(1, host.clientHeight), d = Math.round((ins.b - ins.t) / 2);
@@ -2782,7 +2829,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     player.userData.pick = { type: 'player' };
     player.traverse(function (o) { if (o.isMesh) o.userData.pick = player.userData.pick; });
     world.add(player);
-    lightRoom(); fitCamera(); applyCam();
+    if (cam.pan) cam.pan.set(0, 0, 0);
+    lightRoom(); fitCamera(); applyCam(); camChanged();
   }
   function disposeTree(o) { o.traverse(function (x) { if (x.isLight && x.dispose) x.dispose(); }); }
 
@@ -2892,7 +2940,6 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (f >= 1) { if (a.fx) fxG.remove(a.fx); anims.splice(i, 1); }
     }
     // caméra: retour doux vers l'angle de base quand on ne la touche pas
-    if (!drag.on && !reduce) { cam.yaw += (cam.yawBase - cam.yaw) * Math.min(1, dt * 0.25) * (Date.now() - drag.last > 6000 ? 1 : 0); }
     applyCam();
     updatePops(dt);
     R.render(scene, camera);
@@ -2910,39 +2957,73 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     return null;
   }
   function bindInput() {
+    var lastTap = 0;
+    function mid(ids) { var a = drag.pts[ids[0]], b = drag.pts[ids[1]]; return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, d: Math.hypot(a.x - b.x, a.y - b.y) }; }
+    canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
     canvas.addEventListener('pointerdown', function (e) {
+      if (e.isPrimary) drag.pts = {}; // nouveau geste: oublier les doigts restés en mémoire
       drag.pts[e.pointerId] = { x: e.clientX, y: e.clientY };
       var ids = Object.keys(drag.pts);
-      if (ids.length === 2) { var a = drag.pts[ids[0]], b = drag.pts[ids[1]]; drag.pinch = Math.hypot(a.x - b.x, a.y - b.y); drag.z0 = cam.zoom; }
+      if (ids.length === 2) { var m = mid(ids); drag.pinch = m.d; drag.z0 = cam.zoom; drag.mx = m.x; drag.my = m.y; }
       drag.on = true; drag.x = e.clientX; drag.y = e.clientY; drag.moved = 0; drag.yaw0 = cam.yaw; drag.pitch0 = cam.pitch;
+      // clic droit, clic molette ou Maj + clic: déplacer la caméra
+      drag.pan = e.pointerType === 'mouse' && (e.button === 2 || e.button === 1 || e.shiftKey);
       try { canvas.setPointerCapture(e.pointerId); } catch (x) { /* facultatif */ }
     });
     canvas.addEventListener('pointermove', function (e) {
       if (!drag.pts[e.pointerId]) return;
+      var px = drag.pts[e.pointerId].x, py = drag.pts[e.pointerId].y;
       drag.pts[e.pointerId] = { x: e.clientX, y: e.clientY };
       var ids = Object.keys(drag.pts);
       if (ids.length >= 2) {
-        var a = drag.pts[ids[0]], b = drag.pts[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y);
-        if (drag.pinch > 0) cam.zoom = Math.max(0.45, Math.min(1.25, drag.z0 * drag.pinch / d));
+        // deux doigts: pincer pour zoomer, glisser pour se déplacer
+        var m = mid(ids);
+        if (drag.pinch > 0 && m.d > 0) zoomAt(drag.z0 * drag.pinch / m.d / cam.zoom, m.x, m.y);
+        panBy(m.x - drag.mx, m.y - drag.my);
+        drag.mx = m.x; drag.my = m.y;
         drag.moved = 99; return;
       }
       var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
       drag.moved = Math.max(drag.moved, Math.abs(dx) + Math.abs(dy));
       if (drag.moved > 6) {
-        cam.yaw = Math.max(cam.yawBase - 0.75, Math.min(cam.yawBase + 0.6, drag.yaw0 - dx * 0.006));
-        cam.pitch = Math.max(0.35, Math.min(1.05, drag.pitch0 + dy * 0.004));
+        if (drag.pan) panBy(e.clientX - px, e.clientY - py);
+        else {
+          cam.yaw = Math.max(cam.yawBase - 0.75, Math.min(cam.yawBase + 0.6, drag.yaw0 - dx * 0.006));
+          cam.pitch = Math.max(0.35, Math.min(1.05, drag.pitch0 + dy * 0.004));
+          camChanged();
+        }
         drag.last = Date.now();
       }
     });
     function up(e) {
-      var wasTap = drag.moved <= 6 && Object.keys(drag.pts).length === 1;
+      var wasTap = drag.moved <= 6 && Object.keys(drag.pts).length === 1 && !drag.pan;
       delete drag.pts[e.pointerId];
-      if (!Object.keys(drag.pts).length) { drag.on = false; drag.pinch = 0; drag.last = Date.now(); }
-      if (wasTap && e.type === 'pointerup' && pickFn) { var u = pick(e.clientX, e.clientY); pickFn(u, e.clientX, e.clientY); }
+      var ids = Object.keys(drag.pts);
+      if (!ids.length) { drag.on = false; drag.pinch = 0; drag.last = Date.now(); }
+      else if (ids.length === 1) { var p = drag.pts[ids[0]]; drag.x = p.x; drag.y = p.y; drag.yaw0 = cam.yaw; drag.pitch0 = cam.pitch; drag.moved = 99; }
+      if (wasTap && e.type === 'pointerup') {
+        var now = Date.now();
+        if (e.pointerType !== 'mouse' && now - lastTap < 320) { resetCam(); lastTap = 0; return; } // double tape: recadrer
+        lastTap = now;
+        if (pickFn) { var u = pick(e.clientX, e.clientY); pickFn(u, e.clientX, e.clientY); }
+      }
     }
     canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
-    canvas.addEventListener('wheel', function (e) { e.preventDefault(); cam.zoom = Math.max(0.45, Math.min(1.25, cam.zoom * (1 + Math.sign(e.deltaY) * 0.08))); drag.last = Date.now(); }, { passive: false });
-    canvas.addEventListener('dblclick', function () { cam.zoom = 1; cam.yaw = cam.yawBase; cam.pitch = 0.62; });
+    canvas.addEventListener('wheel', function (e) { e.preventDefault(); zoomAt(e.deltaY > 0 ? 1.1 : 1 / 1.1, e.clientX, e.clientY); drag.last = Date.now(); }, { passive: false });
+    canvas.addEventListener('dblclick', resetCam);
+    // Clavier: flèches pour se déplacer, + et − pour zoomer, 0 pour recadrer
+    window.addEventListener('keydown', function (e) {
+      var t = document.activeElement, tag = t && t.tagName;
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (document.querySelector('.scrim:not([hidden])')) return;
+      var step = 40, done = true;
+      if (e.key === 'ArrowLeft') panBy(step, 0); else if (e.key === 'ArrowRight') panBy(-step, 0);
+      else if (e.key === 'ArrowUp') panBy(0, step); else if (e.key === 'ArrowDown') panBy(0, -step);
+      else if (e.key === '+' || e.key === '=') zoomAt(1 / 1.15); else if (e.key === '-' || e.key === '_') zoomAt(1.15);
+      else if (e.key === '0') resetCam();
+      else done = false;
+      if (done) e.preventDefault();
+    });
   }
 
   // ---------- API ----------
@@ -2960,7 +3041,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(30, 1, 0.1, 200);
-      cam.target = new V3();
+      cam.target = new V3(); cam.pan = new V3();
       world = grp(scene); itemsG = grp(world); staffG = grp(world); fxG = grp(world);
       ray = new THREE.Raycaster(); ndc = new THREE.Vector2();
       clock = new THREE.Clock();
@@ -3003,6 +3084,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   };
   S3.setTheme = function (d) { var was = dark; dark = !!d; if (!S3.ok) return; applyTheme(); if (was !== dark && cur.placeKey) { var k = cur.placeKey, t = cur.tier; cur.placeKey = null; S3.update(Object.assign({}, view || {}, { place: k, tier: t })); } };
   S3.onPick = function (fn) { pickFn = fn; };
+  S3.onCamChange = function (fn) { camFn = fn; };
+  S3.resetCam = function () { if (S3.ok) resetCam(); };
   S3.setInsets = function (t, b) {
     t = Math.max(0, Math.round(t || 0)); b = Math.max(0, Math.round(b || 0));
     if (t === ins.t && b === ins.b) return;
@@ -3702,6 +3785,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (mq && mq.addEventListener) mq.addEventListener('change', theme);
     try { new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }); } catch (e) { /* facultatif */ }
     S3.onPick(onPick);
+    S3.onCamChange(function (moved) { $('camReset').hidden = !moved; });
+    $('camReset').addEventListener('click', function () { S3.resetCam(); });
     S3.onMove = moveBanner;
   }
 

@@ -64,6 +64,8 @@ output { font-variant-numeric: tabular-nums; }
 .menu-toggle svg { width: 20px; height: 20px; transition: transform 0.2s; }
 .menu-toggle span { writing-mode: vertical-rl; transform: rotate(180deg); }
 .game.collapsed .menu-toggle svg { transform: rotate(180deg); }
+.cam-reset { position: absolute; z-index: 6; left: 16px; bottom: calc(var(--sheet-h, 0px) + 16px); display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 6px 12px; border: 0; border-radius: 12px; background: var(--hud); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: var(--shadow); font: 800 13px var(--f-body); color: var(--ink); }
+.cam-reset svg { width: 18px; height: 18px; }
 .pane { display: none; }
 .game[data-view="prod"] #prod, .game[data-view="shop"] #shop, .game[data-view="team"] #team, .game[data-view="charts"] #charts, .game[data-view="trophies"] #trophies, .game[data-view="account"] #account { display: block; }
 .pane > h2 { font-size: 24px; margin: 2px 0 12px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
@@ -433,6 +435,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   <div class="stage" id="stage">
     <div class="stage-fallback" id="stageFallback" hidden><p>La vue 3D n’est pas disponible sur cet appareil. Le jeu fonctionne normalement avec les panneaux.</p></div>
     <div class="pick-tip" id="pickTip" hidden></div>
+    <button class="cam-reset" id="camReset" type="button" hidden title="Revenir à la vue d’ensemble (double-clic ou touche 0)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6M15 4h5v5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Vue d’ensemble</button>
     <button class="menu-toggle" id="menuToggle" type="button" aria-controls="panel" aria-expanded="true" title="Replier le menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="menuToggleText">Masquer</span></button>
     <div class="banner" id="cloudBanner" hidden>
       <p id="cloudMsg"></p>
@@ -621,7 +624,8 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           </div>
         </div>
         <h3 class="sec">La vue 3D</h3>
-        <p class="small-note">Fais glisser pour tourner autour du studio, pince ou utilise la molette pour zoomer, double-clique pour recadrer. Touche un équipement ou un membre de l’équipe pour en savoir plus.</p>
+        <p class="small-note"><b>Sur PC :</b> glisse pour tourner autour du studio, clic droit (ou Maj + glisser) pour te déplacer, molette pour zoomer vers le curseur, flèches du clavier pour te déplacer, + et − pour zoomer, double-clic ou touche 0 pour revenir à la vue d’ensemble.</p>
+        <p class="small-note"><b>Sur mobile :</b> glisse avec un doigt pour tourner, avec deux doigts pour te déplacer, pince pour zoomer, touche deux fois pour revenir à la vue d’ensemble. Touche un équipement ou un membre de l’équipe pour en savoir plus.</p>
         <p class="small-note">Quand tu es absent, le studio continue de tourner à moitié de sa vitesse pendant six heures au maximum.</p>
       </section>
     </div>

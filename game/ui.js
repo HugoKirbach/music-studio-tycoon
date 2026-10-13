@@ -673,6 +673,8 @@
     if (mq && mq.addEventListener) mq.addEventListener('change', theme);
     try { new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }); } catch (e) { /* facultatif */ }
     S3.onPick(onPick);
+    S3.onCamChange(function (moved) { $('camReset').hidden = !moved; });
+    $('camReset').addEventListener('click', function () { S3.resetCam(); });
     S3.onMove = moveBanner;
   }
 
