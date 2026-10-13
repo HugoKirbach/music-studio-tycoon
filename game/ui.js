@@ -1199,12 +1199,7 @@
       $('volSfx').setAttribute('aria-valuetext', vol.sfx + ' %');
       $('volSfxHint').hidden = !!S.sound;
     }
-    function openVol(open) {
-      $('volPanel').hidden = !open; $('volBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
-      if (open) syncVol();
-    }
     bind.syncVol = syncVol;
-    $('volBtn').addEventListener('click', function () { openVol($('volPanel').hidden); });
     var sfxT = 0;
     $('volSfx').addEventListener('input', function () {
       vol.sfx = +this.value; syncVol(); saveVol();
@@ -1213,12 +1208,8 @@
     $('volReset').addEventListener('click', function () {
       vol.sfx = VDEF; syncVol(); saveVol();
     });
-    document.addEventListener('pointerdown', function (e) {
-      if ($('volPanel').hidden) return;
-      if (e.target.closest && (e.target.closest('#volPanel') || e.target.closest('#volBtn') || e.target.closest('.toggles'))) return;
-      openVol(false);
-    }, true);
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('volPanel').hidden) { openVol(false); $('volBtn').focus(); } });
+    syncVol();
+
 
 
     $('exportBtn').addEventListener('click', function () {

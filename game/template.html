@@ -55,6 +55,9 @@ output { font-variant-numeric: tabular-nums; }
 .panel { display: flex; flex-direction: column; min-height: 0; background: var(--panel); border-left: 1px solid var(--line); box-shadow: -8px 0 24px rgba(0, 0, 0, 0.06); }
 .panes { flex: 1; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 16px 16px 28px; }
 .panes .list > *, .actions > *, .m-acts > *, .foot-actions > *, .team-sum > *, .tro-grid > *, .seg > *, .stats > * { min-width: 0; }
+.list, .member, .order, .unit, .tour, .box { grid-template-columns: minmax(0, 1fr); }
+.member > *, .order > *, .unit > *, .card > *, .rel > * { min-width: 0; }
+select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
 .btn .t b, .btn .t small, .pad b, .pad small { overflow-wrap: break-word; }
 .actions:has(> [data-do="auto"][hidden]) > [data-do="up"] { grid-column: 1 / -1; }
 .actions .btn .t b { font-size: 15px; }
@@ -121,7 +124,14 @@ output { font-variant-numeric: tabular-nums; }
 .led.on { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 1.2s ease-in-out infinite; }
 .led.sync { background: var(--good); box-shadow: 0 0 6px var(--good); }
 @keyframes pulse { 50% { opacity: 0.45; } }
-.vol-panel { position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; width: 280px; display: grid; gap: 10px; padding: 14px 16px 16px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+.set-card { display: grid; gap: 12px; }
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.set-row p { margin: 2px 0 0; }
+.switch { position: relative; flex: none; width: 54px; height: 32px; border: 0; border-radius: 20px; background: var(--line); transition: background 0.2s; }
+.switch i { position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform 0.2s; }
+.switch[aria-pressed="true"] { background: var(--good); }
+.switch[aria-pressed="true"] i { transform: translateX(22px); }
+.set-card .btn { justify-self: start; }
 .vol-title { margin: 0; font: 800 15px var(--f-title); }
 .vol-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; font-weight: 700; }
 .vol-row output { color: var(--ink-soft); }
@@ -412,7 +422,6 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   #toasts { bottom: calc(var(--sheet-h, 0px) + 8px); gap: 4px; }
   .toast { font-size: 12.5px; padding: 6px 10px; border-radius: 10px; }
   .toast:not(:last-child) { display: none; }
-  .vol-panel { position: fixed; top: auto; bottom: calc(var(--tabs-h) + 10px); left: 16px; right: 16px; width: auto; }
   .sheet { align-self: end; border-radius: 18px 18px 0 0; }
   .scrim { padding: 0; place-items: end stretch; }
 }
@@ -461,20 +470,6 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     </div>
     <div class="ctrls">
       <button class="pill" id="accountPill" type="button"><span class="led" id="pillLed" aria-hidden="true"></span><span id="pillText">Connexion…</span></button>
-      <button class="ibtn" id="soundBtn" type="button" aria-pressed="false" aria-label="Sons du jeu" title="Sons du jeu">
-        <svg class="on-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9.2a4 4 0 0 1 0 5.6M18.6 6.6a7.6 7.6 0 0 1 0 10.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        <svg class="off-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      </button>
-      <button class="ibtn" id="volBtn" type="button" aria-expanded="false" aria-controls="volPanel" aria-label="Régler le volume" title="Régler le volume">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v16M12 4v16M19 4v16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="5" cy="14" r="2.6" fill="currentColor"/><circle cx="12" cy="8" r="2.6" fill="currentColor"/><circle cx="19" cy="16" r="2.6" fill="currentColor"/></svg>
-      </button>
-      <div class="vol-panel" id="volPanel" role="dialog" aria-label="Volume" hidden>
-        <p class="vol-title">Volume</p>
-        <label class="vol-row" for="volSfx"><span>Sons du jeu</span><output id="volSfxOut" for="volSfx">70 %</output>
-          <input type="range" id="volSfx" min="0" max="100" step="5" value="70"></label>
-        <p class="vol-hint" id="volSfxHint" hidden>Le son est coupé : active-le avec le bouton haut-parleur.</p>
-        <button class="btn sm" id="volReset" type="button">Valeurs par défaut</button>
-      </div>
     </div>
     <div class="stats" id="lcdRow" role="group" aria-label="Tableau de bord du studio">
       <div class="hcard stat money" id="lcd"><div class="lbl-row"><span class="lbl">Budget</span><span class="boost" id="boost" title="Bonus actif : tes gains sont multipliés tant que la jauge n’est pas vide." hidden>⚡ Boost <b id="boostMult">×2</b><span class="b-time" id="boostTime">0:00</span><i class="b-bar" aria-hidden="true"><u id="boostFill"></u></i></span></div><output class="val" id="money">0 €</output><span class="sub" id="rate"></span></div>
@@ -588,6 +583,15 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <button type="button" data-theme-set="dark" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor"/></svg>Sombre</button>
         </div>
         <p class="small-note" id="themeNote">Automatique suit le réglage de ton appareil.</p>
+        <h3 class="sec">Son</h3>
+        <div class="card set-card">
+          <div class="set-row"><div><b>Sons du jeu</b><p class="small-note">Petits sons quand une production se termine, un trophée tombe ou un client appelle.</p></div>
+            <button class="switch" id="soundBtn" type="button" aria-pressed="false" aria-label="Sons du jeu"><i aria-hidden="true"></i></button></div>
+          <label class="vol-row" for="volSfx"><span>Volume</span><output id="volSfxOut" for="volSfx">70 %</output>
+            <input type="range" id="volSfx" min="0" max="100" step="5" value="70"></label>
+          <p class="vol-hint" id="volSfxHint" hidden>Le son est coupé : active « Sons du jeu » pour l’entendre en jeu.</p>
+          <button class="btn sm" id="volReset" type="button">Volume par défaut</button>
+        </div>
         <h3 class="sec" id="accTitle">Compte et sauvegarde</h3>
         <div class="acc-who">
           <img id="accAvatar" alt="" width="44" height="44" hidden>

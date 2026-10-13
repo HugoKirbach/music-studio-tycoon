@@ -55,6 +55,9 @@ output { font-variant-numeric: tabular-nums; }
 .panel { display: flex; flex-direction: column; min-height: 0; background: var(--panel); border-left: 1px solid var(--line); box-shadow: -8px 0 24px rgba(0, 0, 0, 0.06); }
 .panes { flex: 1; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 16px 16px 28px; }
 .panes .list > *, .actions > *, .m-acts > *, .foot-actions > *, .team-sum > *, .tro-grid > *, .seg > *, .stats > * { min-width: 0; }
+.list, .member, .order, .unit, .tour, .box { grid-template-columns: minmax(0, 1fr); }
+.member > *, .order > *, .unit > *, .card > *, .rel > * { min-width: 0; }
+select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
 .btn .t b, .btn .t small, .pad b, .pad small { overflow-wrap: break-word; }
 .actions:has(> [data-do="auto"][hidden]) > [data-do="up"] { grid-column: 1 / -1; }
 .actions .btn .t b { font-size: 15px; }
@@ -121,7 +124,14 @@ output { font-variant-numeric: tabular-nums; }
 .led.on { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 1.2s ease-in-out infinite; }
 .led.sync { background: var(--good); box-shadow: 0 0 6px var(--good); }
 @keyframes pulse { 50% { opacity: 0.45; } }
-.vol-panel { position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; width: 280px; display: grid; gap: 10px; padding: 14px 16px 16px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+.set-card { display: grid; gap: 12px; }
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.set-row p { margin: 2px 0 0; }
+.switch { position: relative; flex: none; width: 54px; height: 32px; border: 0; border-radius: 20px; background: var(--line); transition: background 0.2s; }
+.switch i { position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform 0.2s; }
+.switch[aria-pressed="true"] { background: var(--good); }
+.switch[aria-pressed="true"] i { transform: translateX(22px); }
+.set-card .btn { justify-self: start; }
 .vol-title { margin: 0; font: 800 15px var(--f-title); }
 .vol-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; font-weight: 700; }
 .vol-row output { color: var(--ink-soft); }
@@ -412,7 +422,6 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   #toasts { bottom: calc(var(--sheet-h, 0px) + 8px); gap: 4px; }
   .toast { font-size: 12.5px; padding: 6px 10px; border-radius: 10px; }
   .toast:not(:last-child) { display: none; }
-  .vol-panel { position: fixed; top: auto; bottom: calc(var(--tabs-h) + 10px); left: 16px; right: 16px; width: auto; }
   .sheet { align-self: end; border-radius: 18px 18px 0 0; }
   .scrim { padding: 0; place-items: end stretch; }
 }
@@ -461,20 +470,6 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     </div>
     <div class="ctrls">
       <button class="pill" id="accountPill" type="button"><span class="led" id="pillLed" aria-hidden="true"></span><span id="pillText">Connexion…</span></button>
-      <button class="ibtn" id="soundBtn" type="button" aria-pressed="false" aria-label="Sons du jeu" title="Sons du jeu">
-        <svg class="on-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9.2a4 4 0 0 1 0 5.6M18.6 6.6a7.6 7.6 0 0 1 0 10.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        <svg class="off-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      </button>
-      <button class="ibtn" id="volBtn" type="button" aria-expanded="false" aria-controls="volPanel" aria-label="Régler le volume" title="Régler le volume">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v16M12 4v16M19 4v16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="5" cy="14" r="2.6" fill="currentColor"/><circle cx="12" cy="8" r="2.6" fill="currentColor"/><circle cx="19" cy="16" r="2.6" fill="currentColor"/></svg>
-      </button>
-      <div class="vol-panel" id="volPanel" role="dialog" aria-label="Volume" hidden>
-        <p class="vol-title">Volume</p>
-        <label class="vol-row" for="volSfx"><span>Sons du jeu</span><output id="volSfxOut" for="volSfx">70 %</output>
-          <input type="range" id="volSfx" min="0" max="100" step="5" value="70"></label>
-        <p class="vol-hint" id="volSfxHint" hidden>Le son est coupé : active-le avec le bouton haut-parleur.</p>
-        <button class="btn sm" id="volReset" type="button">Valeurs par défaut</button>
-      </div>
     </div>
     <div class="stats" id="lcdRow" role="group" aria-label="Tableau de bord du studio">
       <div class="hcard stat money" id="lcd"><div class="lbl-row"><span class="lbl">Budget</span><span class="boost" id="boost" title="Bonus actif : tes gains sont multipliés tant que la jauge n’est pas vide." hidden>⚡ Boost <b id="boostMult">×2</b><span class="b-time" id="boostTime">0:00</span><i class="b-bar" aria-hidden="true"><u id="boostFill"></u></i></span></div><output class="val" id="money">0 €</output><span class="sub" id="rate"></span></div>
@@ -588,6 +583,15 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <button type="button" data-theme-set="dark" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor"/></svg>Sombre</button>
         </div>
         <p class="small-note" id="themeNote">Automatique suit le réglage de ton appareil.</p>
+        <h3 class="sec">Son</h3>
+        <div class="card set-card">
+          <div class="set-row"><div><b>Sons du jeu</b><p class="small-note">Petits sons quand une production se termine, un trophée tombe ou un client appelle.</p></div>
+            <button class="switch" id="soundBtn" type="button" aria-pressed="false" aria-label="Sons du jeu"><i aria-hidden="true"></i></button></div>
+          <label class="vol-row" for="volSfx"><span>Volume</span><output id="volSfxOut" for="volSfx">70 %</output>
+            <input type="range" id="volSfx" min="0" max="100" step="5" value="70"></label>
+          <p class="vol-hint" id="volSfxHint" hidden>Le son est coupé : active « Sons du jeu » pour l’entendre en jeu.</p>
+          <button class="btn sm" id="volReset" type="button">Volume par défaut</button>
+        </div>
         <h3 class="sec" id="accTitle">Compte et sauvegarde</h3>
         <div class="acc-who">
           <img id="accAvatar" alt="" width="44" height="44" hidden>
@@ -2451,36 +2455,48 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   // x vers la droite, z vers la caméra. Mur du fond en z = -D/2, mur de gauche en x = -W/2.
   // desk: bureau principal (où tu travailles). staff: postes de l'équipe. lounge/board: coins repos et formation.
   // slots: emplacement de chaque équipement (sol: [x, z, rotY]; mur: { w: 'b'|'l', u, y }).
+  // Agencement vérifié par un test de collisions (boîtes englobantes) avec tout le matériel et toute l'équipe.
+  // sofas: [x, z, rotY, couleur, largeur]; rotY = 0: assise tournée vers le fond de la pièce, -PI/2: dos au mur de gauche.
   var PLACES = {
-    chambre: { W: 6.4, D: 5, H: 2.7, floor: ['wood', '#b98a5e', '#9c6f48'], wall: 0x9cc3d5, wall2: 0xb7d3df, desk: [1.1, -2.15, 1.9],
-      staff: [[2.25, 0.55]], lounge: [[-1.75, -0.9, Math.PI / 2]], board: [-0.55, -1.65],
-      slots: { micro: [-0.35, -1.25, 0.4], formation: [-0.55, -2.33, 0], distrib: { w: 'l', u: -0.15, y: 1.95 }, preamps: [2.75, -2.2, 0],
-        playlists: { w: 'b', u: -0.55, y: 2.55 }, console: [-0.6, 1.4, Math.PI] },
-      foam: [{ w: 'b', u0: 0.15, u1: 2.05, y0: 1.35, y1: 2.45 }, { w: 'l', u0: -2.4, u1: -0.9, y0: 1.35, y1: 2.45 }] },
-    garage: { W: 8.4, D: 6.2, H: 3.0, floor: ['concrete'], wall: 0xc9c2b5, wall2: 0xd8d1c4, brick: 'blocks', desk: [0.9, -2.75, 2.2],
-      staff: [[2.75, 0.5], [0.15, 0.9]], lounge: [[-3.55, -1.9, Math.PI / 2], [-3.55, -1.2, Math.PI / 2]], board: [-2.6, -2.3],
-      slots: { micro: [-0.75, -2.0, 0.4], formation: [-1.15, -2.93, 0], distrib: { w: 'b', u: 3.2, y: 2.4 }, preamps: [2.6, -2.7, 0],
-        playlists: { w: 'l', u: -1.6, y: 2.75 }, console: [-1.4, -0.6, 0], traitement: null, plugins: null },
-      foam: [{ w: 'b', u0: -0.25, u1: 2.05, y0: 1.5, y1: 2.7 }, { w: 'l', u0: -2.8, u1: -0.6, y0: 1.5, y1: 2.6 }] },
-    local: { W: 10.5, D: 7.4, H: 3.2, floor: ['wood', '#5b4030', '#4a3426'], wall: 0xece7df, wall2: 0xf4f0ea, brick: 'bricks', desk: [1.6, -3.35, 2.4],
-      staff: [[3.9, 0.3], [1.5, 0.7], [-0.9, 1.1]], lounge: [[-3.6, 2.2, Math.PI], [-3.0, 2.2, Math.PI]], board: [-2.4, 0.2],
-      slots: { cabine: [-3.85, -2.6, 0], console: [-0.75, -3.1, 0], micro: [-0.2, -1.8, 0.4], formation: [-4.98, -1.0, Math.PI / 2], preamps: [3.6, -3.35, 0],
-        distrib: { w: 'b', u: 4.4, y: 2.6 }, playlists: { w: 'b', u: -0.75, y: 2.75 }, label: { w: 'l', u: 0.2, y: 2.9 }, orchestre: [3.9, 2.35, -0.4] },
-      foam: [{ w: 'b', u0: 0.35, u1: 2.85, y0: 1.6, y1: 2.9 }] },
-    pro: { W: 13, D: 9.5, H: 3.6, floor: ['wood', '#a77b52', '#8e6542'], wall: 0x3b4250, wall2: 0x4a5263, slats: true, desk: [1.8, -4.35, 2.8],
-      staff: [[1.3, 0.3], [3.4, 0.3], [5.5, 0.3], [1.3, 2.4], [3.4, 2.4], [5.5, 2.4]], lounge: [[-3.6, 3.7, Math.PI], [-2.9, 3.7, Math.PI], [-4.3, 3.7, Math.PI]], board: [-1.6, 0.9],
-      slots: { studioA: [-4.7, -2.75, 0], cabine: [5.0, -3.7, 0], console: [-0.85, -4.25, 0], neve: [-0.85, -2.7, 0], preamps: [3.6, -4.4, 0], assistant: [6.0, -1.4, -Math.PI / 2],
-        orchestre: [-4.6, 2.2, 0.4], management: [-0.9, 2.9, 0], micro: [0.6, -2.0, 0.4], formation: [-2.45, 0.6, Math.PI / 2],
-        distrib: { w: 'b', u: 1.8, y: 2.9 }, playlists: { w: 'b', u: 3.7, y: 3.3 }, label: { w: 'b', u: 5.0, y: 3.45 }, mentor: { w: 'b', u: -0.85, y: 3.35 }, disques: { w: 'l', u: 1.6, y: 3.3 } },
-      foam: [{ w: 'b', u0: 0.4, u1: 3.2, y0: 1.7, y1: 2.3 }] },
-    complexe: { W: 17, D: 12, H: 4.2, floor: ['marble'], wall: 0xe9e1d3, wall2: 0xf1ebe0, gold: true, desk: [2.0, -5.6, 3.2],
-      staff: [[0.9, 0.6], [3.1, 0.6], [5.3, 0.6], [7.5, 0.6], [0.9, 2.8], [3.1, 2.8], [5.3, 2.8], [7.5, 2.8]], lounge: [[5.4, 5.0, Math.PI], [6.1, 5.0, Math.PI], [4.7, 5.0, Math.PI]], board: [-2.6, 1.4],
-      slots: { studioA: [-6.6, -4.1, 0], cabine: [6.9, -4.9, 0], console: [-1.3, -5.5, 0], neve: [-1.3, -3.7, 0], preamps: [4.2, -5.65, 0], assistant: [8.0, -2.4, -Math.PI / 2],
-        orchestre: [-6.0, 3.4, 0.4], management: [-1.6, 4.0, 0], micro: [0.7, -3.2, 0.4], formation: [-3.6, 0.4, Math.PI / 2],
-        distrib: { w: 'b', u: 2.0, y: 3.4 }, playlists: { w: 'b', u: 6.9, y: 3.9 }, label: { w: 'b', u: 4.4, y: 3.5 }, mentor: { w: 'l', u: 3.0, y: 3.2 }, disques: { w: 'b', u: -1.3, y: 3.9 } },
-      foam: [{ w: 'b', u0: 0.5, u1: 3.6, y0: 2.0, y1: 2.7 }] }
+    chambre: { W: 6.4, D: 5, H: 2.7, floor: ['wood', '#b98a5e', '#9c6f48'], wall: 0x9cc3d5, wall2: 0xb7d3df, desk: [1.15, -2.13, 1.9],
+      staff: [[2.1, 0.75]], lounge: [[-1.95, -1.0, -Math.PI / 2]], board: [-1.0, -1.55],
+      slots: { micro: [-0.45, -1.35, 0.4], formation: [-1.0, -2.33, 0], distrib: { w: 'b', u: -1.0, y: 2.5 }, playlists: { w: 'b', u: -2.5, y: 2.45 } },
+      foam: [{ w: 'b', u0: 0.15, u1: 2.05, y0: 1.35, y1: 2.45 }, { w: 'l', u0: -2.4, u1: -0.9, y0: 1.2, y1: 2.3 }] },
+    garage: { W: 8.4, D: 6.2, H: 3.0, floor: ['concrete'], wall: 0xc9c2b5, wall2: 0xd8d1c4, brick: 'blocks', desk: [1.1, -2.73, 2.2],
+      staff: [[2.75, 0.55], [0.2, 0.95]], sofas: [[-3.75, -1.95, -Math.PI / 2, 0x7a6a4f, 1.9]], board: [-2.0, -2.2],
+      slots: { micro: [-0.25, -1.85, 0.4], formation: [-0.95, -2.93, 0], distrib: { w: 'b', u: 3.4, y: 2.6 }, preamps: [3.05, -2.83, 0],
+        playlists: { w: 'l', u: -2.0, y: 2.75 } },
+      foam: [{ w: 'b', u0: 0.0, u1: 2.2, y0: 1.5, y1: 2.7 }, { w: 'l', u0: -2.9, u1: -1.0, y0: 1.5, y1: 2.4 }] },
+    local: { W: 10.5, D: 7.4, H: 3.2, floor: ['wood', '#5b4030', '#4a3426'], wall: 0xece7df, wall2: 0xf4f0ea, brick: 'bricks', desk: [1.4, -3.33, 2.4],
+      staff: [[0.9, 0.35], [3.3, 0.35], [3.3, 2.45]], sofas: [[-4.68, 1.0, -Math.PI / 2, 0x2f6f73, 2.2]], board: [-2.3, -0.4],
+      slots: { cabine: [-4.2, -2.7, 0], console: [-2.1, -3.28, 0], micro: [-0.55, -2.15, 0.4], formation: [-5.08, -1.1, Math.PI / 2], preamps: [3.45, -3.43, 0],
+        distrib: { w: 'b', u: 4.4, y: 2.6 }, playlists: { w: 'b', u: -2.1, y: 2.75 }, label: { w: 'b', u: -0.6, y: 2.9 }, orchestre: [-1.4, 1.9, 0] },
+      foam: [{ w: 'b', u0: 0.2, u1: 2.6, y0: 1.6, y1: 2.9 }] },
+    pro: { W: 13, D: 9.5, H: 3.6, floor: ['wood', '#a77b52', '#8e6542'], wall: 0x3b4250, wall2: 0x4a5263, slats: true, desk: [1.6, -4.38, 2.8],
+      staff: [[1.3, 0.3], [3.4, 0.3], [5.5, 0.3], [1.3, 2.4], [3.4, 2.4], [5.5, 2.4]], sofas: [[3.4, 4.1, 0, 0x3b2f2a, 2.6]], board: [-1.4, 0.4],
+      slots: { studioA: [-4.7, -2.95, 0], cabine: [5.45, -3.76, 0], console: [-1.6, -4.33, 0], neve: [-1.45, -2.75, 0], preamps: [3.75, -4.48, 0], assistant: [5.9, -2.2, -Math.PI / 2],
+        orchestre: [-4.6, 2.0, 0.4], management: [-1.25, 3.0, 0], micro: [0.3, -2.3, 0.4], formation: [-6.33, -0.35, Math.PI / 2],
+        distrib: { w: 'b', u: 1.6, y: 3.0 }, playlists: { w: 'b', u: 3.75, y: 3.4 }, label: { w: 'l', u: 4.1, y: 2.9 }, mentor: { w: 'b', u: -1.6, y: 3.4 }, disques: { w: 'l', u: 1.6, y: 3.3 } },
+      foam: [{ w: 'b', u0: 0.2, u1: 3.0, y0: 1.65, y1: 2.3 }] },
+    complexe: { W: 17, D: 12, H: 4.2, floor: ['marble'], wall: 0xe9e1d3, wall2: 0xf1ebe0, gold: true, desk: [1.6, -5.63, 3.2],
+      staff: [[0.9, 0.6], [3.1, 0.6], [5.3, 0.6], [7.5, 0.6], [0.9, 2.8], [3.1, 2.8], [5.3, 2.8], [7.5, 2.8]],
+      sofas: [[5.3, 5.2, 0, 0x7d1f2b, 3.0], [3.05, 4.55, -Math.PI / 2, 0x7d1f2b, 1.6]], board: [-2.6, 1.0],
+      slots: { studioA: [-6.7, -4.2, 0], cabine: [7.45, -5.0, 0], console: [-3.1, -5.58, 0], neve: [-3.1, -3.85, 0], preamps: [4.2, -5.73, 0], assistant: [8.0, -3.2, -Math.PI / 2],
+        orchestre: [-6.4, 2.0, 0.4], management: [-1.8, 4.0, 0], micro: [-0.9, -3.3, 0.4], formation: [-8.33, -1.0, Math.PI / 2],
+        distrib: { w: 'b', u: 1.6, y: 3.3 }, playlists: { w: 'b', u: 4.6, y: 3.9 }, label: { w: 'b', u: 7.45, y: 3.7 }, mentor: { w: 'b', u: -0.9, y: 3.4 }, disques: { w: 'b', u: -3.1, y: 4.0 } },
+      foam: [{ w: 'b', u0: 0.1, u1: 3.1, y0: 2.0, y1: 2.7 }] }
   };
-  var FALLBACK = [[-1.2, 1.4], [0.3, 1.8], [-2.4, 0.4], [1.8, 1.9], [-0.2, 0.2], [2.6, 1.0]];
+  // Places assises des canapés pour les membres de l'équipe en vacances.
+  function lounges(def) {
+    if (def.lounge) return def.lounge;
+    var out = [];
+    (def.sofas || []).forEach(function (so) {
+      var w = so[4], r = so[2], c = Math.cos(r), sn = Math.sin(r);
+      [-w / 3, 0, w / 3].forEach(function (lx) { var lz = 0.05; out.push([so[0] + lx * c + lz * sn, so[1] - lx * sn + lz * c, r]); });
+    });
+    return out.length ? out : [[def.board[0] + 1, def.board[1], 0]];
+  }
+  var FALLBACK = [[-1.2, 1.6], [-0.2, 2.0], [-2.2, 1.0], [0.6, 1.5], [-1.6, 0.4], [-2.6, 1.9]];
 
   // ---------- Pièce ----------
   function floorMat(f, W, D) {
@@ -2505,7 +2521,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     decor[cur.placeKey](g, def, tier);
     return g;
   }
-  function windowL(g, def, z, w, h, y) {
+  function windowL(g0, def, z, w, h, y) {
+    var g = grp(g0); g.name = 'fenêtre';
     var x = -def.W / 2 + 0.02, fr = M(0xf6f3ee);
     var sky = M(dark ? 0x1b2a48 : 0xbfe3f7, { e: dark ? 0x22345a : 0xbfe3f7, ei: dark ? 0.5 : 0.6 });
     mesh(g, G('box'), sky, x, y + h / 2, z, 0.02, h, w, false);
@@ -2513,25 +2530,28 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     box(g, 0.08, h, 0.06, fr, x + 0.02, y, z - w / 2); box(g, 0.08, h, 0.06, fr, x + 0.02, y, z + w / 2); box(g, 0.06, h, 0.04, fr, x + 0.02, y, z);
     if (dark) { var st = M(0xffffff, { e: 0xffffff, ei: 1.5 }); for (var i = 0; i < 5; i++) sph(g, 0.012, st, x + 0.03, y + 0.2 + (i * 0.37) % h, z - w / 2 + 0.15 + (i * 0.53) % (w - 0.3), 6); }
   }
-  function posterB(g, def, x, y, k, a, b, w, h) { box(g, w || 0.5, h || 0.7, 0.01, texMat('poster' + k, 128, 180, poster(k, a, b)), x, y, -def.D / 2 + 0.01); }
-  function plant(g, x, z, s) {
+  function posterB(g, def, x, y, k, a, b, w, h) { box(g, w || 0.5, h || 0.7, 0.01, texMat('poster' + k, 128, 180, poster(k, a, b)), x, y, -def.D / 2 + 0.01).name = 'affiche'; }
+  function plant(g0, x, z, s) {
+    var g = grp(g0); g.name = 'plante';
     s = s || 1;
     cyl(g, 0.16 * s, 0.32 * s, M(0xd9a066), x, 0, z, 16, 0.12 * s);
     var leaf = M(0x4f9a5a);
     for (var i = 0; i < 7; i++) { var a = i / 7 * Math.PI * 2, l = sph(g, 0.14 * s, leaf, x + Math.sin(a) * 0.1 * s, (0.48 + (i % 3) * 0.14) * s, z + Math.cos(a) * 0.1 * s, 8); l.scale.set(0.12 * s, 0.22 * s, 0.12 * s); }
   }
   function sofa(g, x, z, ry, col, w) {
-    var s = grp(g, x, 0, z, ry), m = M(col || 0x8a5a44); w = w || 1.8;
+    var s = grp(g, x, 0, z, ry), m = M(col || 0x8a5a44); w = w || 1.8; s.name = 'canapé';
     box(s, w, 0.42, 0.85, m, 0, 0, 0); box(s, w, 0.45, 0.2, m, 0, 0.4, 0.33); box(s, 0.18, 0.62, 0.85, m, -w / 2 + 0.09, 0, 0); box(s, 0.18, 0.62, 0.85, m, w / 2 - 0.09, 0, 0);
     box(s, w * 0.42, 0.12, 0.6, M(col ? col + 0x111111 : 0x9a6a54), -w * 0.22, 0.42, -0.05); box(s, w * 0.42, 0.12, 0.6, M(col ? col + 0x111111 : 0x9a6a54), w * 0.22, 0.42, -0.05);
     return s;
   }
-  function lamp(g, x, z, h, warm) {
+  function lamp(g0, x, z, h, warm) {
+    var g = grp(g0); g.name = 'lampe';
     cyl(g, 0.14, 0.03, M(C.black), x, 0, z); cyl(g, 0.015, h, M(C.black), x, 0, z);
     cyl(g, 0.12, 0.2, M(0xfff3d6, { e: 0xffd28a, ei: 1.2 }), x, h, z, 16, 0.18);
     if (warm !== false) { var l = new THREE.PointLight(0xffc27a, 1.6, 4.5, 1.6); l.position.set(x, h + 0.05, z); g.add(l); }
   }
-  function bulb(g, x, y, z) {
+  function bulb(g0, x, y, z) {
+    var g = grp(g0); g.name = 'ampoule';
     cyl(g, 0.005, 0.5, M(C.black), x, y - 0.5, z);
     sph(g, 0.06, M(0xfff3d6, { e: 0xffd28a, ei: 2 }), x, y - 0.55, z, 10);
     var l = new THREE.PointLight(0xffcf8a, 2.2, 6, 1.6); l.position.set(x, y - 0.6, z); g.add(l);
@@ -2541,27 +2561,27 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     box(g, w * 0.8, 0.017, d * 0.7, M(col2), x, 0, z).castShadow = false;
   }
   function desk(g, def, x, z, w, style) {
-    var d = grp(g, x, 0, z), top = M(style === 'white' ? 0xf1eee8 : style === 'dark' ? 0x2c2a29 : C.wood), leg = M(style === 'dark' ? 0x111111 : 0x3a3a3a);
+    var d = grp(g, x, 0, z), top = M(style === 'white' ? 0xf1eee8 : style === 'dark' ? 0x2c2a29 : C.wood), leg = M(style === 'dark' ? 0x111111 : 0x3a3a3a); d.name = 'bureau';
     box(d, w, 0.05, 0.7, top, 0, 0.72, 0);
     [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (s) { box(d, 0.05, 0.72, 0.05, leg, s[0] * (w / 2 - 0.06), 0, s[1] * 0.29); });
     return d;
   }
+  function sofas(g, def) { (def.sofas || []).forEach(function (so) { sofa(g, so[0], so[1], so[2], so[3], so[4]); }); }
+  function named(g, name, x, z, ry) { var o = grp(g, x, 0, z, ry); o.name = name; return o; }
   var decor = {
     chambre: function (g, def, tier) {
       var D = def.D;
-      // lit
-      var bed = grp(g, -2.45, 0, -1.4);
+      var bed = named(g, 'lit', -2.48, -1.45);
       box(bed, 1.4, 0.32, 2.05, M(C.woodD), 0, 0, 0); box(bed, 1.35, 0.18, 2.0, M(0xf6f3ee), 0, 0.32, 0);
       box(bed, 1.38, 0.12, 1.3, M(tier ? 0x6b5bd6 : 0x4a7bd0), 0, 0.46, 0.35); box(bed, 0.55, 0.12, 0.35, M(0xffffff), -0.3, 0.5, -0.75); box(bed, 0.55, 0.12, 0.35, M(0xffffff), 0.3, 0.5, -0.75);
-      box(bed, 1.4, 0.75, 0.08, M(C.woodD), 0, 0, -1.02);
+      box(bed, 1.4, 0.75, 0.08, M(C.woodD), 0, 0, -1.0);
       windowL(g, def, 0.9, 1.25, 1.2, 0.95);
-      posterB(g, def, 2.55, 1.55, 3, '#ff8a3d', '#8e3b5a');
-      box(g, 0.6, 0.85, 0.01, texMat('posterL', 128, 180, poster(7, '#2bb3a3', '#173d5c')), -def.W / 2 + 0.01, 1.55, -1.5).rotation.y = Math.PI / 2;
-      rug(g, 0.4, 0.5, 2.6, 1.7, tier ? 0x3c3a66 : 0xe8b04b, tier ? 0x5c5a96 : 0xf3cf7a);
-      lamp(g, 2.7, -2.15, 1.45);
-      plant(g, -2.75, 2.0);
-      box(g, 0.45, 0.32, 0.35, M(0xd9534f), -0.9, 0, 1.6); box(g, 0.4, 0.04, 0.3, M(0x333333), -0.9, 0.32, 1.6); // ampli de guitare
-      var gt = grp(g, -1.3, 0, 1.75, 0.3); box(gt, 0.34, 0.45, 0.08, M(0xc0392b), 0, 0.05, 0); box(gt, 0.05, 0.6, 0.04, M(C.woodD), 0, 0.5, 0); gt.rotation.z = 0.12;
+      posterB(g, def, 2.78, 1.75, 3, '#ff8a3d', '#8e3b5a', 0.5, 0.7);
+      rug(g, 0.5, 0.45, 2.6, 1.7, tier ? 0x3c3a66 : 0xe8b04b, tier ? 0x5c5a96 : 0xf3cf7a);
+      lamp(g, 2.85, -1.35, 1.45);
+      plant(g, -2.85, 2.05);
+      var amp = named(g, 'ampli', -0.9, 1.75); box(amp, 0.45, 0.32, 0.35, M(0xd9534f), 0, 0, 0); box(amp, 0.4, 0.04, 0.3, M(0x333333), 0, 0.32, 0);
+      var gt = named(g, 'guitare', -1.45, 1.9, 0.3); box(gt, 0.34, 0.45, 0.08, M(0xc0392b), 0, 0.05, 0); box(gt, 0.05, 0.6, 0.04, M(C.woodD), 0, 0.5, 0); gt.rotation.z = 0.12;
       if (tier >= 1) { // chambre-studio: ruban LED
         box(g, def.W, 0.03, 0.03, M(0xb388ff, { e: 0xb388ff, ei: 2.2 }), 0, def.H - 0.08, -D / 2 + 0.04, 0).castShadow = false;
         box(g, 0.03, 0.03, D, M(0xb388ff, { e: 0xb388ff, ei: 2.2 }), -def.W / 2 + 0.04, def.H - 0.08, 0).castShadow = false;
@@ -2569,48 +2589,46 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       }
     },
     garage: function (g, def) {
-      // porte de garage sur le mur de gauche
-      var x = -def.W / 2 + 0.03, z0 = 0.5, w = 2.8, h = 2.4;
-      for (var i = 0; i < 8; i++) box(g, 0.04, h / 8 - 0.02, w, M(i % 2 ? 0xd7d9dc : 0xc8cbcf, { m: 0.3, r: 0.5 }), x + 0.02, i * h / 8, z0 + w / 2 - w / 2);
-      box(g, 0.08, 0.12, w + 0.2, M(0x777777), x + 0.03, h, z0);
-      // établi et panneau d'outils
-      box(g, 1.6, 0.85, 0.6, M(0x8d6e4c), -2.6, 0, -def.D / 2 + 0.3);
-      box(g, 1.5, 0.9, 0.03, M(0xc7a77a), -2.6, 1.15, -def.D / 2 + 0.02);
-      for (var t = 0; t < 6; t++) box(g, 0.04, 0.25, 0.03, M([C.red, C.yellow, C.metal][t % 3]), -3.15 + t * 0.22, 1.5, -def.D / 2 + 0.06);
-      sofa(g, -3.55, -1.55, Math.PI / 2, 0x7a6a4f, 1.9);
-      rug(g, -2.3, -1.5, 1.6, 2.2, 0x9b3d3d, 0xc65f4f);
+      // porte de garage sur le mur de gauche (devant le canapé, côté rue)
+      var door = named(g, 'porte', -def.W / 2 + 0.03, 1.55), w = 2.6, h = 2.4;
+      for (var i = 0; i < 8; i++) box(door, 0.04, h / 8 - 0.02, w, M(i % 2 ? 0xd7d9dc : 0xc8cbcf, { m: 0.3, r: 0.5 }), 0.02, i * h / 8, 0);
+      box(door, 0.08, 0.12, w + 0.2, M(0x777777), 0.03, h, 0);
+      var wb = named(g, 'établi', -2.35, -def.D / 2 + 0.3);
+      box(wb, 1.5, 0.85, 0.6, M(0x8d6e4c), 0, 0, 0);
+      box(wb, 1.4, 0.9, 0.03, M(0xc7a77a), 0, 1.15, -0.28);
+      for (var t = 0; t < 6; t++) box(wb, 0.04, 0.25, 0.03, M([C.red, C.yellow, C.metal][t % 3]), -0.55 + t * 0.22, 1.5, -0.24);
+      sofas(g, def);
+      rug(g, -2.75, -1.95, 1.4, 2.2, 0x9b3d3d, 0xc65f4f);
       bulb(g, -1.2, def.H, -1.0); bulb(g, 2.0, def.H, -1.0);
-      for (var b = 0; b < 3; b++) box(g, 0.5, 0.35, 0.4, M(0xc49a6c), 3.4 + (b % 2) * 0.1, b * 0.35, 2.3 - b * 0.05, b * 0.2);
-      var bike = grp(g, 3.6, 0, -1.2, 0.4); mesh(bike, G('ring', 0.3, 0.03, 20), M(C.black), -0.45, 0.32, 0).castShadow = true; mesh(bike, G('ring', 0.3, 0.03, 20), M(C.black), 0.45, 0.32, 0); box(bike, 0.9, 0.04, 0.04, M(C.red), 0, 0.55, 0); box(bike, 0.04, 0.4, 0.04, M(C.red), 0.2, 0.35, 0);
-      plant(g, 3.7, 0.4, 0.9);
+      var bx = named(g, 'cartons', 3.6, 2.55); for (var b = 0; b < 3; b++) box(bx, 0.5, 0.35, 0.4, M(0xc49a6c), (b % 2) * 0.08, b * 0.35, -b * 0.04, b * 0.2);
+      var bike = named(g, 'vélo', 3.3, -1.35, 0.4); mesh(bike, G('ring', 0.3, 0.03, 20), M(C.black), -0.45, 0.32, 0).castShadow = true; mesh(bike, G('ring', 0.3, 0.03, 20), M(C.black), 0.45, 0.32, 0); box(bike, 0.9, 0.04, 0.04, M(C.red), 0, 0.55, 0); box(bike, 0.04, 0.4, 0.04, M(C.red), 0.2, 0.35, 0);
+      plant(g, 3.85, -0.35, 0.9);
     },
     local: function (g, def) {
       windowL(g, def, 1.0, 3.0, 2.0, 0.6);
-      sofa(g, -3.3, 2.4, Math.PI, 0x2f6f73, 2.2);
-      box(g, 1.1, 0.4, 0.6, M(C.woodD), -3.3, 0, 1.25);
-      rug(g, -3.0, 1.6, 3.4, 2.4, 0x3a3f58, 0x575f87);
-      plant(g, -4.8, 3.2, 1.2); plant(g, 4.8, -3.2, 1.1); plant(g, 4.7, 3.2, 1);
-      lamp(g, -4.7, 2.0, 1.6);
-      posterB(g, def, 3.0, 2.2, 11, '#f2c14e', '#b8442c', 0.6, 0.85);
-      for (var i = 0; i < 3; i++) { var pl = new THREE.PointLight(0xffd59a, 1.3, 6, 1.7); pl.position.set(-2.5 + i * 3, def.H - 0.4, -0.8); g.add(pl); cyl(g, 0.18, 0.12, M(C.black), -2.5 + i * 3, def.H - 0.12, -0.8, 16, 0.08); }
+      sofas(g, def);
+      var tb = named(g, 'table basse', -3.65, 1.0); box(tb, 0.6, 0.4, 1.1, M(C.woodD), 0, 0, 0);
+      rug(g, -3.9, 1.0, 2.4, 3.0, 0x3a3f58, 0x575f87);
+      plant(g, -4.85, 3.25, 1.2); plant(g, 4.85, -3.3, 1.1); plant(g, 4.85, 3.3, 1);
+      lamp(g, -4.85, 2.65, 1.6);
+      for (var i = 0; i < 3; i++) { var pl = new THREE.PointLight(0xffd59a, 1.3, 6, 1.7); pl.position.set(-2.5 + i * 3, def.H - 0.4, -0.8); g.add(pl); cyl(g, 0.18, 0.12, M(C.black), -2.5 + i * 3, def.H - 0.12, -0.8, 16, 0.08).name = 'suspension'; }
     },
     pro: function (g, def) {
-      sofa(g, -3.6, 4.0, Math.PI, 0x3b2f2a, 2.6);
-      rug(g, -3.4, 3.0, 4, 2.2, 0x2a2e3b, 0x3d4357);
-      plant(g, 6.0, -4.3, 1.2); plant(g, -6.0, 4.3, 1.2); plant(g, 6.0, 4.2, 1.1);
-      box(g, 2.6, 0.04, 0.5, M(0xff8a3d, { e: 0xff8a3d, ei: 1.2 }), 1.8, def.H - 0.05, -def.D / 2 + 0.3).castShadow = false;
-      for (var i = 0; i < 4; i++) { var pl = new THREE.PointLight(0xffe0b3, 1.4, 7, 1.6); pl.position.set(-4 + i * 3.3, def.H - 0.3, -0.5 + (i % 2) * 2); g.add(pl); cyl(g, 0.15, 0.06, M(0xfff3d6, { e: 0xffe0b3, ei: 1.5 }), -4 + i * 3.3, def.H - 0.06, -0.5 + (i % 2) * 2, 16); }
-      var cm = grp(g, 6.2, 0, 3.1); box(cm, 0.6, 0.9, 0.5, M(0x2c2a29), 0, 0, 0); box(cm, 0.3, 0.35, 0.3, M(0x555555), 0, 0.9, 0);
+      sofas(g, def);
+      rug(g, 3.4, 3.7, 3.6, 1.6, 0x2a2e3b, 0x3d4357);
+      plant(g, 6.1, -1.0, 1.2); plant(g, -6.0, 4.3, 1.2); plant(g, 5.25, 4.3, 1.0);
+      box(g, 2.6, 0.04, 0.5, M(0xff8a3d, { e: 0xff8a3d, ei: 1.2 }), 1.6, def.H - 0.05, -def.D / 2 + 0.3).castShadow = false;
+      for (var i = 0; i < 4; i++) { var pl = new THREE.PointLight(0xffe0b3, 1.4, 7, 1.6); pl.position.set(-4 + i * 3.3, def.H - 0.3, -0.5 + (i % 2) * 2); g.add(pl); cyl(g, 0.15, 0.06, M(0xfff3d6, { e: 0xffe0b3, ei: 1.5 }), -4 + i * 3.3, def.H - 0.06, -0.5 + (i % 2) * 2, 16).name = 'spot'; }
+      var cm = named(g, 'machine à café', 6.15, 4.25); box(cm, 0.6, 0.9, 0.5, M(0x2c2a29), 0, 0, 0); box(cm, 0.3, 0.35, 0.3, M(0x555555), 0, 0.9, 0);
     },
     complexe: function (g, def) {
-      [-4, 0.5, 5].forEach(function (x) { cyl(g, 0.32, def.H, M(0xf3eee5, { r: 0.4 }), x, 0, -def.D / 2 + 0.45, 20); box(g, 0.8, 0.12, 0.8, M(C.gold, { m: 0.8, r: 0.3 }), x, def.H - 0.12, -def.D / 2 + 0.45); });
-      sofa(g, 5.4, 5.3, Math.PI, 0x7d1f2b, 3.0); sofa(g, 3.2, 4.5, Math.PI / 2, 0x7d1f2b, 1.8);
-      rug(g, 5.0, 4.3, 4.2, 2.6, 0x7d1f2b, 0x9c2c3b);
+      sofas(g, def);
+      rug(g, 4.6, 4.7, 4.6, 2.2, 0x7d1f2b, 0x9c2c3b);
       rug(g, 0, 0.5, 2.4, 9, 0x8c1c2c, 0xa52a3a);
-      plant(g, 8.0, -5.5, 1.4); plant(g, -8.0, 5.5, 1.4); plant(g, 8.0, 5.4, 1.3); plant(g, 2.5, 5.6, 1.2);
+      plant(g, 8.1, -1.6, 1.4); plant(g, -8.0, 5.5, 1.4); plant(g, 8.0, 5.5, 1.3); plant(g, 1.8, 5.55, 1.2);
       windowL(g, def, 4.0, 3.2, 2.6, 0.9);
-      [[-3, -1], [3, -1], [0, 3]].forEach(function (c) {
-        var ch = grp(g, c[0], def.H, c[1]);
+      [[-2.5, -1], [4, -1.2], [0, 3]].forEach(function (c) {
+        var ch = grp(g, c[0], def.H, c[1]); ch.name = 'lustre';
         cyl(ch, 0.01, 0.6, M(C.gold, { m: 0.8 }), 0, -0.6, 0);
         for (var i = 0; i < 8; i++) { var a = i / 8 * Math.PI * 2; sph(ch, 0.06, M(0xfff6dd, { e: 0xffe6a8, ei: 2 }), Math.sin(a) * 0.35, -0.75, Math.cos(a) * 0.35, 8); }
         mesh(ch, G('ring', 0.35, 0.02, 24), M(C.gold, { m: 0.8, r: 0.3 }), 0, -0.78, 0).rotation.x = Math.PI / 2;
@@ -2697,7 +2715,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       n.sitG.visible = n.standG.visible = false;
       var g, head;
       if (m.status === 'rest') {
-        var l = def.lounge[i % def.lounge.length];
+        var ls = lounges(def), l = ls[i % ls.length];
         g = n.sitG; g.position.set(l[0], 0.0, l[1]); g.rotation.y = l[2] || 0; g.userData.p.mode = 'rest';
       } else if (m.status === 'train') {
         g = n.standG; g.position.set(def.board[0] + (i % 3 - 1) * 0.5, 0, def.board[1]); g.rotation.y = Math.PI; g.userData.p.mode = 'train';
@@ -2822,7 +2840,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     roomG = buildRoom(cur.def, tier); world.add(roomG);
     var def = cur.def;
     var md = desk(roomG, def, def.desk[0], def.desk[1], def.desk[2], key === 'pro' ? 'dark' : key === 'complexe' ? 'white' : null);
-    chair(roomG, def.desk[0], def.desk[1] + 0.75, 0, key === 'complexe' ? 0x7d1f2b : 0x2f3a4a);
+    chair(roomG, def.desk[0], def.desk[1] + 0.75, 0, key === 'complexe' ? 0x7d1f2b : 0x2f3a4a).name = 'fauteuil';
     if (player) world.remove(player);
     player = person({ s: 1, h: 0, c: 8, y: 3 }, 'sit', { headphones: true, pants: 0x2d2d2d });
     player.position.set(def.desk[0], 0, def.desk[1] + 0.82);
@@ -3096,6 +3114,23 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   };
   S3.PLACES = PLACES;
   S3._person = person; // tests
+  // Tests: boîtes englobantes des objets posés (décor, équipements, bureaux) pour repérer les collisions.
+  S3._boxes = function () {
+    var out = [], def = cur.def;
+    function add(o, name) {
+      var b = new THREE.Box3().setFromObject(o);
+      if (b.isEmpty()) return;
+      var sx = b.max.x - b.min.x, sz = b.max.z - b.min.z, sy = b.max.y - b.min.y;
+      if (sy < 0.06 || sx > def.W * 0.8 || sz > def.D * 0.8) return; // tapis, sol, murs, plinthes
+      out.push({ n: name, x0: +b.min.x.toFixed(2), x1: +b.max.x.toFixed(2), y0: +b.min.y.toFixed(2), y1: +b.max.y.toFixed(2), z0: +b.min.z.toFixed(2), z1: +b.max.z.toFixed(2) });
+    }
+    roomG.updateMatrixWorld(true); world.updateMatrixWorld(true);
+    roomG.children.forEach(function (o, i) { if (o.isLight) return; add(o, o.name || ('decor' + i + (o.isMesh ? '' : '[g]'))); });
+    Object.keys(itemNodes).forEach(function (id) { if (!itemNodes[id].userData.ghost && id !== 'traitement') add(itemNodes[id], 'item:' + id); });
+    deskNodes.forEach(function (d, i) { add(d, 'poste' + i); });
+    Object.keys(staffNodes).forEach(function (id) { var n = staffNodes[id]; if (n.cur && n.cur.userData.p.mode === 'rest') add(n.cur, 'repos' + id); });
+    return out;
+  };
   S3.screenOf = function (kind, id) {
     if (!S3.ok) return null;
     var p = null;
@@ -4311,12 +4346,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       $('volSfx').setAttribute('aria-valuetext', vol.sfx + ' %');
       $('volSfxHint').hidden = !!S.sound;
     }
-    function openVol(open) {
-      $('volPanel').hidden = !open; $('volBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
-      if (open) syncVol();
-    }
     bind.syncVol = syncVol;
-    $('volBtn').addEventListener('click', function () { openVol($('volPanel').hidden); });
     var sfxT = 0;
     $('volSfx').addEventListener('input', function () {
       vol.sfx = +this.value; syncVol(); saveVol();
@@ -4325,12 +4355,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     $('volReset').addEventListener('click', function () {
       vol.sfx = VDEF; syncVol(); saveVol();
     });
-    document.addEventListener('pointerdown', function (e) {
-      if ($('volPanel').hidden) return;
-      if (e.target.closest && (e.target.closest('#volPanel') || e.target.closest('#volBtn') || e.target.closest('.toggles'))) return;
-      openVol(false);
-    }, true);
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('volPanel').hidden) { openVol(false); $('volBtn').focus(); } });
+    syncVol();
+
 
 
     $('exportBtn').addEventListener('click', function () {
