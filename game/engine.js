@@ -1672,12 +1672,13 @@
     var gap = Math.max(0, (now - S.savedAt) / 1000);
     if (gap < 30) return null;
     var eff = Math.min(gap, OFFLINE_CAP) * OFFLINE_EFF;
-    var m0 = S.money, x0 = S.level, tr0 = trackCount(S), pay = payroll(S);
+    var m0 = S.money, l0 = S.lifetime, x0 = S.level, tr0 = trackCount(S);
     S._off = true;
     try { advance(S, eff); } finally { delete S._off; }
-    var gain = S.money - m0;
+    // gain: revenus bruts; net: variation réelle du budget (salaires déduits)
+    var gain = S.lifetime - l0, net = S.money - m0;
     if (gain <= 0) return null;
-    return { gap: gap, capped: gap > OFFLINE_CAP, gain: gain, levels: S.level - x0, tracks: trackCount(S) - tr0, wages: pay * eff };
+    return { gap: gap, capped: gap > OFFLINE_CAP, gain: gain, net: net, wages: Math.max(0, gain - net), levels: S.level - x0, tracks: trackCount(S) - tr0 };
   }
 
   var Game = {

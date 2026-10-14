@@ -1044,8 +1044,8 @@
         o = hots[h.id] = { el: b, key: '' };
       }
       o.anchor = h.anchor;
-      var key = h.html + '|' + h.label + '|' + !!h.hot;
-      if (key !== o.key) { o.key = key; o.el.innerHTML = h.html; o.el.setAttribute('aria-label', h.label); o.el.title = h.label; o.el.classList.toggle('hot', !!h.hot); }
+      var key = h.html + '|' + h.label + '|' + !!h.hot + '|' + !!h.mini;
+      if (key !== o.key) { o.key = key; o.el.innerHTML = h.html; o.el.setAttribute('aria-label', h.label); o.el.title = h.label; o.el.classList.toggle('hot', !!h.hot); o.el.classList.toggle('mini', !!h.mini); }
     });
     Object.keys(hots).forEach(function (id) { if (!seen[id]) { var o = hots[id]; if (o.el.parentNode) o.el.parentNode.removeChild(o.el); delete hots[id]; } });
   };

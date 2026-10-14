@@ -415,6 +415,11 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .hot3d.hot { border-color: var(--accent); }
 .hot3d .bang { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--bad); color: #fff; font-size: 12px; }
 .hot3d:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.hot3d.mini { width: 24px; height: 24px; padding: 0; justify-content: center; gap: 0; border: 0; background: color-mix(in srgb, var(--hud) 80%, transparent); color: var(--accent); font: 800 14px var(--f-body); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); opacity: 0.85; }
+.hot3d.mini::after { display: none; }
+.hot3d.mini > span { display: inline !important; }
+@media (prefers-reduced-motion: no-preference) { .hot3d.mini { animation: noteFloat 2.4s ease-in-out infinite; } }
+@keyframes noteFloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
 @media (prefers-reduced-motion: no-preference) { .hot3d.hot { animation: hotPulse 1.6s ease-in-out infinite; } }
 @media (max-width: 599px) { .hot3d { padding: 5px; gap: 3px; } .hot3d > span, .hot3d small { display: none; } .hot3d svg { width: 22px; height: 22px; } }
 @keyframes hotPulse { 0%, 100% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 50% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 8px transparent; } }
@@ -3708,12 +3713,13 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var gap = Math.max(0, (now - S.savedAt) / 1000);
     if (gap < 30) return null;
     var eff = Math.min(gap, OFFLINE_CAP) * OFFLINE_EFF;
-    var m0 = S.money, x0 = S.level, tr0 = trackCount(S), pay = payroll(S);
+    var m0 = S.money, l0 = S.lifetime, x0 = S.level, tr0 = trackCount(S);
     S._off = true;
     try { advance(S, eff); } finally { delete S._off; }
-    var gain = S.money - m0;
+    // gain: revenus bruts; net: variation réelle du budget (salaires déduits)
+    var gain = S.lifetime - l0, net = S.money - m0;
     if (gain <= 0) return null;
-    return { gap: gap, capped: gap > OFFLINE_CAP, gain: gain, levels: S.level - x0, tracks: trackCount(S) - tr0, wages: pay * eff };
+    return { gap: gap, capped: gap > OFFLINE_CAP, gain: gain, net: net, wages: Math.max(0, gain - net), levels: S.level - x0, tracks: trackCount(S) - tr0 };
   }
 
   var Game = {
@@ -4801,8 +4807,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
         o = hots[h.id] = { el: b, key: '' };
       }
       o.anchor = h.anchor;
-      var key = h.html + '|' + h.label + '|' + !!h.hot;
-      if (key !== o.key) { o.key = key; o.el.innerHTML = h.html; o.el.setAttribute('aria-label', h.label); o.el.title = h.label; o.el.classList.toggle('hot', !!h.hot); }
+      var key = h.html + '|' + h.label + '|' + !!h.hot + '|' + !!h.mini;
+      if (key !== o.key) { o.key = key; o.el.innerHTML = h.html; o.el.setAttribute('aria-label', h.label); o.el.title = h.label; o.el.classList.toggle('hot', !!h.hot); o.el.classList.toggle('mini', !!h.mini); }
     });
     Object.keys(hots).forEach(function (id) { if (!seen[id]) { var o = hots[id]; if (o.el.parentNode) o.el.parentNode.removeChild(o.el); delete hots[id]; } });
   };
@@ -5799,6 +5805,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var what = r.offer ? 'offer' : r.story ? 'story' : r.ask ? 'ask' : null;
       if (!what) return;
       var nm = artName(r.id);
+      // simple envie d'album: une petite note discrète au-dessus de l'artiste
+      if (what === 'ask') { list.push({ id: 'art:' + r.id, anchor: 'artist:' + r.id, hot: false, mini: true, label: nm + ' aimerait sortir un album', html: '<span aria-hidden="true">♪</span>' }); return; }
       list.push({ id: 'art:' + r.id, anchor: 'artist:' + r.id, hot: true,
         label: what === 'offer' ? r.offer.lab + ' veut signer ' + nm : what === 'story' ? nm + ' a quelque chose à te dire' : nm + ' veut sortir un album',
         html: HOT_MIC + '<span>' + esc(nm) + '</span><i class="bang" aria-hidden="true">' + (what === 'offer' ? '€' : what === 'story' ? '…' : '!') + '</i>' });
@@ -7480,16 +7488,19 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   var dbf = { open: false, opener: null };
   function showOffline(off) {
     if (!off || !(off.gain > 0)) return;
-    if (off.gap < 120) { toast('Pendant ton absence (' + away(off.gap) + ') : +' + eur(off.gain) + '.', 5000); return; }
+    if (off.gap < 120) { var n0 = off.net != null ? off.net : off.gain; toast('Pendant ton absence (' + away(off.gap) + ') : ' + (n0 >= 0 ? '+' : '−') + eur(Math.abs(n0)) + '.', 5000); return; }
+    // Revenus bruts, salaires, puis le bilan: exactement ce que le budget a gagné.
+    var net = off.net != null ? off.net : off.gain - (off.wages || 0), wages = Math.max(0, off.gain - net);
     var rows = [['Revenus', '+' + eur(off.gain)]];
-    if (off.wages > 1e-9) rows.push(['Salaires versés', '−' + eur(off.wages)]);
+    if (wages > 1e-6 * off.gain) { rows.push(['Salaires versés', '−' + eur(wages)]); rows.push(['Bilan sur ton budget', (net >= 0 ? '+' : '−') + eur(Math.abs(net))]); }
     if (off.tracks > 0) rows.push(['Productions réalisées', '+' + nf0.format(off.tracks)]);
     if (off.levels > 0) rows.push(['Expertise', '+' + off.levels + ' niveau' + (off.levels > 1 ? 'x' : '')]);
     if (off.trophies > 0) rows.push(['Palmarès', '+' + off.trophies + ' niveau' + (off.trophies > 1 ? 'x' : '')]);
     if (S.team.staff.length) rows.push(['Équipe', S.team.staff.length > 1 ? 'Toute l’équipe est restée' : 'Ton équipe est restée']);
     setText($('dbGap'), 'Tu étais absent ' + away(off.gap) + '.');
     $('dbRows').innerHTML = rows.map(function (r, k) { return '<div class="rw" style="--d:' + (0.15 + k * 0.25) + 's"><span class="rl">' + esc(r[0]) + '</span><b class="rv">' + esc(r[1]) + '</b></div>'; }).join('');
-    setText($('dbNote'), off.open ? 'Le jeu est resté ouvert en arrière-plan : ton studio a tourné à plein régime.'
+    setText($('dbNote'), off.open && off.froze ? 'Le jeu est resté ouvert, mais ton appareil l’a mis en veille une partie du temps : pendant la veille, la production tourne à ' + nf0.format(G.OFFLINE_EFF * 100) + ' %.'
+      : off.open ? 'Le jeu est resté ouvert en arrière-plan : ton studio a tourné à plein régime.'
       : 'Studio fermé : la production tourne à ' + nf0.format(G.OFFLINE_EFF * 100) + ' %, jusqu’à ' + Math.round(G.OFFLINE_CAP / 3600) + ' h d’absence.' + (off.capped ? ' Au-delà, le studio s’est mis en pause.' : ''));
     if (dbf.open) return;
     dbf.open = true; dbf.opener = document.activeElement;
@@ -7831,29 +7842,31 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
     var last = Date.now(), bg = null;
     // Jeu ouvert mais caché (autre onglet, appli en arrière-plan, écran verrouillé): on mémorise le point de départ du débrief.
-    function bgStart(t) { if (!bg) bg = { t: t, life: S.lifetime, money: S.money, lvl: S.level, tc: G.trophyCount(S), tracks: G.trackCount(S), wages: 0, capped: false }; }
+    function bgStart(t) { if (!bg) bg = { t: t, life: S.lifetime, money: S.money, lvl: S.level, tc: G.trophyCount(S), tracks: G.trackCount(S), froze: false }; }
     function bgEnd() {
       if (!bg) return;
       var b = bg, gap = (Date.now() - b.t) / 1000; bg = null;
       if (gap < 60) return;
-      showOffline({ gap: gap, gain: S.lifetime - b.life, wages: b.wages, levels: S.level - b.lvl, trophies: G.trophyCount(S) - b.tc, tracks: G.trackCount(S) - b.tracks, open: true });
+      showOffline({ gap: gap, gain: S.lifetime - b.life, net: S.money - b.money, levels: S.level - b.lvl, trophies: G.trophyCount(S) - b.tc, tracks: G.trackCount(S) - b.tracks, open: true, froze: b.froze });
       render();
     }
-    document.addEventListener('visibilitychange', function () { if (document.hidden) bgStart(Date.now()); else bgEnd(); });
+    // Au retour, on rattrape d'abord le temps écoulé (appareil en veille), puis on affiche le débrief complet.
+    document.addEventListener('visibilitychange', function () { if (document.hidden) bgStart(Date.now()); else { tick(); bgEnd(); } });
     if (document.hidden) bgStart(Date.now());
     $('dbClose').addEventListener('click', closeDebrief);
     $('debriefScrim').addEventListener('click', function (e) { if (e.target === $('debriefScrim')) closeDebrief(); });
     document.addEventListener('keydown', function (e) { if (dbf.open && e.key === 'Escape') { e.preventDefault(); closeDebrief(); } });
-    setInterval(function () {
+    function tick() {
       var t = Date.now(), dt = (t - last) / 1000;
       last = t;
+      if (dt <= 0) return;
       if (document.hidden) bgStart(t);
-      if (dt > 60) {
-        S.savedAt = t - dt * 1000; var tc1 = G.trophyCount(S), pay = G.payroll(S); quiet = true; var o = G.offline(S, t); quiet = false;
-        if (bg) { if (o) bg.wages += o.wages; }
+      // onglet caché: le navigateur espace les tours de boucle (jusqu'à 1 par minute) sans geler le jeu
+      if (dt > (document.hidden ? 180 : 60)) {
+        S.savedAt = t - dt * 1000; var tc1 = G.trophyCount(S); quiet = true; var o = G.offline(S, t); quiet = false;
+        if (bg) bg.froze = true;
         else if (o) { o.trophies = G.trophyCount(S) - tc1; showOffline(o); }
       } else if (document.hidden) {
-        if (bg) bg.wages += G.payroll(S) * dt;
         quiet = true; G.advanceAway(S, dt); quiet = false;
       } else {
         G.advance(S, dt);
@@ -7863,7 +7876,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (t - lastSave > 5000) { lastSave = t; saveLocal(); }
       if (cloud.ok && t - lastCloud > 300000) cloud.dirty = true;
       if (cloud.dirty && t - lastCloud > 20000) saveCloud();
-    }, 100);
+    }
+    setInterval(tick, 100);
     initCloud();
   }
 
