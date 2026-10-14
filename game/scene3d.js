@@ -9,7 +9,7 @@
   var hemi, sun, fill;
   var dark = false, reduce = false, mobile = false;
   var cur = { place: null, tier: -1, key: '', def: null };
-  var itemNodes = {}, staffNodes = {}, deskNodes = [], player = null, anims = [], blinkers = [], spinners = [];
+  var artistNodes = {}, itemNodes = {}, staffNodes = {}, deskNodes = [], player = null, anims = [], blinkers = [], spinners = [];
   var view = null, pickFn = null, deco = {}, decoKey = '';
   var cam = { yaw: 0.72, pitch: 0.62, zoom: 1, fit: 12, target: null, pan: null, yawBase: 0.72 };
   var ZMIN = 0.28, ZMAX = 1.25, PITCH0 = 0.62, camMoved = false, camFn = null;
@@ -208,6 +208,7 @@
       return a;
     }
     var armL = arm(-1), armR = arm(1);
+    if (opts.mic) { cyl(armR, 0.02, 0.15, M(C.black), 0, -0.48, -0.02); sph(armR, 0.045, M(0x9aa0a8, { m: 0.7, r: 0.35 }), 0, -0.5, -0.02); }
     g.userData.p = { body: body, head: head, armL: armL, armR: armR, sit: sit, t: Math.random() * 10 };
     return g;
   }
@@ -434,27 +435,27 @@
   // Agencement vérifié par un test de collisions (boîtes englobantes) avec tout le matériel et toute l'équipe.
   // sofas: [x, z, rotY, couleur, largeur]; rotY = 0: assise tournée vers le fond de la pièce, -PI/2: dos au mur de gauche.
   var PLACES = {
-    chambre: { shelf: [-1.45, 1.55], neon: [0.45, 2.02], edrums: [2.68, -0.42, -Math.PI / 2], W: 6.4, D: 5, H: 2.7, floor: ['wood', '#b98a5e', '#9c6f48'], wall: 0x9cc3d5, wall2: 0xb7d3df, desk: [1.15, -2.13, 1.9],
+    chambre: { artists: [[0.3, 0.75, Math.PI]], shelf: [-1.45, 1.55], neon: [0.45, 2.02], edrums: [2.68, -0.42, -Math.PI / 2], W: 6.4, D: 5, H: 2.7, floor: ['wood', '#b98a5e', '#9c6f48'], wall: 0x9cc3d5, wall2: 0xb7d3df, desk: [1.15, -2.13, 1.9],
       staff: [[2.1, 0.75]], lounge: [[-1.95, -1.0, -Math.PI / 2]], board: [-1.0, -1.55],
       slots: { micro: [-0.45, -1.35, 0.4], formation: [-1.0, -2.33, 0], distrib: { w: 'b', u: -1.0, y: 2.5 }, playlists: { w: 'b', u: -2.5, y: 2.45 } },
       foam: [{ w: 'b', u0: 0.15, u1: 2.05, y0: 1.35, y1: 2.45 }, { w: 'l', u0: -2.4, u1: -0.9, y0: 1.2, y1: 2.3 }] },
-    garage: { shelf: { w: 'b', u: 3.45, y: 1.4 }, neon: [-2.35, 2.3], edrums: [-2.6, 0.45, 0], W: 8.4, D: 6.2, H: 3.0, floor: ['concrete'], wall: 0xc9c2b5, wall2: 0xd8d1c4, brick: 'blocks', desk: [1.1, -2.73, 2.2],
+    garage: { artists: [[2.75, 2.15, Math.PI], [1.6, 2.6, Math.PI]], shelf: { w: 'b', u: 3.45, y: 1.4 }, neon: [-2.35, 2.3], edrums: [-2.6, 0.45, 0], W: 8.4, D: 6.2, H: 3.0, floor: ['concrete'], wall: 0xc9c2b5, wall2: 0xd8d1c4, brick: 'blocks', desk: [1.1, -2.73, 2.2],
       staff: [[2.75, 0.55], [0.2, 0.95]], sofas: [[-3.75, -1.95, -Math.PI / 2, 0x7a6a4f, 1.9]], board: [-2.0, -2.2],
       slots: { micro: [-0.25, -1.85, 0.4], formation: [-0.95, -2.93, 0], distrib: { w: 'b', u: 3.4, y: 2.6 }, preamps: [3.05, -2.83, 0],
         playlists: { w: 'l', u: -2.0, y: 2.75 } },
       foam: [{ w: 'b', u0: 0.0, u1: 2.2, y0: 1.5, y1: 2.7 }, { w: 'l', u0: -2.9, u1: -1.0, y0: 1.5, y1: 2.4 }] },
-    local: { shelf: { w: 'b', u: 4.4, y: 1.45 }, neon: [-0.6, 1.9], edrums: [1.25, 2.6, 0], W: 10.5, D: 7.4, H: 3.2, floor: ['wood', '#5b4030', '#4a3426'], wall: 0xece7df, wall2: 0xf4f0ea, brick: 'bricks', desk: [1.4, -3.33, 2.4],
+    local: { artists: [[-3.2, 2.55, Math.PI], [-0.1, 2.95, Math.PI]], shelf: { w: 'b', u: 4.4, y: 1.45 }, neon: [-0.6, 1.9], edrums: [1.25, 2.6, 0], W: 10.5, D: 7.4, H: 3.2, floor: ['wood', '#5b4030', '#4a3426'], wall: 0xece7df, wall2: 0xf4f0ea, brick: 'bricks', desk: [1.4, -3.33, 2.4],
       staff: [[0.9, 0.35], [3.3, 0.35], [3.3, 2.45]], sofas: [[-4.68, 1.0, -Math.PI / 2, 0x2f6f73, 2.2]], board: [-2.3, -0.4],
       slots: { cabine: [-4.2, -2.7, 0], console: [-2.1, -3.28, 0], micro: [-0.55, -2.15, 0.4], formation: [-5.08, -1.1, Math.PI / 2], preamps: [3.45, -3.43, 0],
         distrib: { w: 'b', u: 4.4, y: 2.6 }, playlists: { w: 'b', u: -2.1, y: 2.75 }, label: { w: 'b', u: -0.6, y: 2.9 }, orchestre: [-1.4, 1.9, 0] },
       foam: [{ w: 'b', u0: 0.2, u1: 2.6, y0: 1.6, y1: 2.9 }] },
-    pro: { shelf: [1.6, 1.3], neon: [-1.6, 2.32], edrums: [-4.7, -2.6, 0], W: 13, D: 9.5, H: 3.6, floor: ['wood', '#a77b52', '#8e6542'], wall: 0x3b4250, wall2: 0x4a5263, slats: true, desk: [1.6, -4.38, 2.8],
+    pro: { artists: [[1.45, 4.3, Math.PI], [-4.6, 4.25, Math.PI], [6.05, 3.5, Math.PI]], shelf: [1.6, 1.3], neon: [-1.6, 2.32], edrums: [-4.7, -2.6, 0], W: 13, D: 9.5, H: 3.6, floor: ['wood', '#a77b52', '#8e6542'], wall: 0x3b4250, wall2: 0x4a5263, slats: true, desk: [1.6, -4.38, 2.8],
       staff: [[1.3, 0.3], [3.4, 0.3], [5.5, 0.3], [1.3, 2.4], [3.4, 2.4], [5.5, 2.4]], sofas: [[3.4, 4.1, 0, 0x3b2f2a, 2.6]], board: [-1.4, 0.4],
       slots: { studioA: [-4.7, -2.95, 0], cabine: [5.45, -3.76, 0], console: [-1.6, -4.33, 0], neve: [-1.45, -2.75, 0], preamps: [3.75, -4.48, 0], assistant: [4.03, -3.35, -Math.PI / 2],
         orchestre: [-4.6, 2.0, 0.4], management: [-1.25, 3.0, 0], micro: [0.3, -2.3, 0.4], formation: [-6.33, -0.35, Math.PI / 2],
         distrib: { w: 'b', u: 1.6, y: 3.0 }, playlists: { w: 'b', u: 3.75, y: 3.4 }, label: { w: 'l', u: 4.1, y: 2.9 }, mentor: { w: 'b', u: -1.6, y: 3.4 }, disques: { w: 'l', u: 1.6, y: 3.3 } },
       foam: [{ w: 'b', u0: 0.2, u1: 3.0, y0: 1.65, y1: 2.3 }] },
-    complexe: { shelf: [0.9, 1.6], neon: [-3.1, 1.95], edrums: [-6.6, -3.9, 0], W: 17, D: 12, H: 4.2, floor: ['marble'], wall: 0xe9e1d3, wall2: 0xf1ebe0, gold: true, desk: [1.6, -5.63, 3.2],
+    complexe: { artists: [[-4.3, 4.6, Math.PI], [0.9, 4.7, Math.PI], [-7.7, 4.5, Math.PI], [7.7, 4.0, Math.PI]], shelf: [0.9, 1.6], neon: [-3.1, 1.95], edrums: [-6.6, -3.9, 0], W: 17, D: 12, H: 4.2, floor: ['marble'], wall: 0xe9e1d3, wall2: 0xf1ebe0, gold: true, desk: [1.6, -5.63, 3.2],
       staff: [[0.9, 0.6], [3.1, 0.6], [5.3, 0.6], [7.5, 0.6], [0.9, 2.8], [3.1, 2.8], [5.3, 2.8], [7.5, 2.8]],
       sofas: [[5.3, 5.2, 0, 0x7d1f2b, 3.0], [3.05, 4.55, -Math.PI / 2, 0x7d1f2b, 1.6]], board: [-2.6, 1.0],
       slots: { studioA: [-6.7, -4.2, 0], cabine: [7.45, -5.0, 0], console: [-3.1, -5.58, 0], neve: [-3.1, -3.85, 0], preamps: [4.2, -5.73, 0], assistant: [5.85, -5.6, 0],
@@ -760,6 +761,25 @@
     });
     Object.keys(staffNodes).forEach(function (id) { if (!seen[id]) removeStaff(id); });
   }
+  // Artistes du label: debout dans le studio, micro en main, à leur place dans chaque lieu.
+  function layoutArtists(list) {
+    var spots = cur.def.artists || [], seen = {};
+    (list || []).forEach(function (a, i) {
+      var sp = spots[i]; if (!sp) return;
+      var lk = JSON.stringify(a.look), n = artistNodes[a.id];
+      if (n && n.look !== lk) { staffG.remove(n.g); n = null; }
+      if (!n) {
+        n = artistNodes[a.id] = { look: lk, g: person(a.look, 'stand', { mic: true, pants: 0x2a2730 }) };
+        n.g.userData.pick = { type: 'artist', id: a.id }; n.g.traverse(function (o) { if (o.isMesh) o.userData.pick = n.g.userData.pick; });
+        n.g.userData.p.mode = 'artist'; n.g.name = 'artiste';
+        staffG.add(n.g);
+      }
+      seen[a.id] = 1; n.mood = a.mood;
+      n.g.position.set(sp[0], 0, sp[1]); n.g.rotation.y = sp[2] || 0;
+      n.anchor = new V3(sp[0], 2.0, sp[1]);
+    });
+    Object.keys(artistNodes).forEach(function (id) { if (!seen[id]) { staffG.remove(artistNodes[id].g); delete artistNodes[id]; } });
+  }
   function removeStaff(id) {
     var n = staffNodes[id];
     if (!n) return;
@@ -869,6 +889,7 @@
     Object.keys(itemNodes).forEach(function (id) { itemsG.remove(itemNodes[id]); });
     itemNodes = {}; blinkers = []; fallbackUsed = 0; cur.key = ''; cur.edrums = null; cur.edrumsSeen = false; cur.shelf = null;
     Object.keys(staffNodes).forEach(removeStaff);
+    Object.keys(artistNodes).forEach(function (id) { staffG.remove(artistNodes[id].g); delete artistNodes[id]; });
     deskNodes.forEach(function (d) { world.remove(d); }); deskNodes = [];
     roomG = buildRoom(cur.def, tier); world.add(roomG);
     var def = cur.def;
@@ -965,6 +986,8 @@
       if (!p && cur.edrums) { p = cur.edrums.getWorldPosition(new V3()); p.y += 1.45; }
     } else if (kind === 'shelf') {
       if (cur.shelf) { p = cur.shelf.getWorldPosition(new V3()); p.y += 0.75; p.x += 0.2; }
+    } else if (kind && kind.indexOf('artist:') === 0) {
+      n = artistNodes[kind.slice(7)]; if (n) p = n.anchor.clone();
     } else if (kind === 'piano') {
       n = itemNodes.orchestre;
       if (n && !n.userData.ghost) { p = n.getWorldPosition(new V3()); p.y += 1.55; }
@@ -1057,6 +1080,10 @@
     } else if (mode === 'rest') {
       p.armL.rotation.x = 0.3; p.armR.rotation.x = 1.4 + Math.sin(t * 0.9 + p.t) * 0.15 * k;
       p.head.rotation.x = -0.1; p.body.rotation.y = Math.sin(t * 0.4 + p.t) * 0.15 * k;
+    } else if (mode === 'artist') {
+      // micro en main, la tête suit le tempo
+      p.armR.rotation.x = 2.55 + Math.sin(t * 2.2 + p.t) * 0.05 * k; p.armR.rotation.z = -0.55; p.armL.rotation.x = 0.3 + Math.sin(t * 4.4 + p.t) * 0.25 * k;
+      p.head.rotation.x = Math.sin(t * 4.4 + p.t) * 0.08 * k; p.body.rotation.y = Math.sin(t * 1.1 + p.t) * 0.12 * k;
     } else if (mode === 'train') {
       p.armL.rotation.x = 1.2; p.armR.rotation.x = 1.2; p.head.rotation.x = 0.35 + Math.sin(t * 0.7 + p.t) * 0.05 * k;
     } else {
@@ -1072,6 +1099,7 @@
     if (S3.paused) { clock.getDelta(); return; }
     var dt = Math.min(0.1, clock.getDelta()), t = clock.elapsedTime;
     if (player) animatePerson(player, t, anyLive ? 'work' : 'idle');
+    Object.keys(artistNodes).forEach(function (id) { animatePerson(artistNodes[id].g, t, 'artist'); });
     Object.keys(staffNodes).forEach(function (id) {
       var n = staffNodes[id]; if (!n.cur) return;
       var mode = n.cur.userData.p.mode;
@@ -1244,6 +1272,7 @@
     syncExtras(v);
     syncDesks(v.cap || 0);
     layoutStaff(v.staff);
+    layoutArtists(v.artists);
     live = v.live || {}; anyLive = Object.keys(live).some(function (k) { return live[k] && !(v.staff || []).some(function (m) { return m.act === k && m.status === 'work'; }); });
   };
   S3.setTheme = function (d) { var was = dark; dark = !!d; if (!S3.ok) return; applyTheme(); if (was !== dark && cur.placeKey) { var k = cur.placeKey, t = cur.tier; cur.placeKey = null; S3.update(Object.assign({}, view || {}, { place: k, tier: t })); } };
@@ -1275,6 +1304,8 @@
     Object.keys(itemNodes).forEach(function (id) { if (!itemNodes[id].userData.ghost && id !== 'traitement') add(itemNodes[id], 'item:' + id); });
     deskNodes.forEach(function (d, i) { add(d, 'poste' + i); });
     Object.keys(staffNodes).forEach(function (id) { var n = staffNodes[id]; if (n.cur && n.cur.userData.p.mode === 'rest') add(n.cur, 'repos' + id); });
+    Object.keys(staffNodes).forEach(function (id) { var n = staffNodes[id]; if (n.cur && n.cur.userData.p.mode === 'train') add(n.cur, 'formation' + id); });
+    Object.keys(artistNodes).forEach(function (id) { add(artistNodes[id].g, 'artiste:' + id); });
     return out;
   };
   S3.screenOf = function (kind, id) {
@@ -1282,6 +1313,7 @@
     var p = null;
     if (kind === 'item' && itemNodes[id]) p = itemNodes[id].getWorldPosition(new V3());
     if (kind === 'staff' && staffNodes[id]) p = staffNodes[id].anchor.clone();
+    if (kind === 'artist' && artistNodes[id]) p = artistNodes[id].anchor.clone();
     if (kind === 'player' && player) p = new V3(player.position.x, 1.5, player.position.z);
     if (!p) return null;
     p.project(camera);

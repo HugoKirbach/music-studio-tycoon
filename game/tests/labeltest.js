@@ -80,7 +80,7 @@ console.log('OK: tournée, sauvegarde, trophées');
   assert(G.startProject(S2, { genre: 'jazz', mood: 'voyage', pub: 'fins', fmt: 'single', artist: 'kais' }), 'style ouvert pour son album');
   while (S2.proj.cur) G.tickProject(S2, 5);
   assert(S2.proj.last.artist.match && S2.proj.last.artist.style && k.style === null, 'le style compte comme son genre une fois');
-  S2.label.roster.push({ id: 'ines', fame: 10, mood: 60, albums: 0, cd: 999, ask: null, disco: [], ccd: 0, scd: 999, story: null, style: null, duo: null });
+  S2.label.roster.push({ id: 'ines', fame: 10, mood: 60, albums: 0, cd: 999, ask: null, disco: [], ccd: 0, scd: 999, story: null, style: null, duo: null, offer: null });
   k.story = { id: 'duo', left: 100, other: 'ines', genre: 'pop' };
   G.resolveStory(S2, 'kais', 0); assert(k.duo === 'ines');
   const ines = S2.label.roster[1], f0 = ines.fame;

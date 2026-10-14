@@ -343,7 +343,21 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .buyn button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-s); }
 /* Label */
 .label-box { margin-bottom: 14px; }
-.team-seg { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0 0 14px; }
+.team-seg { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 14px; }
+.a-offer { margin: 0; font-weight: 800; color: var(--bad); font-size: 14px; }
+.artist.offer { border-color: color-mix(in srgb, var(--bad) 55%, var(--line)); background: color-mix(in srgb, var(--bad) 6%, var(--card)); }
+.disco-box[hidden] { display: none; }
+.disco-sum { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 12px; }
+.disco-sum .card b { font: 800 18px var(--f-title); }
+.disco-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.disco-list li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+.disco-list .cv { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; color: #fff; font: 800 13px var(--f-title); background: var(--ac, #777); box-shadow: inset 0 0 0 3px rgba(255,255,255,0.18); }
+.disco-list b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.disco-list small { display: block; color: var(--ink-soft); font-size: 12.5px; }
+.disco-list .nt { text-align: right; font: 800 16px var(--f-title); }
+.disco-list .nt small { font: 700 11.5px var(--f-body); }
+.disco-list .gone { color: var(--bad); font-weight: 700; }
+@media (max-width: 420px) { .disco-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .team-seg button { position: relative; }
 .seg-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 0 2px var(--panel-2); }
 .seg-dot[hidden] { display: none; }
@@ -758,7 +772,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 
       <section class="pane" id="team" aria-labelledby="teamTitle">
         <h2 id="teamTitle">Équipe <small id="teamCount"></small></h2>
-        <div class="seg team-seg" id="teamSeg" role="group" aria-label="Studio ou label" hidden><button type="button" data-tv="staff" aria-pressed="true">Ton équipe</button><button type="button" data-tv="label" aria-pressed="false">Ton label<i class="seg-dot" id="teamSegDot" hidden aria-hidden="true"></i></button></div>
+        <div class="seg team-seg" id="teamSeg" role="group" aria-label="Studio ou label" hidden><button type="button" data-tv="staff" aria-pressed="true">Équipe</button><button type="button" data-tv="label" aria-pressed="false">Label<i class="seg-dot" id="teamSegDot" hidden aria-hidden="true"></i></button><button type="button" data-tv="disco" aria-pressed="false">Discographie</button></div>
         <div class="card team-lock" id="teamLock" hidden><b>Bientôt une équipe</b><span id="teamLockText"></span></div>
         <div id="teamOpenBox">
           <div class="team-sum">
@@ -779,6 +793,11 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <h3 class="sec" id="labelScoutT">Talents à signer</h3>
           <div class="list" id="labelScouts"></div>
           <p class="small-note" id="labelMore"></p>
+        </section>
+        <section class="disco-box" id="discoBox" hidden>
+          <div class="team-sum disco-sum" id="discoSum"></div>
+          <ol class="disco-list" id="discoList"></ol>
+          <p class="small-note" id="discoNote"></p>
         </section>
       </section>
 

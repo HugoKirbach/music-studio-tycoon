@@ -174,10 +174,11 @@
 
   // ---------- Label ----------
   var lbv = { key: '', cards: {}, wasOpen: null, tv: 'staff' };
-  function labelAsks() { return G.labelOpen(S) && S.label.roster.some(function (r) { return r.ask || r.story; }); }
+  function labelAsks() { return G.labelOpen(S) && S.label.roster.some(function (r) { return r.ask || r.story || r.offer; }); }
+  function labelOffer() { return G.labelOpen(S) && S.label.roster.some(function (r) { return r.offer; }); }
   // L'onglet Équipe regroupe l'équipe du studio et le label (artistes signés).
   function teamView(v) {
-    lbv.tv = v === 'label' && G.labelOpen(S) ? 'label' : 'staff';
+    lbv.tv = (v === 'label' || v === 'disco') && G.labelOpen(S) ? v : 'staff';
     $('teamSeg').querySelectorAll('[data-tv]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-tv') === lbv.tv)); });
     team.key = ''; lbv.key = '';
     renderTeam(true); renderLabel(true);
@@ -187,48 +188,57 @@
   function artName(id) { return G.ART_BY[id] ? G.ART_BY[id].name : ''; }
   function artInitials(n) { return n.split(/[\s&]+/).filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join(''); }
   function renderLabel(force) {
-    var open = G.labelOpen(S), L = S.label, onCh = $('app').getAttribute('data-view') === 'team' && lbv.tv === 'label';
+    var open = G.labelOpen(S), L = S.label, onTeamV = $('app').getAttribute('data-view') === 'team', onCh = onTeamV && lbv.tv === 'label';
     if (lbv.wasOpen === false && open && !quiet) toast('Nouveau : ton label ! Signe des artistes et produis leurs albums depuis l’onglet Équipe.', 7000);
     lbv.wasOpen = open;
-    if (!open && lbv.tv === 'label') lbv.tv = 'staff';
+    if (!open && lbv.tv !== 'staff') lbv.tv = 'staff';
     setHidden($('teamSeg'), !open);
     setHidden($('labelBox'), !open || lbv.tv !== 'label');
+    setHidden($('discoBox'), !open || lbv.tv !== 'disco');
     setHidden($('teamSegDot'), !labelAsks() || lbv.tv === 'label');
+    if (open && lbv.tv === 'disco' && (onTeamV || force)) renderDisco();
     if (!open || (!onCh && !force)) return;
     var cap = G.labelCap(S), avail = G.ARTISTS.filter(function (a) { return G.artistAvailable(S, a); });
     setText($('labelChip'), L.roster.length + ' / ' + cap + ' artiste' + (cap > 1 ? 's' : ''));
     setText($('labelNote'), L.roster.length
       ? 'Leur notoriété ajoute +' + nf1.format((G.labelMult(S) - 1) * 100) + ' % à tous tes gains. Respecte leur genre et leurs goûts : un artiste content progresse plus vite.'
       : 'Signe un artiste, puis produis ses albums avec l’outil de projet de création. Ses albums font grimper sa notoriété, qui dope les ventes et tous tes gains.');
-    var key = JSON.stringify(L.roster.map(function (r) { return [r.id, Math.round(r.fame), Math.round(r.mood), !!r.ask, r.albums, !!r.story, r.style, r.duo]; })) + '|' + avail.map(function (a) { return a.id; }).join(',') + '|' + cap + '|' + !!S.proj.cur;
+    var key = JSON.stringify(L.roster.map(function (r) { return [r.id, Math.round(r.fame), Math.round(r.mood), !!r.ask, r.albums, !!r.story, r.style, r.duo, r.offer && r.offer.lab]; })) + '|' + avail.map(function (a) { return a.id; }).join(',') + '|' + cap + '|' + !!S.proj.cur;
     if (key !== lbv.key) {
       lbv.key = key; lbv.cards = {};
       $('labelRoster').innerHTML = L.roster.map(function (r) {
         var a = G.ART_BY[r.id], mt = moodTxt(r.mood), last = r.disco[0];
         var vn = D.VENUES[G.venueIndex(r)];
-        return '<article class="card artist' + (r.ask ? ' ask' : '') + (r.story ? ' story' : '') + '" data-aid="' + r.id + '">' +
+        return '<article class="card artist' + (r.ask ? ' ask' : '') + (r.story ? ' story' : '') + (r.offer ? ' offer' : '') + '" data-aid="' + r.id + '">' +
           '<div class="a-head"><span class="a-av" style="--ac:' + (GENRE_COL[a.genre] || '#777') + '" aria-hidden="true">' + esc(artInitials(a.name)) + '</span><div><b>' + esc(a.name) + '</b><small>' + esc(G.PJ_G[a.genre].name) + ' · aime ' + a.likes.map(function (m) { return esc(G.PJ_M[m].name.toLowerCase()); }).join(' et ') + '</small></div><span class="a-mood m' + mt[1] + '">' + mt[0] + '</span></div>' +
           '<div class="a-fame"><span>Notoriété</span><span class="meter" aria-hidden="true"><i style="width:' + r.fame + '%"></i></span><b>' + Math.round(r.fame) + '</b></div>' +
           '<p class="' + (r.ask ? 'a-ask' : 'a-line') + '" data-k="when"></p>' +
+          (r.offer ? '<p class="a-offer" data-k="offer"></p>' : '') +
           (r.story ? '<p class="a-story">' + esc(artName(r.id)) + ' a quelque chose à te dire.</p>' : '') +
           (r.style || r.duo ? '<p class="a-line">' + (r.style ? 'Prochain album : envie de ' + esc(G.PJ_G[r.style].name) + '. ' : '') + (r.duo ? 'Duo prévu avec ' + esc(artName(r.duo)) + '.' : '') + '</p>' : '') +
           (last ? '<p class="a-line">Dernier album : « ' + esc(last.t) + ' » ' + nf1.format(last.avg) + '/10' + (last.pos ? ', entré n°' + last.pos : '') + ' · ' + r.albums + ' album' + (r.albums > 1 ? 's' : '') + '</p>' : '<p class="a-line">Pas encore d’album sur ton label.</p>') +
           '<div class="proj-row"><button class="btn sm' + (r.ask ? ' primary' : '') + '" type="button" data-art="album" data-id="' + r.id + '"' + (S.proj.cur ? ' disabled' : '') + '>' + (S.proj.cur ? 'Un projet est déjà en cours' : 'Préparer son album') + '</button>' +
+          (r.offer ? '<button class="btn sm primary" type="button" data-art="offer" data-id="' + r.id + '">Répondre</button>' : '') +
           (r.story ? '<button class="btn sm primary" type="button" data-art="story" data-id="' + r.id + '">L’écouter</button>' : '') +
           '<button class="btn sm" type="button" data-art="concert" data-id="' + r.id + '"><span data-k="cc">Concert</span></button></div></article>';
       }).join('');
-      L.roster.forEach(function (r) { var cd = $('labelRoster').querySelector('[data-aid="' + r.id + '"]'); lbv.cards[r.id] = cd.querySelector('[data-k="when"]'); lbv.cc = lbv.cc || {}; lbv.cc[r.id] = cd.querySelector('[data-art="concert"]'); });
+      lbv.offers = {};
+      L.roster.forEach(function (r) { var cd = $('labelRoster').querySelector('[data-aid="' + r.id + '"]'); lbv.cards[r.id] = cd.querySelector('[data-k="when"]'); lbv.offers[r.id] = cd.querySelector('[data-k="offer"]'); lbv.cc = lbv.cc || {}; lbv.cc[r.id] = cd.querySelector('[data-art="concert"]'); });
       setHidden($('labelScoutT'), !avail.length);
       var full = L.roster.length >= cap, cost = G.artistCost(S);
       $('labelScouts').innerHTML = avail.map(function (a) {
         return '<article class="card scout"><div><b>' + esc(a.name) + ' · ' + esc(G.PJ_G[a.genre].name) + '</b><p>' + esc(a.bio) + ' ' + (a.contact ? 'Rencontré en sortie de studio.' : 'Repéré par ton réseau.') + '</p></div>' +
           '<button class="btn sm primary" type="button" data-art="sign" data-id="' + a.id + '"' + (full ? ' disabled' : '') + '><span>Signer</span><span class="p">' + eur(cost) + '</span></button></article>';
       }).join('');
-      var hidden = G.ARTISTS.filter(function (a) { return !G.artistOf(S, a.id) && !G.artistAvailable(S, a); }).length;
+      var hidden = G.ARTISTS.filter(function (a) { return !G.artistOf(S, a.id) && !G.artistAvailable(S, a) && !G.goneOf(S, a.id); }).length;
+      var gone = L.gone.map(function (g) { return artName(g.id) + ' (' + g.lab + ')'; });
       setText($('labelMore'), (avail.length && full ? 'Ton lieu actuel accueille ' + cap + ' artiste' + (cap > 1 ? 's' : '') + ' : emménage plus grand pour en signer d’autres. ' : '') +
-        (hidden ? hidden + ' autre' + (hidden > 1 ? 's' : '') + ' talent' + (hidden > 1 ? 's' : '') + ' à découvrir en sortie de studio ou en faisant grandir ton studio.' : ''));
+        (hidden ? hidden + ' autre' + (hidden > 1 ? 's' : '') + ' talent' + (hidden > 1 ? 's' : '') + ' à découvrir en sortie de studio ou en faisant grandir ton studio. ' : '') +
+        (gone.length ? 'Sous contrat ailleurs pour l’instant : ' + gone.join(', ') + '.' : ''));
     }
     L.roster.forEach(function (r) {
+      var oe = lbv.offers && lbv.offers[r.id];
+      if (oe && r.offer) setText(oe, r.offer.lab + ' veut signer ' + artName(r.id) + ' · réponds avant ' + clock(r.offer.left));
       var el = lbv.cards[r.id]; if (!el) return;
       var busy = S.proj.cur && S.proj.cur.artist === r.id;
       setText(el, busy ? 'Son album est en cours de production.' : r.ask ? artName(r.id) + ' veut sortir un album · reste ' + clock(r.ask.left) : 'Prochaine envie d’album dans ' + clock(r.cd) + '.');
@@ -249,8 +259,32 @@
       if (what === 'sign') { if (G.signArtist(S, id)) { saveLocal(); markCloud(); lbv.key = ''; renderLabel(true); render(); } }
       else if (what === 'concert') { var cc = G.startConcert(S, id); if (cc) openClash(cc); }
       else if (what === 'story') openStory(id);
+      else if (what === 'offer') openOffer(id);
       else openProj(id);
     });
+  }
+
+  // ---------- Discographie du label ----------
+  function renderDisco() {
+    var dg = G.discography(S), L = S.label;
+    var key = dg.list.length + '|' + (dg.list[0] ? dg.list[0].t : '') + '|' + L.roster.map(function (r) { return r.id; }).join(',') + '|' + L.gone.length;
+    if (key === lbv.dkey) return;
+    lbv.dkey = key;
+    var cards = [['Albums', String(dg.count)], ['Meilleure note', dg.best ? nf1.format(dg.best.avg) + '/10' : '–'], ['Entrées top 10', String(dg.top10)], ['Numéros 1', String(dg.n1)]];
+    $('discoSum').innerHTML = cards.map(function (c) { return '<div class="card"><span class="lbl">' + esc(c[0]) + '</span><b>' + esc(c[1]) + '</b></div>'; }).join('');
+    $('discoList').innerHTML = dg.list.map(function (x) {
+      var a = G.ART_BY[x.a], name = a ? a.name : 'Artiste', g = x.g || (a && a.genre), here = a && G.artistOf(S, a.id), gone = a && G.goneOf(S, a.id);
+      return '<li><span class="cv" style="--ac:' + (GENRE_COL[g] || '#777') + '" aria-hidden="true">' + esc(artInitials(x.t)) + '</span>' +
+        '<div><b>' + esc(x.t) + '</b><small>' + esc(name) + (g && G.PJ_G[g] ? ' · ' + esc(G.PJ_G[g].name) : '') + (x.w ? ' · semaine ' + x.w : '') + '</small>' +
+        (here ? '' : '<small class="gone">' + (gone ? 'Parti chez ' + esc(gone.lab) : 'N’est plus sur ton label') + '</small>') + '</div>' +
+        '<span class="nt">' + nf1.format(x.avg) + '<small>/10</small><small>' + (x.pos ? 'entré n°' + x.pos : 'hors classement') + '</small></span></li>';
+    }).join('');
+    setText($('discoNote'), dg.list.length ? 'Les ' + Math.min(80, dg.list.length) + ' derniers albums de ton label, du plus récent au plus ancien.' : 'Aucun album pour l’instant : prépare l’album d’un de tes artistes depuis la vue Label.');
+  }
+  // Silhouette 3D d'un artiste: apparence stable tirée de son identifiant.
+  function artistLook(id) {
+    var h = 7; for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+    return { s: h % 8, h: (h >> 3) % 8, c: (h >> 6) % 16, y: (h >> 10) % 4 };
   }
 
   // ---------- Tendances de la semaine ----------
@@ -640,6 +674,15 @@
     var dn = G.decoNew(S).length;
     list.push({ id: 'deco', anchor: 'shelf', hot: dn > 0, label: 'Décoration du studio' + (dn ? ' : ' + dn + ' nouveauté' + (dn > 1 ? 's' : '') : ''),
       html: HOT_DECO + '<span>Déco</span>' + (dn ? '<i class="bang" aria-hidden="true">' + dn + '</i>' : '') });
+    var HOT_MIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    if (G.labelOpen(S)) S.label.roster.forEach(function (r) {
+      var what = r.offer ? 'offer' : r.story ? 'story' : r.ask ? 'ask' : null;
+      if (!what) return;
+      var nm = artName(r.id);
+      list.push({ id: 'art:' + r.id, anchor: 'artist:' + r.id, hot: true,
+        label: what === 'offer' ? r.offer.lab + ' veut signer ' + nm : what === 'story' ? nm + ' a quelque chose à te dire' : nm + ' veut sortir un album',
+        html: HOT_MIC + '<span>' + esc(nm) + '</span><i class="bang" aria-hidden="true">' + (what === 'offer' ? '€' : what === 'story' ? '…' : '!') + '</i>' });
+    });
     if (G.pianoOpen(S)) {
       var ready = S.piano.cd <= 0;
       list.push({ id: 'piano', anchor: 'piano', hot: ready, label: 'Atelier piano' + (ready ? ' : inspiration disponible' : ''),
@@ -651,6 +694,18 @@
     if (id === 'clash') { if (S.battle.rival) openClash(); else toast('Pas de rival pour l’instant : prochain défi dans ' + clock(S.battle.cd) + '.'); }
     else if (id === 'piano') openPiano();
     else if (id === 'deco') openDeco();
+    else if (id.indexOf('art:') === 0) {
+      var aid = id.slice(4), r = G.artistOf(S, aid);
+      if (!r) return;
+      if (r.offer) openOffer(aid); else if (r.story) openStory(aid); else showArtist(aid);
+    }
+  }
+  function showArtist(aid) {
+    if (!menuOpen) setMenu(true);
+    if (bind.view) bind.view('team');
+    teamView('label');
+    var card = document.querySelector('.artist[data-aid="' + aid + '"]');
+    if (card) card.scrollIntoView({ block: 'center' });
   }
 
   // ---------- Clash de beatmakers ----------
@@ -922,7 +977,7 @@
   }
 
   // ---------- Histoires d'artistes ----------
-  var stv = { open: false, id: null, opener: null };
+  var stv = { open: false, id: null, opener: null, kind: 'story' };
   var ST_LABEL = { spent: 'Dépense', amood: 'Humeur', afame: 'Notoriété', cash: 'Argent', rep: 'Réputation', style: 'Style', duo: 'Duo' };
   function stReward(r) {
     switch (r.k) {
@@ -935,10 +990,58 @@
     }
     return '';
   }
+  // Offre d'un label rival: même fenêtre que les histoires, avec trois réponses.
+  function openOffer(id) {
+    var r = G.artistOf(S, id), of = r && r.offer;
+    if (!of || stv.open) return;
+    stv.open = true; stv.id = id; stv.kind = 'offer'; stv.opener = document.activeElement;
+    var nm = artName(id), cost = G.retainCost(S, r), fee = G.transferFee(S, r), ch = G.keepChance(r);
+    setText($('stWho'), nm);
+    $('stTitle').textContent = of.lab + ' veut signer ' + nm;
+    $('stText').textContent = 'Le label ' + of.lab + ' propose un gros contrat à ' + nm + ' (notoriété ' + Math.round(r.fame) + ', humeur ' + moodTxt(r.mood)[0].toLowerCase() + '). Un artiste heureux chez toi a toutes les raisons de rester. Sans réponse de ta part avant ' + clock(of.left) + ', ' + nm + ' décidera seul.';
+    var opts = [
+      { c: 'pay', text: 'Lui offrir une prime de fidélité : ' + nm + ' reste à coup sûr', tags: [['cost' + (S.money >= cost ? '' : ' short'), 'Coûte ' + eur(cost)], ['', 'Humeur +10']], ok: S.money >= cost },
+      { c: 'trust', text: 'Lui faire confiance et compter sur votre relation', tags: [['risk', Math.round(ch * 100) + ' % de chances de rester']], ok: true },
+      { c: 'release', text: 'Accepter son départ contre une indemnité de transfert', tags: [['', '+' + eur(fee)]], ok: true }
+    ];
+    var box = $('stChoices'); box.innerHTML = ''; var first = null;
+    opts.forEach(function (o, i) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'btn choice'; b.setAttribute('data-oc', o.c); b.disabled = !o.ok;
+      b.innerHTML = '<span class="k"></span><span class="cw"><span class="ct"></span><span class="tags"></span></span>';
+      b.querySelector('.k').textContent = 'ABC'.charAt(i); b.querySelector('.ct').textContent = o.text;
+      var tg = b.querySelector('.tags');
+      o.tags.forEach(function (x) { var sp = document.createElement('span'); sp.className = 'tag ' + x[0]; sp.textContent = x[1]; tg.appendChild(sp); });
+      if (o.ok && !first) first = b;
+      box.appendChild(b);
+    });
+    $('stAsk').hidden = false; $('stDone').hidden = true;
+    $('storyScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    (first || $('stLater')).focus();
+  }
+  function offerDone(res) {
+    var nm = artName(res.id), vd = $('stVerdict');
+    vd.hidden = res.choice !== 'trust';
+    if (res.choice === 'trust') { vd.textContent = res.kept ? 'Pari réussi !' : 'Pari perdu…'; vd.className = 'ev-verdict ' + (res.kept ? 'win' : 'loss'); }
+    $('stOut').textContent = res.kept ? nm + ' reste sur ton label et refuse l’offre de ' + res.lab + '.' : nm + ' signe chez ' + res.lab + '. Ses albums restent dans ta discographie, et un retour sur ton label reste possible plus tard.';
+    var rows = [];
+    if (res.cost) rows.push(['Prime', '−' + eur(res.cost)]);
+    if (res.kept) rows.push(['Humeur', moodTxt(res.mood)[0]]);
+    if (res.fee) rows.push(['Indemnité', '+' + eur(res.fee)]);
+    if (res.kept) rows.push(['Fidélité', S.label.kept + ' artiste' + (S.label.kept > 1 ? 's' : '') + ' retenu' + (S.label.kept > 1 ? 's' : '')]);
+    var box = $('stReward'); box.innerHTML = '';
+    rows.forEach(function (r, k) {
+      var row = document.createElement('div'); row.className = 'rw'; row.style.setProperty('--d', (0.2 + k * 0.4) + 's');
+      row.innerHTML = '<span class="rl"></span><b class="rv"></b>'; row.firstChild.textContent = r[0]; row.lastChild.textContent = r[1];
+      box.appendChild(row);
+    });
+    $('stAsk').hidden = true; $('stDone').hidden = false; $('stClose').focus();
+    blip(res.kept ? 10 : 4); saveLocal(); markCloud();
+  }
   function openStory(id) {
     var r = G.artistOf(S, id), st = r && r.story, s = st && G.STORY_BY[st.id];
     if (!s || stv.open) return;
-    stv.open = true; stv.id = id; stv.opener = document.activeElement;
+    stv.open = true; stv.id = id; stv.kind = 'story'; stv.opener = document.activeElement;
     setText($('stWho'), artName(id));
     $('stTitle').textContent = G.storyText(S, r, s.title);
     $('stText').textContent = G.storyText(S, r, s.text);
@@ -970,6 +1073,8 @@
   }
   function bindStory() {
     $('stChoices').addEventListener('click', function (e) {
+      var ob = e.target.closest('button[data-oc]');
+      if (ob && !ob.disabled && stv.kind === 'offer') { var or = G.resolveOffer(S, stv.id, ob.getAttribute('data-oc')); if (or) offerDone(or); return; }
       var b = e.target.closest('button[data-i]'); if (!b || b.disabled) return;
       var res = G.resolveStory(S, stv.id, +b.getAttribute('data-i'));
       if (!res) return;
@@ -1694,7 +1799,8 @@
       tier: ti, place: D.TIERS[ti].place, owned: S.owned, live: live,
       ghosts: visibleItems().out.slice(0, 2).map(function (i) { return i.id; }),
       cap: G.teamOpen(S) ? G.teamCap(S) : 0, edrums: G.battleOpen(S), deco: decoView(),
-      staff: S.team.staff.map(function (m) { return { id: m.id, look: m.look, role: m.role, morale: m.morale, act: m.act, status: memberStatus(m) }; })
+      staff: S.team.staff.map(function (m) { return { id: m.id, look: m.look, role: m.role, morale: m.morale, act: m.act, status: memberStatus(m) }; }),
+      artists: G.labelOpen(S) ? S.label.roster.map(function (r) { return { id: r.id, look: artistLook(r.id), mood: r.mood }; }) : []
     });
     if (S3.setHotspots) hotspots();
   }
@@ -1725,6 +1831,11 @@
       renderTeam(true);
       var card = document.querySelector('.member[data-id="' + m.id + '"]');
       if (card) card.scrollIntoView({ block: 'center' });
+    } else if (u.type === 'artist') {
+      var ar = G.artistOf(S, u.id);
+      if (!ar) return;
+      showTip(artName(u.id), G.PJ_G[G.ART_BY[u.id].genre].name + ' · notoriété ' + Math.round(ar.fame) + ' · ' + moodTxt(ar.mood)[0].toLowerCase(), x, y);
+      if (ar.offer) openOffer(u.id); else if (ar.story) openStory(u.id); else showArtist(u.id);
     } else if (u.type === 'player') {
       var running = G.ACTS.filter(function (a) { return S.acts[a.id].run; }).length;
       showTip('C’est toi', running ? running + (running > 1 ? ' productions en cours.' : ' production en cours.') : 'Lance une production pour te mettre au travail.', x, y);
@@ -1896,9 +2007,9 @@
     team.wasOpen = open;
     var low = tm.staff.some(function (m) { return m.morale < 25; });
     var canHire = open && tm.staff.length < cap && tm.pool.some(function (c) { return S.money >= G.signCost(S, c); });
-    var onTeam = $('app').getAttribute('data-view') === 'team', asks = labelAsks(), lv = lbv.tv === 'label';
+    var onTeam = $('app').getAttribute('data-view') === 'team', asks = labelAsks(), lv = lbv.tv !== 'staff';
     setClass($('tabTeam'), 'has', !onTeam && (low || canHire || asks));
-    setClass($('tabTeam'), 'warn', !onTeam && !low && (canHire || asks));
+    setClass($('tabTeam'), 'warn', !onTeam && !low && !labelOffer() && (canHire || asks));
     setHidden($('teamLock'), open || lv);
     setHidden($('teamOpenBox'), !open || lv);
     if (lv) { setText($('teamCount'), S.label.roster.length + ' / ' + G.labelCap(S) + ' artiste' + (G.labelCap(S) > 1 ? 's' : '')); return; }
@@ -2532,6 +2643,9 @@
   G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
   G.hooks.artistSign = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' rejoint ton label !', 5000); blip(12); } };
   G.hooks.artistAsk = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' veut sortir un album. Rendez-vous dans l’onglet Équipe, section Ton label.', 6500); blip(9); } };
+  G.hooks.artistOffer = function (a, r) { lbv.key = ''; markCloud(); if (!quiet) { toast(r.offer.lab + ' veut signer ' + a.name + ' ! Réponds vite depuis l’onglet Équipe, section Label.', 7000); blip(10); } };
+  G.hooks.offerAuto = function (res) { lbv.key = ''; lbv.dkey = ''; markCloud(); saveLocal(); if (!quiet) toast(res.kept ? artName(res.id) + ' a refusé l’offre de ' + res.lab + ' et reste sur ton label.' : artName(res.id) + ' est parti chez ' + res.lab + ' faute de réponse. Indemnité : ' + eur(res.fee) + '.', 7000); };
+  G.hooks.offerDone = function () { lbv.key = ''; lbv.dkey = ''; };
   G.hooks.artistStory = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' a quelque chose à te dire. Rendez-vous dans l’onglet Équipe, section Ton label.', 6000); blip(8); } };
   G.hooks.concertDone = function () { lbv.key = ''; markCloud(); };
   G.hooks.artistIgnored = function (a) { lbv.key = ''; markCloud(); if (!quiet) toast(a.name + ' attendra son album un peu plus longtemps, un peu déçu.', 5000); };

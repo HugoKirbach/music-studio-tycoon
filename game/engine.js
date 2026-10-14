@@ -31,7 +31,7 @@
   var DECO = D.DECO || { slots: [] }, DECO_BY = {};
   DECO.slots.forEach(function (s) { DECO_BY[s.id] = {}; s.options.forEach(function (o) { DECO_BY[s.id][o.id] = o; }); });
   var RULES = ['rapide', 'sans-clap', 'prime'];
-  var ARTISTS = D.ARTISTS || [], ART_BY = {};
+  var ARTISTS = D.ARTISTS || [], ART_BY = {}, RIVAL_LABELS = D.RIVAL_LABELS || ['Label rival'];
   ARTISTS.forEach(function (a) { ART_BY[a.id] = a; });
   var VENUES = D.VENUES || [{ id: 'bar', name: 'Bar', fame: 0, mult: 1 }], GENRE_BPM = D.GENRE_BPM || {}, STORIES = D.STORIES || [], STORY_BY = {};
   STORIES.forEach(function (s) { STORY_BY[s.id] = s; });
@@ -52,9 +52,11 @@
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco(), label: { roster: [], albums: 0, concerts: 0, bestVenue: 0 } };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco(), label: newLabel() };
   }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
+  function newLabel() { return { roster: [], albums: 0, concerts: 0, bestVenue: 0, kept: 0, ocd: T.offerFirst, gone: [], disco: [] }; }
+  function cleanDisc(x) { return { a: ART_BY[x && x.a] ? x.a : null, t: String((x && x.t) || 'Album').slice(0, 40), avg: Math.max(0, Math.min(10, num(x && x.avg, 0))), pos: Math.max(0, Math.floor(num(x && x.pos, 0))), g: PJ_G[x && x.g] ? x.g : null, w: Math.max(0, Math.floor(num(x && x.w, 0))) }; }
   function newBattle() { return { league: 1, pts: 0, wins: 0, losses: 0, best: 0, cd: T.battleFirst, rival: null }; }
   function newDeco() { var d = { seen: {} }; DECO.slots.forEach(function (s) { d[s.id] = s.options[0].id; }); return d; }
   function newRd() { return { pts: 0, total: 0, nodes: {}, spec: {} }; }
@@ -124,6 +126,10 @@
     if (o.label && typeof o.label === 'object') {
       S.label.albums = Math.max(0, Math.floor(num(o.label.albums, 0)));
       S.label.concerts = Math.max(0, Math.floor(num(o.label.concerts, 0))); S.label.bestVenue = Math.max(0, Math.min(VENUES.length, Math.floor(num(o.label.bestVenue, 0))));
+      S.label.kept = Math.max(0, Math.floor(num(o.label.kept, 0))); S.label.ocd = Math.max(0, Math.min(T.offerEvery, num(o.label.ocd, T.offerFirst)));
+      (Array.isArray(o.label.gone) ? o.label.gone : []).forEach(function (g) { if (g && ART_BY[g.id] && !S.label.gone.some(function (x) { return x.id === g.id; })) S.label.gone.push({ id: g.id, lab: String(g.lab || RIVAL_LABELS[0]).slice(0, 30), left: Math.max(0, Math.min(T.goneFor, num(g.left, T.goneFor))) }); });
+      var hadDisc = Array.isArray(o.label.disco);
+      if (hadDisc) S.label.disco = o.label.disco.slice(0, 80).map(cleanDisc);
       (Array.isArray(o.label.roster) ? o.label.roster : []).forEach(function (r) {
         if (!r || !ART_BY[r.id] || S.label.roster.some(function (x) { return x.id === r.id; }) || S.label.roster.length >= 8) return;
         var ask = r.ask && typeof r.ask === 'object' ? { left: Math.max(0, Math.min(T.askLife, num(r.ask.left, T.askLife))) } : null;
@@ -132,8 +138,12 @@
           disco: (Array.isArray(r.disco) ? r.disco : []).slice(0, 10).map(function (x) { return { t: String((x && x.t) || 'Album').slice(0, 40), avg: Math.max(0, Math.min(10, num(x && x.avg, 0))), pos: Math.max(0, Math.floor(num(x && x.pos, 0))) }; }),
           ccd: Math.max(0, Math.min(T.concertEvery, num(r.ccd, 0))), scd: Math.max(0, num(r.scd, T.storyFirst)),
           story: r.story && STORY_BY[r.story.id] ? { id: r.story.id, left: Math.max(0, Math.min(T.storyLife, num(r.story.left, T.storyLife))), other: ART_BY[r.story.other] ? r.story.other : null, genre: PJ_G[r.story.genre] ? r.story.genre : null } : null,
-          style: PJ_G[r.style] ? r.style : null, duo: ART_BY[r.duo] ? r.duo : null });
+          style: PJ_G[r.style] ? r.style : null, duo: ART_BY[r.duo] ? r.duo : null,
+          offer: r.offer && typeof r.offer === 'object' ? { lab: String(r.offer.lab || RIVAL_LABELS[0]).slice(0, 30), left: Math.max(0, Math.min(T.offerLife, num(r.offer.left, T.offerLife))) } : null });
       });
+      S.label.gone = S.label.gone.filter(function (g) { return !artistOf(S, g.id); });
+      // anciennes sauvegardes: la discographie se reconstruit à partir des derniers albums de chaque artiste
+      if (!hadDisc) S.label.roster.forEach(function (r) { r.disco.forEach(function (x) { S.label.disco.push(cleanDisc({ a: r.id, t: x.t, avg: x.avg, pos: x.pos })); }); });
     }
     if (o.deco && typeof o.deco === 'object') {
       DECO.slots.forEach(function (s) { if (DECO_BY[s.id][o.deco[s.id]]) S.deco[s.id] = o.deco[s.id]; });
@@ -1048,9 +1058,10 @@
   function labelMult(S) { var f = 0; ((S.label && S.label.roster) || []).forEach(function (a) { f += a.fame; }); return 1 + T.labelFame * f; }
   // Artiste disponible à la signature: rencontré en sortie, ou repéré quand le studio atteint son lieu.
   function artistAvailable(S, a) {
-    if (artistOf(S, a.id)) return false;
+    if (artistOf(S, a.id) || goneOf(S, a.id)) return false;
     return a.contact ? !!S.contacts[a.contact] : tierIndex(S) >= (a.tier || 0);
   }
+  function goneOf(S, id) { var g = S.label && S.label.gone; if (!g) return null; for (var i = 0; i < g.length; i++) if (g[i].id === id) return g[i]; return null; }
   function artistCost(S) { return incomeRef(S) * T.artistSignSec * (1 + 0.5 * S.label.roster.length); }
   function signArtist(S, id) {
     var a = ART_BY[id];
@@ -1058,14 +1069,38 @@
     var cost = artistCost(S);
     if (S.money < cost) return null;
     S.money -= cost;
-    var r = { id: id, fame: a.contact ? 12 : 5, mood: 65, albums: 0, cd: T.askFirst, ask: null, disco: [], ccd: 0, scd: T.storyFirst, story: null, style: null, duo: null };
+    var r = { id: id, fame: a.contact ? 12 : 5, mood: 65, albums: 0, cd: T.askFirst, ask: null, disco: [], ccd: 0, scd: T.storyFirst, story: null, style: null, duo: null, offer: null };
     S.label.roster.push(r); touch(S);
     checkTrophies(S);
     if (hooks.artistSign) hooks.artistSign(a, r);
     return r;
   }
+  function offerTarget(S) {
+    var ok = S.label.roster.filter(function (r) { return !r.offer && r.fame >= T.offerFame && !(S.proj.cur && S.proj.cur.artist === r.id); });
+    if (!ok.length) return null;
+    var tot = 0; ok.forEach(function (r) { tot += r.fame; });
+    var x = rand() * tot; for (var i = 0; i < ok.length; i++) { x -= ok[i].fame; if (x <= 0) return ok[i]; }
+    return ok[ok.length - 1];
+  }
   function tickLabel(S, dt) {
     if (!labelOpen(S)) return;
+    var L = S.label;
+    L.gone = L.gone.filter(function (g) { g.left -= dt; return g.left > 0; });
+    // offre sans réponse: l'artiste décide seul, selon son humeur
+    L.roster.slice().forEach(function (r) {
+      if (!r.offer) return;
+      r.offer.left -= dt;
+      if (r.offer.left <= 0) { var res = resolveOffer(S, r.id, 'trust'); if (res && hooks.offerAuto) hooks.offerAuto(res); }
+    });
+    // un label rival tente de débaucher un artiste connu
+    if (!L.roster.some(function (r) { return r.offer; })) {
+      if (L.roster.some(function (r) { return r.fame >= T.offerFame; })) L.ocd -= dt;
+      if (L.ocd <= 0) {
+        var tg = offerTarget(S);
+        if (tg) { tg.offer = { lab: RIVAL_LABELS[Math.floor(rand() * RIVAL_LABELS.length)], left: T.offerLife }; if (hooks.artistOffer) hooks.artistOffer(ART_BY[tg.id], tg); }
+        L.ocd = T.offerEvery;
+      }
+    }
     S.label.roster.forEach(function (r) {
       var a = ART_BY[r.id];
       if (r.ccd > 0) r.ccd = Math.max(0, r.ccd - dt);
@@ -1081,6 +1116,43 @@
       if (r.cd <= 0) { r.ask = { left: T.askLife }; r.cd = 0; if (hooks.artistAsk) hooks.artistAsk(a, r); }
     });
   }
+  // ---------- Label: offres des labels rivaux ----------
+  function keepChance(r) { return Math.max(0.1, Math.min(0.95, 0.1 + r.mood / 100 * 0.85)); }
+  function retainCost(S, r) { return eventRef(S) * (1 + r.fame / 25); }
+  function transferFee(S, r) { return eventRef(S) * (0.6 + r.fame / 25); }
+  // choice: 'pay' (prime de fidélité, l'artiste reste), 'trust' (pari sur son humeur), 'release' (indemnité de transfert)
+  function resolveOffer(S, id, choice, rnd) {
+    var r = artistOf(S, id), of = r && r.offer;
+    if (!of) return null;
+    var out = { id: id, lab: of.lab, choice: choice, kept: true, cost: 0, fee: 0, chance: keepChance(r) };
+    if (choice === 'pay') {
+      var cost = retainCost(S, r);
+      if (S.money < cost) return null;
+      S.money -= cost; out.cost = cost; r.mood = Math.min(100, r.mood + 10);
+    } else if (choice === 'trust') {
+      out.kept = (rnd || rand)() < out.chance;
+      if (out.kept) r.mood = Math.min(100, r.mood + 5);
+    } else if (choice === 'release') out.kept = false;
+    else return null;
+    r.offer = null;
+    if (out.kept) { S.label.kept++; out.mood = r.mood; }
+    else {
+      out.fee = transferFee(S, r); S.money += out.fee; S.lifetime += out.fee;
+      S.label.roster = S.label.roster.filter(function (x) { return x !== r; });
+      S.label.roster.forEach(function (x) { if (x.duo === id) x.duo = null; if (x.story && x.story.other === id) { x.story = null; x.scd = T.storyEvery; } });
+      S.label.gone.push({ id: id, lab: of.lab, left: T.goneFor });
+    }
+    touch(S); checkTrophies(S);
+    if (hooks.offerDone) hooks.offerDone(out);
+    return out;
+  }
+  // Discographie complète du label, du plus récent au plus ancien.
+  function discography(S) {
+    var L = S.label, list = L.disco, best = null, top10 = 0, n1 = 0;
+    list.forEach(function (x) { if (!best || x.avg > best.avg) best = x; if (x.pos && x.pos <= 10) top10++; if (x.pos === 1) n1++; });
+    return { list: list, count: L.albums, best: best, top10: top10, n1: n1 };
+  }
+
   // Effet de l'artiste sur la note: son genre, ses ambiances préférées et son humeur.
   function artistParts(S, c) {
     var r = c.artist ? artistOf(S, c.artist) : null;
@@ -1099,6 +1171,7 @@
     r.fame = Math.max(0, Math.min(100, r.fame + dFame)); r.mood = Math.max(0, Math.min(100, r.mood + dMood));
     r.albums++; S.label.albums++;
     r.disco.unshift({ t: c.title, avg: avg, pos: pos }); r.disco = r.disco.slice(0, 10);
+    S.label.disco.unshift({ a: r.id, t: c.title, avg: avg, pos: pos, g: c.genre, w: S.charts ? S.charts.week : 0 }); S.label.disco = S.label.disco.slice(0, 80);
     if (asked) { r.ask = null; r.cd = T.askEvery; }
     touch(S);
     return { id: r.id, fame: r.fame, dFame: r.fame - f0, mood: r.mood, dMood: r.mood - m0, ask: asked, match: match, likes: likes, duo: duo ? duo.id : null, style: style };
@@ -1353,7 +1426,8 @@
     });
     S.ev.cd = T.eventFirst; S.ev.pending = null; S.ev.hold = false;
     if (S.proj) { S.proj.cur = null; S.proj.last = null; } // un projet en cours est abandonné, le carnet reste
-    S.label.roster.forEach(function (a) { a.ask = null; a.cd = T.askEvery; a.story = null; a.scd = T.storyFirst; a.ccd = 0; });
+    S.label.roster.forEach(function (a) { a.ask = null; a.cd = T.askEvery; a.story = null; a.scd = T.storyFirst; a.ccd = 0; a.offer = null; });
+    S.label.ocd = T.offerFirst;
     S.rd.spec = {}; // les recherches restent, les spécialisations se choisissent à nouveau
     // L'équipe part aussi en tournée: ses membres pourront revenir sans prime d'embauche.
     var tm = S.team || newTeam(), al = tm.staff.map(function (m) { return { id: m.id, name: m.name, role: m.role, stars: m.stars, lvl: m.lvl, xp: 0, salary: m.salary, look: m.look }; });
@@ -1417,6 +1491,7 @@
       case 'combo': n = S.battle ? S.battle.best : 0; break;
       case 'signed': n = S.label ? S.label.roster.length : 0; break;
       case 'concerts': n = S.label ? S.label.concerts : 0; break;
+      case 'kept': n = S.label ? S.label.kept : 0; break;
       case 'bestVenue': n = S.label ? S.label.bestVenue : 0; break;
       case 'artistAlbums': n = S.label ? S.label.albums : 0; break;
       case 'artistFame': (S.label ? S.label.roster : []).forEach(function (a) { n = Math.max(n, a.fame); }); break;
@@ -1634,6 +1709,7 @@
     BATTLE: BT, DECO: DECO, decoOpt: decoOpt, decoUnlocked: decoUnlocked, decoProgress: decoProgress, setDeco: setDeco, decoNew: decoNew, seeDeco: seeDeco,
     ARTISTS: ARTISTS, ART_BY: ART_BY, labelOpen: labelOpen, labelCap: labelCap, artistOf: artistOf, labelMult: labelMult, artistAvailable: artistAvailable,
     artistCost: artistCost, signArtist: signArtist, tickLabel: tickLabel, artistParts: artistParts,
+    RIVAL_LABELS: RIVAL_LABELS, goneOf: goneOf, keepChance: keepChance, retainCost: retainCost, transferFee: transferFee, resolveOffer: resolveOffer, discography: discography,
     VENUES: VENUES, STORIES: STORIES, STORY_BY: STORY_BY, venueIndex: venueIndex, concertReady: concertReady, startConcert: startConcert, finishConcert: finishConcert,
     makeStory: makeStory, storyText: storyText, storyCost: storyCost, resolveStory: resolveStory,
     trendFor: trendFor, trendAct: trendAct, makeTrend: makeTrend, RULES: RULES, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, tilesPattern: tilesPattern, startBattle: startBattle, finishBattle: finishBattle
