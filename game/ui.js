@@ -2367,6 +2367,7 @@
     var net = off.net != null ? off.net : off.gain - (off.wages || 0), wages = Math.max(0, off.gain - net);
     var rows = [['Revenus', '+' + eur(off.gain)]];
     if (wages > 1e-6 * off.gain) { rows.push(['Salaires versés', '−' + eur(wages)]); rows.push(['Bilan sur ton budget', (net >= 0 ? '+' : '−') + eur(Math.abs(net))]); }
+    rows.push(['Ton budget', eur(Math.max(0, S.money - net)) + ' → ' + eur(S.money)]);
     if (off.tracks > 0) rows.push(['Productions réalisées', '+' + nf0.format(off.tracks)]);
     if (off.levels > 0) rows.push(['Expertise', '+' + off.levels + ' niveau' + (off.levels > 1 ? 'x' : '')]);
     if (off.trophies > 0) rows.push(['Palmarès', '+' + off.trophies + ' niveau' + (off.trophies > 1 ? 'x' : '')]);
