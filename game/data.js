@@ -679,6 +679,8 @@
     { id: 'vedette', name: 'Faiseur de vedettes', m: 'artistFame', levels: [40, 75, 100], desc: 'Porte un artiste à {n} de notoriété.' },
     { id: 'scene', name: 'Bête de scène', m: 'concerts', levels: [1, 10, 40], desc: 'Donne {n} concerts avec tes artistes.', descs: ['Donne le premier concert d’un de tes artistes.'] },
     { id: 'salles', name: 'Grandes salles', m: 'bestVenue', levels: [3, 4, 5], descs: ['Remplis une salle de concert.', 'Remplis le Zénith.', 'Remplis un stade.'] },
+    { id: 'routard', name: 'Routard', m: 'cities', levels: [5, 20, 50], desc: 'Joue dans {n} villes différentes en tournée locale.' },
+    { id: 'monde', name: 'Tour du monde', m: 'souvenirs', levels: [3, 8, 12], desc: 'Joue {n} dates différentes de la tournée mondiale.' },
     { id: 'fidele', name: 'Fidélité', m: 'kept', levels: [1, 5, 15], desc: 'Garde {n} artistes courtisés par un label rival.', descs: ['Garde un artiste courtisé par un label rival.'] },
     { id: 'tubes', name: 'Faiseur de tubes', m: 'tubes', levels: [10, 250, 5000], desc: 'Sors {n} tubes grâce aux paliers de maîtrise.', descs: ['Sors 10 tubes grâce au palier Hit-maker.'] },
     { id: 'combo', name: 'Main sûre', m: 'combo', levels: [20, 50, 100], desc: 'Enchaîne {n} frappes réussies d’affilée dans un clash.' }
@@ -891,6 +893,76 @@
     { id: 'stade', name: 'Le stade', fame: 90, mult: 15, cap: '60 000 places' }
   ];
   var GENRE_BPM = { rap: 90, pop: 108, electro: 124, lofi: 80, chanson: 96, afro: 104, rnb: 92, trap: 140, rock: 128, jazz: 100, kpop: 116, bo: 88 };
+  // Pays où le studio peut être installé (une carrière = un pays) et leurs villes de tournée, de la province à la capitale.
+  // Dates de la tournée mondiale: un défi chacune. m: mesure; d: à réaliser pendant cette carrière (augmente à chaque tournée); abs: valeur à atteindre.
+  var WORLD = {
+    countries: [
+      { id: 'fr', name: 'France', cities: ['Lille', 'Rennes', 'Nantes', 'Bordeaux', 'Toulouse', 'Montpellier', 'Marseille', 'Lyon', 'Strasbourg', 'Paris'] },
+      { id: 'uk', name: 'Royaume-Uni', cities: ['Glasgow', 'Édimbourg', 'Newcastle', 'Leeds', 'Liverpool', 'Manchester', 'Birmingham', 'Bristol', 'Brighton', 'Londres'] },
+      { id: 'us', name: 'États-Unis', cities: ['Seattle', 'Denver', 'Austin', 'Nashville', 'Atlanta', 'Miami', 'Detroit', 'Chicago', 'Los Angeles', 'New York'] },
+      { id: 'jp', name: 'Japon', cities: ['Sapporo', 'Sendai', 'Niigata', 'Nagoya', 'Kyoto', 'Kobe', 'Hiroshima', 'Fukuoka', 'Osaka', 'Tokyo'] },
+      { id: 'br', name: 'Brésil', cities: ['Manaus', 'Fortaleza', 'Recife', 'Salvador', 'Brasília', 'Belo Horizonte', 'Curitiba', 'Porto Alegre', 'São Paulo', 'Rio de Janeiro'] },
+      { id: 'ng', name: 'Nigeria', cities: ['Kano', 'Kaduna', 'Jos', 'Ibadan', 'Enugu', 'Calabar', 'Port Harcourt', 'Benin City', 'Abuja', 'Lagos'] },
+      { id: 'de', name: 'Allemagne', cities: ['Kiel', 'Hambourg', 'Brême', 'Hanovre', 'Dresde', 'Leipzig', 'Cologne', 'Francfort', 'Munich', 'Berlin'] }
+    ],
+    dates: [
+      { id: 'olympia', c: 'fr', city: 'Paris', venue: 'l’Olympia', m: 'num1', d: 1, text: 'Classe un titre n°1 du Top 50' },
+      { id: 'velodrome', c: 'fr', city: 'Marseille', venue: 'le Vélodrome', m: 'orders', d: 25, text: 'Livre {n} commandes clients' },
+      { id: 'wembley', c: 'uk', city: 'Londres', venue: 'Wembley', m: 'artistFame', abs: 90, text: 'Porte un artiste du label à {n} de notoriété' },
+      { id: 'apollo', c: 'uk', city: 'Manchester', venue: 'l’Apollo', m: 'teamMood', abs: 80, text: 'Aie une équipe au complet avec {n} % de moral moyen' },
+      { id: 'msg', c: 'us', city: 'New York', venue: 'le Madison Square Garden', m: 'battles', d: 3, text: 'Remporte {n} clashs' },
+      { id: 'hollywood', c: 'us', city: 'Los Angeles', venue: 'le Hollywood Bowl', m: 'rank', abs: 100, text: 'Monte une production au rang {n}' },
+      { id: 'budokan', c: 'jp', city: 'Tokyo', venue: 'le Budokan', m: 'pianoRun', abs: 60, text: 'Enchaîne {n} tuiles au piano' },
+      { id: 'dome', c: 'jp', city: 'Osaka', venue: 'le Kyocera Dome', m: 'top10', abs: 3, text: 'Place {n} titres dans le top 10 en même temps' },
+      { id: 'maracana', c: 'br', city: 'Rio de Janeiro', venue: 'le Maracanã', m: 'concerts', d: 3, text: 'Donne {n} concerts avec tes artistes' },
+      { id: 'allianz', c: 'br', city: 'São Paulo', venue: 'l’Allianz Parque', m: 'ltours', d: 2, text: 'Envoie {n} artistes en tournée locale' },
+      { id: 'eko', c: 'ng', city: 'Lagos', venue: 'l’Eko Convention Center', m: 'projRun', abs: 9, text: 'Sors un projet noté {n}/10 ou plus' },
+      { id: 'berghain', c: 'de', city: 'Berlin', venue: 'le Berghain', m: 'tubes', d: 50, text: 'Sors {n} tubes' }
+    ],
+    pick: 8,          // dates proposées par carrière
+    fameDate: 0.12,   // renommée en plus par date confirmée
+    fameSlam: 0.3,    // bonus si toutes les dates sont confirmées
+    souvenir: 0.02,   // gains en plus pour toujours par date jouée au moins une fois
+    grow: 0.25        // les défis « pendant cette carrière » grandissent de 25 % par tournée (jusqu'à 8 tournées)
+  };
+
+  // Tournées locales des artistes: taille, transport et setlist décident du coût, de la durée et des récompenses.
+  // leg: secondes par ville; cost: multiple du revenu de référence; ok: chance de réussite d'une date.
+  var LTOUR = {
+    sizes: [
+      { id: 'petite', name: 'Petite tournée', n: 3, leg: 360, cost: 1 },
+      { id: 'nationale', name: 'Tournée nationale', n: 5, leg: 480, cost: 2 },
+      { id: 'grande', name: 'Grande tournée', n: 8, leg: 600, cost: 4 }
+    ],
+    transports: [
+      { id: 'van', name: 'Le van', cost: 0.4, speed: 1, mood: -3, desc: 'Économique mais fatigant' },
+      { id: 'bus', name: 'Bus de tournée', cost: 1, speed: 1, mood: 0, desc: 'Confortable' },
+      { id: 'avion', name: 'Avion', cost: 2.5, speed: 0.7, mood: 1, desc: '30 % plus rapide et reposant' }
+    ],
+    sets: [
+      { id: 'classiques', name: 'Ses classiques', ok: 0.85, fame: 2, cash: 1, mood: 0, extra: 0, desc: 'Sûr : le public connaît les paroles' },
+      { id: 'nouveaux', name: 'Les nouveaux titres', ok: 0.6, fame: 4, cash: 0.9, mood: 3, extra: 0, desc: 'Risqué, mais l’artiste adore' },
+      { id: 'show', name: 'Show spectaculaire', ok: 0.8, fame: 3, cash: 1.7, mood: 1, extra: 1, desc: 'Écrans géants et pyrotechnie : ça coûte cher' }
+    ],
+    cash: 0.6, rest: 600, incChance: 0.4, incLife: 300,
+    // Imprévus en route: deux choix; def: choix appliqué si personne ne répond à temps.
+    // fx: fame, mood, cost (multiple du revenu de référence), delay (secondes), skip (date annulée), risk (chance de réussite) avec ffame/fmood en cas d'échec.
+    incidents: [
+      { id: 'rappel', title: 'Le public réclame un rappel à {city}', text: 'La salle tape des pieds. {name} est épuisé mais ravi.', def: 1,
+        choices: [{ text: 'Remonter sur scène', fx: { fame: 2, mood: -2 } }, { text: 'Saluer et filer au lit', fx: { mood: 1 } }] },
+      { id: 'panne', title: 'Panne sur la route de {city}', text: 'Le véhicule rend l’âme sur une aire d’autoroute.', def: 1,
+        choices: [{ text: 'Payer un dépanneur express', fx: { cost: 0.5 } }, { text: 'Attendre le garage', fx: { delay: 240, mood: -4 } }] },
+      { id: 'radio', title: 'Une radio de {city} veut une interview', text: 'Une matinale très écoutée propose un passage en direct.', def: 1,
+        choices: [{ text: 'Accepter l’interview', fx: { fame: 3, mood: -1 } }, { text: 'Décliner poliment', fx: {} }] },
+      { id: 'fans', title: 'Des fans attendent devant la salle', text: 'Une centaine de fans campent devant l’entrée des artistes à {city}.', def: 1,
+        choices: [{ text: 'Organiser une séance de dédicaces', fx: { fame: 2, mood: 2, cost: 0.1 } }, { text: 'Sortir par la porte de derrière', fx: { fame: -1 } }] },
+      { id: 'voix', title: '{name} a perdu sa voix', text: 'Un mauvais rhume avant la date de {city}.', def: 0,
+        choices: [{ text: 'Annuler la date', fx: { skip: 1, mood: 2 } }, { text: 'Jouer quand même', fx: { risk: 0.5, fame: 1, ffame: -3, fmood: -6 } }] },
+      { id: 'feat', title: 'Une star locale veut monter sur scène', text: 'Une figure de la scène de {city} propose un featuring surprise.', def: 1,
+        choices: [{ text: 'Accepter le featuring', fx: { fame: 4, cost: 0.3 } }, { text: 'Garder le show tel quel', fx: {} }] }
+    ]
+  };
+
   // Labels rivaux qui tentent de débaucher tes artistes.
   var RIVAL_LABELS = ['Sonix Records', 'Plume Majeure', 'Galaxie Music', 'Bulle Prod', 'Néon Disques', 'Hexagone Music', 'Vinyle d’Or', 'Studio Comète'];
 
@@ -972,7 +1044,7 @@
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, PIANO: PIANO, PERKS: PERKS, TUBE: TUBE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES, RIVAL_LABELS: RIVAL_LABELS };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, PIANO: PIANO, PERKS: PERKS, TUBE: TUBE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES, RIVAL_LABELS: RIVAL_LABELS, WORLD: WORLD, LTOUR: LTOUR };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);

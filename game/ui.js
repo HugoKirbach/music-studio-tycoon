@@ -174,7 +174,7 @@
 
   // ---------- Label ----------
   var lbv = { key: '', cards: {}, wasOpen: null, tv: 'staff' };
-  function labelAsks() { return G.labelOpen(S) && S.label.roster.some(function (r) { return r.ask || r.story || r.offer; }); }
+  function labelAsks() { return G.labelOpen(S) && S.label.roster.some(function (r) { return r.ask || r.story || r.offer || (r.tour && r.tour.inc); }); }
   function labelOffer() { return G.labelOpen(S) && S.label.roster.some(function (r) { return r.offer; }); }
   // L'onglet Équipe regroupe l'équipe du studio et le label (artistes signés).
   function teamView(v) {
@@ -203,27 +203,31 @@
     setText($('labelNote'), L.roster.length
       ? 'Leur notoriété ajoute +' + nf1.format((G.labelMult(S) - 1) * 100) + ' % à tous tes gains. Respecte leur genre et leurs goûts : un artiste content progresse plus vite.'
       : 'Signe un artiste, puis produis ses albums avec l’outil de projet de création. Ses albums font grimper sa notoriété, qui dope les ventes et tous tes gains.');
-    var key = JSON.stringify(L.roster.map(function (r) { return [r.id, Math.round(r.fame), Math.round(r.mood), !!r.ask, r.albums, !!r.story, r.style, r.duo, r.offer && r.offer.lab]; })) + '|' + avail.map(function (a) { return a.id; }).join(',') + '|' + cap + '|' + !!S.proj.cur;
+    var key = JSON.stringify(L.roster.map(function (r) { return [r.id, Math.round(r.fame), Math.round(r.mood), !!r.ask, r.albums, !!r.story, r.style, r.duo, r.offer && r.offer.lab, r.tour ? r.tour.i + (r.tour.inc ? r.tour.inc.id : '') : r.tcd > 0, r.tours]; })) + '|' + avail.map(function (a) { return a.id; }).join(',') + '|' + cap + '|' + !!S.proj.cur;
     if (key !== lbv.key) {
       lbv.key = key; lbv.cards = {};
       $('labelRoster').innerHTML = L.roster.map(function (r) {
         var a = G.ART_BY[r.id], mt = moodTxt(r.mood), last = r.disco[0];
         var vn = D.VENUES[G.venueIndex(r)];
-        return '<article class="card artist' + (r.ask ? ' ask' : '') + (r.story ? ' story' : '') + (r.offer ? ' offer' : '') + '" data-aid="' + r.id + '">' +
+        var tl = r.tourLast;
+        return '<article class="card artist' + (r.ask ? ' ask' : '') + (r.story ? ' story' : '') + (r.offer ? ' offer' : '') + (r.tour ? ' touring' : '') + '" data-aid="' + r.id + '">' +
           '<div class="a-head"><span class="a-av" style="--ac:' + (GENRE_COL[a.genre] || '#777') + '" aria-hidden="true">' + esc(artInitials(a.name)) + '</span><div><b>' + esc(a.name) + '</b><small>' + esc(G.PJ_G[a.genre].name) + ' · aime ' + a.likes.map(function (m) { return esc(G.PJ_M[m].name.toLowerCase()); }).join(' et ') + '</small></div><span class="a-mood m' + mt[1] + '">' + mt[0] + '</span></div>' +
           '<div class="a-fame"><span>Notoriété</span><span class="meter" aria-hidden="true"><i style="width:' + r.fame + '%"></i></span><b>' + Math.round(r.fame) + '</b></div>' +
-          '<p class="' + (r.ask ? 'a-ask' : 'a-line') + '" data-k="when"></p>' +
+          (r.tour ? '<p class="a-tour" data-k="tour"></p>' + (r.tour.inc ? '<p class="a-offer">Imprévu : ' + esc(G.ltourText(S, r, G.LT_INC[r.tour.inc.id].title)) + '</p>' : '') : '<p class="' + (r.ask ? 'a-ask' : 'a-line') + '" data-k="when"></p>') +
           (r.offer ? '<p class="a-offer" data-k="offer"></p>' : '') +
           (r.story ? '<p class="a-story">' + esc(artName(r.id)) + ' a quelque chose à te dire.</p>' : '') +
           (r.style || r.duo ? '<p class="a-line">' + (r.style ? 'Prochain album : envie de ' + esc(G.PJ_G[r.style].name) + '. ' : '') + (r.duo ? 'Duo prévu avec ' + esc(artName(r.duo)) + '.' : '') + '</p>' : '') +
+          (tl && !r.tour ? '<p class="a-line">Dernière tournée (' + esc(G.COUNTRY_BY[tl.c] ? G.COUNTRY_BY[tl.c].name : '') + ') : ' + tl.ok + '/' + tl.n + ' dates réussies, +' + eur(tl.cash) + ', notoriété ' + (tl.fame >= 0 ? '+' : '') + Math.round(tl.fame) + '</p>' : '') +
           (last ? '<p class="a-line">Dernier album : « ' + esc(last.t) + ' » ' + nf1.format(last.avg) + '/10' + (last.pos ? ', entré n°' + last.pos : '') + ' · ' + r.albums + ' album' + (r.albums > 1 ? 's' : '') + '</p>' : '<p class="a-line">Pas encore d’album sur ton label.</p>') +
-          '<div class="proj-row"><button class="btn sm' + (r.ask ? ' primary' : '') + '" type="button" data-art="album" data-id="' + r.id + '"' + (S.proj.cur ? ' disabled' : '') + '>' + (S.proj.cur ? 'Un projet est déjà en cours' : 'Préparer son album') + '</button>' +
+          '<div class="proj-row">' + (r.tour ? (r.tour.inc ? '<button class="btn sm primary" type="button" data-art="inc" data-id="' + r.id + '">Répondre</button>' : '') :
+          '<button class="btn sm' + (r.ask ? ' primary' : '') + '" type="button" data-art="album" data-id="' + r.id + '"' + (S.proj.cur ? ' disabled' : '') + '>' + (S.proj.cur ? 'Un projet est déjà en cours' : 'Préparer son album') + '</button>') +
           (r.offer ? '<button class="btn sm primary" type="button" data-art="offer" data-id="' + r.id + '">Répondre</button>' : '') +
           (r.story ? '<button class="btn sm primary" type="button" data-art="story" data-id="' + r.id + '">L’écouter</button>' : '') +
-          '<button class="btn sm" type="button" data-art="concert" data-id="' + r.id + '"><span data-k="cc">Concert</span></button></div></article>';
+          (r.tour ? '' : '<button class="btn sm" type="button" data-art="concert" data-id="' + r.id + '"><span data-k="cc">Concert</span></button>' +
+          '<button class="btn sm" type="button" data-art="ltour" data-id="' + r.id + '"><span data-k="lt">Tournée</span></button>') + '</div></article>';
       }).join('');
       lbv.offers = {};
-      L.roster.forEach(function (r) { var cd = $('labelRoster').querySelector('[data-aid="' + r.id + '"]'); lbv.cards[r.id] = cd.querySelector('[data-k="when"]'); lbv.offers[r.id] = cd.querySelector('[data-k="offer"]'); lbv.cc = lbv.cc || {}; lbv.cc[r.id] = cd.querySelector('[data-art="concert"]'); });
+      L.roster.forEach(function (r) { var cd = $('labelRoster').querySelector('[data-aid="' + r.id + '"]'); lbv.cards[r.id] = cd.querySelector('[data-k="when"]'); lbv.offers[r.id] = cd.querySelector('[data-k="offer"]'); lbv.cc = lbv.cc || {}; lbv.cc[r.id] = cd.querySelector('[data-art="concert"]'); lbv.lt = lbv.lt || {}; lbv.lt[r.id] = cd.querySelector('[data-art="ltour"]'); lbv.tr = lbv.tr || {}; lbv.tr[r.id] = cd.querySelector('[data-k="tour"]'); });
       setHidden($('labelScoutT'), !avail.length);
       var full = L.roster.length >= cap, cost = G.artistCost(S);
       $('labelScouts').innerHTML = avail.map(function (a) {
@@ -239,9 +243,17 @@
     L.roster.forEach(function (r) {
       var oe = lbv.offers && lbv.offers[r.id];
       if (oe && r.offer) setText(oe, r.offer.lab + ' veut signer ' + artName(r.id) + ' · réponds avant ' + clock(r.offer.left));
+      var te = lbv.tr && lbv.tr[r.id];
+      if (te && r.tour) { var T0 = r.tour, left = (T0.cities.length - T0.i) * G.legTime(T0) - T0.t; setText(te, 'En tournée · ' + T0.cities[T0.i] + ' (' + (T0.i + 1) + '/' + T0.cities.length + ') · retour dans ' + clock(left)); }
       var el = lbv.cards[r.id]; if (!el) return;
       var busy = S.proj.cur && S.proj.cur.artist === r.id;
       setText(el, busy ? 'Son album est en cours de production.' : r.ask ? artName(r.id) + ' veut sortir un album · reste ' + clock(r.ask.left) : 'Prochaine envie d’album dans ' + clock(r.cd) + '.');
+    });
+    L.roster.forEach(function (r) {
+      var lb = lbv.lt && lbv.lt[r.id]; if (!lb) return;
+      var rd = G.ltourReady(S, r);
+      setText(lb.firstChild, rd ? 'Tournée' : r.tcd > 0 ? 'Tournée dans ' + clock(r.tcd) : 'Tournée');
+      setDisabled(lb, !rd);
     });
     L.roster.forEach(function (r) {
       var b = lbv.cc && lbv.cc[r.id]; if (!b) return;
@@ -260,8 +272,113 @@
       else if (what === 'concert') { var cc = G.startConcert(S, id); if (cc) openClash(cc); }
       else if (what === 'story') openStory(id);
       else if (what === 'offer') openOffer(id);
+      else if (what === 'ltour') openLtour(id);
+      else if (what === 'inc') openIncident(id);
       else openProj(id);
     });
+  }
+
+  // ---------- Tournées locales ----------
+  var ltv = { open: false, id: null, opener: null, size: 'nationale', tr: 'bus', set: 'classiques' };
+  function ltSeg(box, list, cur, key) {
+    box.innerHTML = list.map(function (x) { return '<button type="button" data-' + key + '="' + x.id + '" aria-pressed="' + (x.id === cur) + '"><span>' + esc(x.name) + '</span><small>' + esc(x.desc || (x.n + ' villes')) + '</small></button>'; }).join('');
+  }
+  function ltPreview() {
+    var p = G.ltourPreview(S, ltv.id, ltv.size, ltv.tr, ltv.set); if (!p) return;
+    var C = G.homeCountry(S), cells = [['Coût', eur(p.cost)], ['Durée', away(p.time)], ['Villes', p.n + ', finale à ' + C.cities[C.cities.length - 1]],
+      ['Réussite par date', Math.round(p.ok * 100) + ' %'], ['Gains estimés', '+' + eur(p.cash)], ['Notoriété estimée', (p.fame >= 0 ? '+' : '') + Math.round(p.fame)]];
+    $('ltPrev').innerHTML = cells.map(function (c) { return '<div><span>' + esc(c[0]) + '</span><b>' + esc(c[1]) + '</b></div>'; }).join('');
+    var ok = S.money >= p.cost;
+    setDisabled($('ltGo'), !ok);
+    setText($('ltGoS'), ok ? artName(ltv.id) + ' sera indisponible ' + away(p.time) + ' (albums, concerts)' : 'Il te manque ' + eur(p.cost - S.money));
+  }
+  function openLtour(id) {
+    var r = G.artistOf(S, id);
+    if (!r || ltv.open || !G.ltourReady(S, r)) return;
+    ltv.open = true; ltv.id = id; ltv.opener = document.activeElement;
+    var C = G.homeCountry(S);
+    setText($('ltCountry'), C.name);
+    $('ltTitle').textContent = artName(id) + ' part sur les routes';
+    $('ltText').textContent = 'Choisis la tournée de ' + artName(id) + ' à travers le pays (' + C.name + '). La tournée continue même quand tu n’es pas là ; des imprévus t’attendront en route. Plus l’artiste est connu et de bonne humeur, plus les dates réussissent.';
+    ltSeg($('ltSize'), G.LTOUR.sizes, ltv.size, 'lsz'); ltSeg($('ltTr'), G.LTOUR.transports, ltv.tr, 'ltr'); ltSeg($('ltSet'), G.LTOUR.sets, ltv.set, 'lst');
+    ltPreview();
+    $('ltScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    $('ltGo').focus();
+  }
+  function closeLtour() {
+    if (!ltv.open) return;
+    ltv.open = false;
+    $('ltScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    var o = ltv.opener; ltv.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+    lbv.key = ''; render();
+  }
+  function bindLtour() {
+    $('ltScrim').addEventListener('click', function (e) {
+      if (e.target === $('ltScrim')) { closeLtour(); return; }
+      var b = e.target.closest('button[data-lsz],button[data-ltr],button[data-lst]'); if (!b) return;
+      if (b.hasAttribute('data-lsz')) ltv.size = b.getAttribute('data-lsz');
+      if (b.hasAttribute('data-ltr')) ltv.tr = b.getAttribute('data-ltr');
+      if (b.hasAttribute('data-lst')) ltv.set = b.getAttribute('data-lst');
+      b.parentNode.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      ltPreview();
+    });
+    $('ltGo').addEventListener('click', function () {
+      var t = G.startLtour(S, ltv.id, ltv.size, ltv.tr, ltv.set);
+      if (!t) return;
+      saveLocal(); markCloud(); blip(10);
+      toast(artName(ltv.id) + ' part en tournée : ' + t.cities.join(', ') + '.', 6000);
+      closeLtour();
+    });
+    $('ltClose').addEventListener('click', closeLtour);
+    document.addEventListener('keydown', function (e) { if (ltv.open && e.key === 'Escape') { e.preventDefault(); closeLtour(); } });
+  }
+  // Imprévu en tournée: même fenêtre que les histoires, deux réponses.
+  function openIncident(id) {
+    var r = G.artistOf(S, id), inc = r && r.tour && r.tour.inc, x = inc && G.LT_INC[inc.id];
+    if (!x || stv.open) return;
+    stv.open = true; stv.id = id; stv.kind = 'inc'; stv.opener = document.activeElement;
+    setText($('stWho'), artName(id) + ' en tournée');
+    $('stTitle').textContent = G.ltourText(S, r, x.title);
+    $('stText').textContent = G.ltourText(S, r, x.text) + ' Sans réponse avant ' + clock(inc.left) + ', l’équipe de tournée choisira « ' + x.choices[x.def].text.toLowerCase() + ' ».';
+    var box = $('stChoices'); box.innerHTML = ''; var first = null;
+    x.choices.forEach(function (c, i) {
+      var cost = c.fx.cost ? G.eventRef(S) * c.fx.cost : 0, ok = S.money >= cost, b = document.createElement('button');
+      b.type = 'button'; b.className = 'btn choice'; b.setAttribute('data-ic', i); b.disabled = !ok;
+      b.innerHTML = '<span class="k"></span><span class="cw"><span class="ct"></span><span class="tags"></span></span>';
+      b.querySelector('.k').textContent = 'AB'.charAt(i); b.querySelector('.ct').textContent = c.text;
+      var tg = b.querySelector('.tags'), tags = [];
+      if (cost) tags.push(['cost' + (ok ? '' : ' short'), 'Coûte ' + eur(cost)]);
+      if (c.fx.risk) tags.push(['risk', 'Risqué · ' + Math.round(c.fx.risk * 100) + ' % de réussite']);
+      if (c.fx.delay) tags.push(['', 'Retard ' + dur(c.fx.delay)]);
+      if (c.fx.skip) tags.push(['', 'Date annulée']);
+      tags.forEach(function (x2) { var sp = document.createElement('span'); sp.className = 'tag ' + x2[0]; sp.textContent = x2[1]; tg.appendChild(sp); });
+      if (!tags.length) tg.remove();
+      if (ok && !first) first = b;
+      box.appendChild(b);
+    });
+    $('stAsk').hidden = false; $('stDone').hidden = true;
+    $('storyScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    (first || $('stLater')).focus();
+  }
+  function incidentDone(res) {
+    var vd = $('stVerdict');
+    vd.hidden = res.win === null;
+    if (res.win !== null) { vd.textContent = res.win ? 'Ça passe !' : 'Ça casse…'; vd.className = 'ev-verdict ' + (res.win ? 'win' : 'loss'); }
+    $('stOut').textContent = res.skip ? 'La date est annulée : ' + artName(stv.id) + ' se repose avant la suite.' : res.delay ? 'La tournée prend un peu de retard.' : 'La tournée continue.';
+    var rows = [];
+    if (res.cost) rows.push(['Dépense', '−' + eur(res.cost)]);
+    if (res.fame) rows.push(['Notoriété', (res.fame > 0 ? '+' : '') + Math.round(res.fame)]);
+    if (res.mood) rows.push(['Humeur', (res.mood > 0 ? '+' : '') + Math.round(res.mood)]);
+    if (res.delay) rows.push(['Retard', dur(res.delay)]);
+    var box = $('stReward'); box.innerHTML = '';
+    rows.forEach(function (r, k) {
+      var row = document.createElement('div'); row.className = 'rw'; row.style.setProperty('--d', (0.2 + k * 0.4) + 's');
+      row.innerHTML = '<span class="rl"></span><b class="rv"></b>'; row.firstChild.textContent = r[0]; row.lastChild.textContent = r[1];
+      box.appendChild(row);
+    });
+    $('stAsk').hidden = true; $('stDone').hidden = false; $('stClose').focus();
+    blip(8); saveLocal(); markCloud();
   }
 
   // ---------- Discographie du label ----------
@@ -676,6 +793,7 @@
       html: HOT_DECO + '<span>Déco</span>' + (dn ? '<i class="bang" aria-hidden="true">' + dn + '</i>' : '') });
     var HOT_MIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
     if (G.labelOpen(S)) S.label.roster.forEach(function (r) {
+      if (r.tour) return;
       var what = r.offer ? 'offer' : r.story ? 'story' : r.ask ? 'ask' : null;
       if (!what) return;
       var nm = artName(r.id);
@@ -1077,6 +1195,8 @@
     $('stChoices').addEventListener('click', function (e) {
       var ob = e.target.closest('button[data-oc]');
       if (ob && !ob.disabled && stv.kind === 'offer') { var or = G.resolveOffer(S, stv.id, ob.getAttribute('data-oc')); if (or) offerDone(or); return; }
+      var ib = e.target.closest('button[data-ic]');
+      if (ib && !ib.disabled && stv.kind === 'inc') { var ir = G.resolveIncident(S, stv.id, +ib.getAttribute('data-ic')); if (ir) incidentDone(ir); return; }
       var b = e.target.closest('button[data-i]'); if (!b || b.disabled) return;
       var res = G.resolveStory(S, stv.id, +b.getAttribute('data-i'));
       if (!res) return;
@@ -1811,7 +1931,7 @@
       ghosts: visibleItems().out.slice(0, 2).map(function (i) { return i.id; }),
       cap: G.teamOpen(S) ? G.teamCap(S) : 0, edrums: G.battleOpen(S), deco: decoView(),
       staff: S.team.staff.map(function (m) { return { id: m.id, look: m.look, role: m.role, morale: m.morale, act: m.act, status: memberStatus(m) }; }),
-      artists: G.labelOpen(S) ? S.label.roster.map(function (r) { return { id: r.id, look: artistLook(r.id), mood: r.mood }; }) : []
+      artists: G.labelOpen(S) ? S.label.roster.filter(function (r) { return !r.tour; }).map(function (r) { return { id: r.id, look: artistLook(r.id), mood: r.mood }; }) : []
     });
     if (S3.setHotspots) hotspots();
   }
@@ -2153,19 +2273,43 @@
   // ---------- Tournée mondiale ----------
   var tour = { open: false, was: null, fresh: false };
   function pctOf(x) { return nf0.format(Math.round(x * 100)); }
+  var wtv = { key: '', home: null };
+  function renderWorld() {
+    var open = G.worldOpen(S);
+    setHidden($('wtBox'), !open);
+    if (!open) return;
+    var W = D.WORLD, ds = G.worldDates(S), done = G.worldDone(S).length, mult = G.worldMult(S);
+    setText($('wtSum'), done + ' / ' + ds.length + ' dates · renommée +' + Math.round((mult - 1) * 100) + ' %');
+    var key = ds.map(function (d) { var n = G.worldNeed(S, d), v = Math.min(n, G.worldValue(S, d)); return d.id + (S.world.done[d.id] ? '!' : Math.floor(v / n * 20)); }).join(',');
+    if (key !== wtv.key) {
+      wtv.key = key;
+      $('wtDates').innerHTML = ds.map(function (d, i) {
+        var n = G.worldNeed(S, d), on = !!S.world.done[d.id], v = on ? n : Math.min(n, G.worldValue(S, d)), C = G.COUNTRY_BY[d.c];
+        return '<li class="' + (on ? 'on' : '') + '"><span class="pin" aria-hidden="true">' + (on ? '✓' : i + 1) + '</span><b>' + esc(d.city) + ', ' + esc(d.venue) + '</b>' +
+          '<small>' + esc(C ? C.name : '') + ' · ' + esc(d.text.replace('{n}', d.m === 'projRun' ? n : nf0.format(n))) + (d.abs == null ? ' pendant cette carrière' : '') + '</small>' +
+          (on ? '<small>Date confirmée</small>' : '<span class="meter" aria-hidden="true"><i style="width:' + Math.round(v / n * 100) + '%"></i></span>') + '</li>';
+      }).join('');
+    }
+    var sv = G.souvenirs(S);
+    setText($('wtNote'), 'Chaque date confirmée ajoute ' + Math.round(W.fameDate * 100) + ' % de renommée au départ en tournée, et +' + Math.round(W.fameSlam * 100) + ' % de plus si toutes le sont. Chaque date jouée devient un souvenir : +' + Math.round(W.souvenir * 100) + ' % de gains pour toujours' +
+      (sv ? ' (déjà ' + sv + ' souvenir' + (sv > 1 ? 's' : '') + ', +' + Math.round(W.souvenir * sv * 100) + ' %)' : '') + '. Ton studio est basé en ' + G.homeCountry(S).name + '.');
+  }
   function renderTour() {
     var T = D.TUNING, fame = S.fame || 0, avail = G.canTour(S), pts = G.fameAvailable(S);
+    renderWorld();
+    var wm = G.worldMult(S), xtra = Math.round(pts * (wm - 1));
     setHidden($('tourFame'), !fame);
     setText($('tourFame'), 'Renommée ' + fame + ' · +' + pctOf(T.fameBonus * fame) + NB + '% de gains · +' + pctOf(T.fameXp * fame) + NB + '% d’expertise');
     var lt = S.lifetime;
     if (avail) {
       var tot = fame + pts;
-      setText($('tourText'), 'Tu peux partir maintenant : +' + pts + (pts > 1 ? ' points' : ' point') + ' de renommée (' + tot + ' au total), soit +' + pctOf(T.fameBonus * tot) +
+      tot += xtra;
+      setText($('tourText'), 'Tu peux partir maintenant : +' + (pts + xtra) + (pts + xtra > 1 ? ' points' : ' point') + ' de renommée' + (xtra ? ' (dont ' + xtra + ' grâce aux dates confirmées)' : '') + ' (' + tot + ' au total), soit +' + pctOf(T.fameBonus * tot) +
         NB + '% de gains et +' + pctOf(T.fameXp * tot) + NB + '% d’expertise pour toujours. Attendre rapporte plus de points, mais de moins en moins vite.');
       var lo = G.fameAt(G.fameFor(lt)), hi = G.fameNextAt(S);
       setWidth($('tourFill'), Math.max(0, Math.min(100, (lt - lo) / (hi - lo) * 100)));
       setText($('tourNote'), 'Point suivant : ' + eur(lt) + ' / ' + eur(hi));
-      setText($('tourBtnSub'), '+' + pts + (pts > 1 ? ' points' : ' point') + ' de renommée');
+      setText($('tourBtnSub'), '+' + (pts + xtra) + (pts + xtra > 1 ? ' points' : ' point') + ' de renommée');
     } else {
       var need = G.fameUnlockAt(S);
       setText($('tourText'), fame
@@ -2189,21 +2333,37 @@
     var pts = G.fameAvailable(S);
     if (!pts || !G.canTour(S)) return;
     tour.open = true;
-    $('tourAsk').textContent = 'Tu repars d’un ordinateur portable : budget, expertise, matériel, perfectionnements et catalogue sont remis à zéro. Tu gardes ta renommée (+' + pts +
-      (pts > 1 ? ' points' : ' point') + '), tes contacts, tes trophées et ton compteur de gains. Partir maintenant ?';
+    var xtra = Math.round(pts * (G.worldMult(S) - 1)), nd = G.worldDone(S).length;
+    $('tourAsk').textContent = 'Tu repars d’un ordinateur portable : budget, expertise, matériel, perfectionnements et catalogue sont remis à zéro. Tu gardes ta renommée (+' + (pts + xtra) +
+      (pts + xtra > 1 ? ' points' : ' point') + (nd ? ', dont ' + xtra + ' grâce à ' + nd + ' date' + (nd > 1 ? 's' : '') + ' confirmée' + (nd > 1 ? 's' : '') : '') + '), tes contacts, tes trophées, ton label et ton compteur de gains. Partir maintenant ?';
+    var hc = G.homeChoices(S); wtv.home = S.world.home;
+    setHidden($('wtHomeBox'), hc.length < 2);
+    $('wtHome').innerHTML = hc.map(function (c) { return '<button type="button" data-home="' + c + '" aria-pressed="' + (c === wtv.home) + '">' + esc(G.COUNTRY_BY[c].name) + '</button>'; }).join('');
     renderTour();
     $('tourNo').focus({ preventScroll: true });
     $('tourConfirm').scrollIntoView({ block: 'center' });
   }
   function startTour() {
-    var r = G.tour(S, Date.now());
+    var r = G.tour(S, Date.now(), wtv.home);
     if (!r) return;
-    tour.open = false; tour.fresh = false;
+    tour.open = false; tour.fresh = false; wtv.key = '';
     adopt(JSON.parse(JSON.stringify(S)), true);
     if (bind.view) bind.view('prod');
-    toast('Tournée terminée : +' + r.points + (r.points > 1 ? ' points' : ' point') + ' de renommée. Tu repars avec ton portable.', 7000);
+    showWorldTour(r);
     blip(12);
   }
+  // Récit de la tournée mondiale: les dates jouées défilent, puis le bilan de renommée.
+  function showWorldTour(r) {
+    var rows = r.dates.map(function (id) { var d = G.WDATE_BY[id]; return [d.city, d.venue.charAt(0).toUpperCase() + d.venue.slice(1) + ' · complet']; });
+    rows.push(['Renommée', '+' + r.points + ' point' + (r.points > 1 ? 's' : '') + (r.extra ? ' (dont ' + r.extra + ' grâce aux dates)' : '')]);
+    if (r.dates.length) rows.push(['Souvenirs', G.souvenirs(S) + ' au total · +' + Math.round(D.WORLD.souvenir * G.souvenirs(S) * 100) + ' % de gains pour toujours']);
+    rows.push(['Nouvelle base', G.COUNTRY_BY[r.home].name]);
+    $('wtText').textContent = r.dates.length ? 'Ta tournée mondiale passe par ' + r.dates.length + ' grande' + (r.dates.length > 1 ? 's' : '') + ' salle' + (r.dates.length > 1 ? 's' : '') + '. Le public est en délire.' : 'Une tournée sans grande date, mais le public a répondu présent. Prépare mieux la prochaine pour décrocher plus de renommée.';
+    $('wtRows').innerHTML = rows.map(function (x, k) { return '<div class="rw" style="--d:' + (0.3 + k * 0.45) + 's"><span class="rl">' + esc(x[0]) + '</span><b class="rv">' + esc(x[1]) + '</b></div>'; }).join('');
+    $('wtScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    $('wtClose').focus();
+  }
+  function closeWorldTour() { $('wtScrim').hidden = true; $('app').inert = false; $('tabs').inert = false; toast('Tu repars avec ton portable, en ' + G.homeCountry(S).name + '. Bonne nouvelle carrière !', 6000); }
 
   function openEvent() {
     var p = S.ev.pending;
@@ -2381,6 +2541,7 @@
     if (off.tracks > 0) rows.push(['Productions réalisées', '+' + nf0.format(off.tracks)]);
     if (off.levels > 0) rows.push(['Expertise', '+' + off.levels + ' niveau' + (off.levels > 1 ? 'x' : '')]);
     if (off.trophies > 0) rows.push(['Palmarès', '+' + off.trophies + ' niveau' + (off.trophies > 1 ? 'x' : '')]);
+    if (lbv.back && lbv.back.length) { rows.push(['Retours de tournée', lbv.back.join(', ')]); lbv.back = []; }
     if (S.team.staff.length) {
       var mo1 = G.avgMorale(S), mo0 = off.mor0 != null ? off.mor0 : mo1;
       rows.push(['Moral de l’équipe', mo1 - mo0 >= 0.5 ? Math.round(mo0) + ' % → ' + Math.round(mo1) + ' % (repos)' : Math.round(mo1) + ' %']);
@@ -2483,6 +2644,8 @@
     bind.view = view;
     $('tourBtn').addEventListener('click', askTour);
     $('tourNo').addEventListener('click', function () { tour.open = false; renderTour(); $('tourBtn').focus(); });
+    $('wtHome').addEventListener('click', function (e) { var b = e.target.closest('[data-home]'); if (!b) return; wtv.home = b.getAttribute('data-home'); $('wtHome').querySelectorAll('[data-home]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); });
+    $('wtClose').addEventListener('click', closeWorldTour);
     $('tourGo').addEventListener('click', startTour);
     // Un onglet rouvre le menu ; sur écran étroit, toucher l'onglet déjà ouvert replie le volet.
     function tab(v) {
@@ -2663,6 +2826,11 @@
   G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
   G.hooks.artistSign = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' rejoint ton label !', 5000); blip(12); } };
   G.hooks.artistAsk = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' veut sortir un album. Rendez-vous dans l’onglet Équipe, section Ton label.', 6500); blip(9); } };
+  G.hooks.worldDate = function (d) { wtv.key = ''; tour.fresh = true; markCloud(); if (!quiet) { toast('Date confirmée pour la tournée mondiale : ' + d.city + ', ' + d.venue + ' !', 6500); blip(11); } };
+  G.hooks.ltourIncident = function (a, r, x) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' en tournée : ' + G.ltourText(S, r, x.title).toLowerCase().replace(/^./, function (c) { return c.toUpperCase(); }) + '. Réponds depuis l’onglet Équipe.', 6500); blip(8); } };
+  G.hooks.ltourAuto = function (a, res) { lbv.key = ''; markCloud(); };
+  G.hooks.ltourCity = function () { lbv.key = ''; markCloud(); };
+  G.hooks.ltourDone = function (a, r, x) { lbv.key = ''; markCloud(); if (quiet) { (lbv.back = lbv.back || []).push(a.name + ' (' + x.ok + '/' + x.n + ' dates, +' + eur(x.cash) + ')'); return; } if (!quiet) { toast(a.name + ' est rentré de tournée : ' + x.ok + '/' + x.n + ' dates réussies, +' + eur(x.cash) + ', notoriété ' + (x.fame >= 0 ? '+' : '') + Math.round(x.fame) + '.', 7500); blip(11); } };
   G.hooks.artistOffer = function (a, r) { lbv.key = ''; markCloud(); if (!quiet) { toast(r.offer.lab + ' veut signer ' + a.name + ' ! Réponds vite depuis l’onglet Équipe, section Label.', 7000); blip(10); } };
   G.hooks.offerAuto = function (res) { lbv.key = ''; lbv.dkey = ''; markCloud(); saveLocal(); if (!quiet) toast(res.kept ? artName(res.id) + ' a refusé l’offre de ' + res.lab + ' et reste sur ton label.' : artName(res.id) + ' est parti chez ' + res.lab + ' faute de réponse. Indemnité : ' + eur(res.fee) + '.', 7000); };
   G.hooks.offerDone = function () { lbv.key = ''; lbv.dkey = ''; };
@@ -2722,7 +2890,7 @@
     if (raw) { quiet = true; off = G.offline(S, now); quiet = false; }
     S.savedAt = now;
     initTheme();
-    buildActs(); buildShop(); buildTrophies(); bind(); bindPerks();
+    buildActs(); buildShop(); buildTrophies(); bind(); bindPerks(); bindLtour();
     initScene();
     initMenu();
     render(); renderScene(true);

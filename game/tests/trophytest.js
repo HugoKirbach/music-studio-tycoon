@@ -5,7 +5,7 @@ const G = r.G, S = r.S;
 const miss = G.TROPHIES.filter(t => (S.trophies[t.id] || 0) < t.levels.length).map(t => t.id + ' ' + (S.trophies[t.id] || 0) + '/' + t.levels.length);
 console.log('Après 12 h de jeu parfait :', G.trophyCount(S) + '/' + G.trophyTotal(), 'niveaux | incomplets:', miss.join(', '));
 // Uniquement les trophées hors sorties de studio doivent être atteints par la simulation (qui ne joue pas les sorties)
-const must = G.TROPHIES.filter(t => !['contacts', 'outings', 'fame', 'tours', 'mixes', 'perfect', 'orders', 'rep', 'chartBest', 'rdNodes', 'projects', 'projBest', 'book', 'num1', 'chains', 'gambles', 'battles', 'league', 'combo', 'specs', 'pianoBest', 'signed', 'artistAlbums', 'artistFame', 'concerts', 'bestVenue', 'kept'].includes(t.m)).filter(t => !S.trophies[t.id]);
+const must = G.TROPHIES.filter(t => !['contacts', 'outings', 'fame', 'tours', 'mixes', 'perfect', 'orders', 'rep', 'chartBest', 'rdNodes', 'projects', 'projBest', 'book', 'num1', 'chains', 'gambles', 'battles', 'league', 'combo', 'specs', 'pianoBest', 'signed', 'artistAlbums', 'artistFame', 'concerts', 'bestVenue', 'kept', 'cities', 'souvenirs'].includes(t.m)).filter(t => !S.trophies[t.id]);
 assert.deepStrictEqual(must.map(t => t.id), [], 'familles jamais commencées par la simulation');
 
 // 1. Un état neuf n'a aucun trophée ; le premier beat en donne un et le bonus de gains suit
