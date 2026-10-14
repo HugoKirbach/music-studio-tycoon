@@ -1357,7 +1357,8 @@
 
     setText($('money'), eur(S.money));
     var bm = G.boostMult(S);
-    setText($('rate'), (total > 0 ? '+' + eur(total) + '/s' : 'Lance une production') + (S.fame ? ' · Renommée ' + S.fame : ''));
+    setText($('rate'), total > 0 ? '+' + eur(total) + '/s' : 'Lance une production');
+    setHidden($('fameSub'), !S.fame); if (S.fame) setText($('fameSub'), 'Renommée ' + S.fame);
     var boosted = bm > 1;
     setHidden($('boost'), !boosted);
     setClass($('lcd'), 'boosted', boosted);
@@ -2084,8 +2085,33 @@
     if (force) saveCloud(true);
     if (off) { off.trophies = G.trophyCount(S) - tc0; showOffline(off); }
   }
+  // Débrief au retour: jeu fermé (production réduite) ou resté ouvert en arrière-plan (plein régime).
+  var dbf = { open: false, opener: null };
   function showOffline(off) {
-    toast('Pendant ton absence (' + away(off.gap) + ') : +' + eur(off.gain) + (off.wages > 1e-9 ? ' après ' + eur(off.wages) + ' de salaires' : '') + (off.levels > 0 ? ', ' + off.levels + ' niveau' + (off.levels > 1 ? 'x' : '') + ' d’expertise' : '') + (off.trophies > 0 ? ', ' + off.trophies + (off.trophies > 1 ? ' niveaux de palmarès' : ' niveau de palmarès') : '') + '.', 7000);
+    if (!off || !(off.gain > 0)) return;
+    if (off.gap < 120) { toast('Pendant ton absence (' + away(off.gap) + ') : +' + eur(off.gain) + '.', 5000); return; }
+    var rows = [['Revenus', '+' + eur(off.gain)]];
+    if (off.wages > 1e-9) rows.push(['Salaires versés', '−' + eur(off.wages)]);
+    if (off.tracks > 0) rows.push(['Productions réalisées', '+' + nf0.format(off.tracks)]);
+    if (off.levels > 0) rows.push(['Expertise', '+' + off.levels + ' niveau' + (off.levels > 1 ? 'x' : '')]);
+    if (off.trophies > 0) rows.push(['Palmarès', '+' + off.trophies + ' niveau' + (off.trophies > 1 ? 'x' : '')]);
+    if (S.team.staff.length) rows.push(['Équipe', S.team.staff.length > 1 ? 'Toute l’équipe est restée' : 'Ton équipe est restée']);
+    setText($('dbGap'), 'Tu étais absent ' + away(off.gap) + '.');
+    $('dbRows').innerHTML = rows.map(function (r, k) { return '<div class="rw" style="--d:' + (0.15 + k * 0.25) + 's"><span class="rl">' + esc(r[0]) + '</span><b class="rv">' + esc(r[1]) + '</b></div>'; }).join('');
+    setText($('dbNote'), off.open ? 'Le jeu est resté ouvert en arrière-plan : ton studio a tourné à plein régime.'
+      : 'Studio fermé : la production tourne à ' + nf0.format(G.OFFLINE_EFF * 100) + ' %, jusqu’à ' + Math.round(G.OFFLINE_CAP / 3600) + ' h d’absence.' + (off.capped ? ' Au-delà, le studio s’est mis en pause.' : ''));
+    if (dbf.open) return;
+    dbf.open = true; dbf.opener = document.activeElement;
+    $('debriefScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    $('dbClose').focus();
+    blip(10);
+  }
+  function closeDebrief() {
+    if (!dbf.open) return;
+    dbf.open = false;
+    $('debriefScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    var o = dbf.opener; dbf.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
   }
 
   function initCloud() {
@@ -2399,16 +2425,35 @@
       if (h && h.snapshot) h.snapshot(function () { S.savedAt = Date.now(); return JSON.parse(JSON.stringify(S)); });
     } catch (e) { /* mise à jour à chaud facultative */ }
 
-    var last = Date.now();
+    var last = Date.now(), bg = null;
+    // Jeu ouvert mais caché (autre onglet, appli en arrière-plan, écran verrouillé): on mémorise le point de départ du débrief.
+    function bgStart(t) { if (!bg) bg = { t: t, life: S.lifetime, money: S.money, lvl: S.level, tc: G.trophyCount(S), tracks: G.trackCount(S), wages: 0, capped: false }; }
+    function bgEnd() {
+      if (!bg) return;
+      var b = bg, gap = (Date.now() - b.t) / 1000; bg = null;
+      if (gap < 60) return;
+      showOffline({ gap: gap, gain: S.lifetime - b.life, wages: b.wages, levels: S.level - b.lvl, trophies: G.trophyCount(S) - b.tc, tracks: G.trackCount(S) - b.tracks, open: true });
+      render();
+    }
+    document.addEventListener('visibilitychange', function () { if (document.hidden) bgStart(Date.now()); else bgEnd(); });
+    if (document.hidden) bgStart(Date.now());
+    $('dbClose').addEventListener('click', closeDebrief);
+    $('debriefScrim').addEventListener('click', function (e) { if (e.target === $('debriefScrim')) closeDebrief(); });
+    document.addEventListener('keydown', function (e) { if (dbf.open && e.key === 'Escape') { e.preventDefault(); closeDebrief(); } });
     setInterval(function () {
       var t = Date.now(), dt = (t - last) / 1000;
       last = t;
+      if (document.hidden) bgStart(t);
       if (dt > 60) {
-        S.savedAt = t - dt * 1000; var tc1 = G.trophyCount(S); quiet = true; var o = G.offline(S, t); quiet = false;
-        if (o) { o.trophies = G.trophyCount(S) - tc1; showOffline(o); }
+        S.savedAt = t - dt * 1000; var tc1 = G.trophyCount(S), pay = G.payroll(S); quiet = true; var o = G.offline(S, t); quiet = false;
+        if (bg) { if (o) bg.wages += o.wages; }
+        else if (o) { o.trophies = G.trophyCount(S) - tc1; showOffline(o); }
+      } else if (document.hidden) {
+        if (bg) bg.wages += G.payroll(S) * dt;
+        quiet = true; G.advanceAway(S, dt); quiet = false;
       } else {
         G.advance(S, dt);
-        if (!document.hidden) { G.tickEvents(S, dt); G.tickLive(S, dt); }
+        G.tickEvents(S, dt); G.tickLive(S, dt);
       }
       render();
       if (t - lastSave > 5000) { lastSave = t; saveLocal(); }

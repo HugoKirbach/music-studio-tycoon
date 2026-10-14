@@ -117,3 +117,18 @@ console.log('OK: hydrate');
 S = midState(); G.advance(S, 0.1); G.hire(S, S.team.pool[0].id); G.advance(S, 0.1);
 assert.ok(S.trophies.chef >= 1, 'trophée Chef d’équipe');
 console.log('OK: trophées');
+
+// 11. jeu ouvert en arrière-plan: le studio tourne, l'équipe garde un moral plancher et personne ne démissionne
+{
+  const B = midState(); G.advance(B, 0.1); G.hire(B, B.team.pool[0].id);
+  const mb = B.team.staff[0]; mb.morale = 40; B.money = 0;
+  ['beat', 'mix', 'voix', 'single'].forEach(a => { B.acts[a].auto = false; B.acts[a].run = false; });
+  for (let i = 0; i < 3000; i++) G.advanceAway(B, 1); // 50 minutes sans payer, sans prime
+  assert.strictEqual(B.team.staff.length, 1, 'personne ne part en arrière-plan');
+  assert.ok(mb.morale >= Math.min(40, T.moraleOffline) - 1e-9, 'moral plancher: ' + mb.morale);
+  const C2 = midState(); G.advance(C2, 0.1); G.hire(C2, C2.team.pool[0].id); C2.team.staff[0].morale = 40; C2.money = 0;
+  ['beat', 'mix', 'voix', 'single'].forEach(a => { C2.acts[a].auto = false; C2.acts[a].run = false; });
+  for (let i = 0; i < 3000; i++) G.advance(C2, 1);
+  assert.strictEqual(C2.team.staff.length, 0, 'en jeu actif, les impayés font toujours partir');
+  console.log('OK: arrière-plan sans démission (moral ' + mb.morale.toFixed(0) + ')');
+}

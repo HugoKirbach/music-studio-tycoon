@@ -1558,6 +1558,12 @@
 
 
   // Progression pendant l'absence. Renvoie un résumé.
+  // Temps passé avec le jeu ouvert mais en arrière-plan: le studio tourne, l'équipe garde un moral plancher et personne ne part.
+  function advanceAway(S, dt) {
+    if (dt <= 0) return;
+    S._off = true;
+    try { advance(S, dt); } finally { delete S._off; }
+  }
   function offline(S, now) {
     var gap = Math.max(0, (now - S.savedAt) / 1000);
     if (gap < 30) return null;
@@ -1577,7 +1583,7 @@
     levelMult: levelMult, duration: duration, payout: payout, xpGain: xpGain, upCost: upCost, royRate: royRate,
     activeRate: activeRate, trackCount: trackCount, isUnlocked: isUnlocked, lockReason: lockReason,
     tierIndex: tierIndex, milestoneMult: milestoneMult, nextMilestone: nextMilestone, startAct: startAct,
-    tapAct: tapAct, buy: buy, upgradeAct: upgradeAct, upgradeActN: upgradeActN, upPlan: upPlan, buyAuto: buyAuto, advance: advance, offline: offline, touch: touch,
+    tapAct: tapAct, advanceAway: advanceAway, buy: buy, upgradeAct: upgradeAct, upgradeActN: upgradeActN, upPlan: upPlan, buyAuto: buyAuto, advance: advance, offline: offline, touch: touch,
     boostMult: boostMult, contactCount: contactCount, eventRef: eventRef, tickEvents: tickEvents, dismissEvent: dismissEvent,
     resolveEvent: resolveEvent, pickEvent: pickEvent, trophyCount: trophyCount, trophyProgress: trophyProgress,
     checkTrophies: checkTrophies, nextGoals: nextGoals, fameFor: fameFor, fameAvailable: fameAvailable, canTour: canTour,

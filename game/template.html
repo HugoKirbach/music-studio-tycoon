@@ -616,6 +616,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   .stat { min-width: 0; padding: 5px 8px; overflow: hidden; }
   .stat .lbl { letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .stat.money .val { font-size: 19px; }
+  .stat.money { min-width: 0; }
   .stat.team-stat { display: none; }
   .lbl { font-size: 10px; }
   .val { font-size: 14.5px; }
@@ -691,7 +692,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
       <button class="pill" id="accountPill" type="button"><span class="led" id="pillLed" aria-hidden="true"></span><span id="pillText">Connexion…</span></button>
     </div>
     <div class="stats" id="lcdRow" role="group" aria-label="Tableau de bord du studio">
-      <div class="hcard stat money" id="lcd"><div class="lbl-row"><span class="lbl">Budget</span><span class="boost" id="boost" title="Bonus actif : tes gains sont multipliés tant que la jauge n’est pas vide." hidden>⚡ Boost <b id="boostMult">×2</b><span class="b-time" id="boostTime">0:00</span><i class="b-bar" aria-hidden="true"><u id="boostFill"></u></i></span></div><output class="val" id="money">0 €</output><span class="sub" id="rate"></span></div>
+      <div class="hcard stat money" id="lcd"><div class="lbl-row"><span class="lbl">Budget</span><span class="boost" id="boost" title="Bonus actif : tes gains sont multipliés tant que la jauge n’est pas vide." hidden>⚡ Boost <b id="boostMult">×2</b><span class="b-time" id="boostTime">0:00</span><i class="b-bar" aria-hidden="true"><u id="boostFill"></u></i></span></div><output class="val" id="money">0 €</output><span class="sub" id="rate"></span><span class="sub fame-sub" id="fameSub" hidden></span></div>
       <div class="hcard stat"><span class="lbl">Valeur</span><output class="val" id="value">0 €</output><span class="sub" id="valueBonus"></span></div>
       <div class="hcard stat"><span class="lbl">Expertise</span><output class="val" id="level">Niv. 1</output><div class="xp" aria-hidden="true"><i id="xpFill"></i></div><span class="sub" id="xpText"></span></div>
       <div class="hcard stat"><span class="lbl">Catalogue</span><output class="val" id="tracks">0 titre</output><span class="sub" id="royText"></span></div>
@@ -899,6 +900,16 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <div class="pf"><span class="lbl">Les trois phases</span><div id="pjPhases"></div></div>
     <p class="small-note" id="pjTeamNote"></p>
     <div class="pj-foot"><div><b id="pjCost"></b><small id="pjInfo"></small></div><button class="btn sm" id="pjClose" type="button">Fermer</button><button class="btn primary" id="pjGo" type="button">Lancer le projet</button></div>
+  </div>
+</div>
+<div class="scrim" id="debriefScrim" hidden>
+  <div class="sheet debrief-sheet" role="dialog" aria-modal="true" aria-labelledby="dbTitle">
+    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Débrief du studio</p>
+    <h2 id="dbTitle">Bon retour !</h2>
+    <p class="ev-text" id="dbGap"></p>
+    <div class="reveal" id="dbRows" aria-live="polite"></div>
+    <p class="small-note" id="dbNote"></p>
+    <button class="pad" id="dbClose" type="button"><b>Au travail !</b></button>
   </div>
 </div>
 <div class="scrim" id="storyScrim" hidden>
