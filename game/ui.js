@@ -1375,7 +1375,7 @@
           (pjv.confirm ? '<div class="confirm"><span>Abandonner « ' + esc(c.title) + ' » ? La moitié du budget est remboursée.</span><div class="row"><button class="btn sm danger" type="button" data-pj="cancelGo">Abandonner</button><button class="btn sm" type="button" data-pj="cancelNo">Continuer</button></div></div>'
             : '<div class="proj-row"><button class="btn sm" type="button" data-pj="cancel">Abandonner le projet</button></div>') + '</article>';
       } else {
-        h += '<article class="card proj-card"><p class="proj-meta" style="font-weight:600">Choisis un genre, une ambiance, un public et règle chaque phase. Tes productions continuent pendant ce temps : c’est un bonus, pas une obligation.</p>' +
+        h += '<article class="card proj-card"><p class="proj-meta m-hide" style="font-weight:600">Choisis un genre, une ambiance, un public et règle chaque phase. Tes productions continuent pendant ce temps : c’est un bonus, pas une obligation.</p>' +
           '<div class="proj-row"><button class="btn primary" type="button" data-pj="new"><span>Nouveau projet</span><small id="pjFrom"></small></button></div></article>';
       }
       body.innerHTML = h;
@@ -1556,7 +1556,7 @@
       var tb = $('rdTree'); tb.innerHTML = ''; rdv.nodes = {};
       R.branches.forEach(function (b) {
         var sec = document.createElement('section'); sec.className = 'rd-branch rd-' + b.id;
-        sec.innerHTML = '<h3><i aria-hidden="true"></i></h3><p></p><div class="rd-chain"></div>';
+        sec.innerHTML = '<h3><i aria-hidden="true"></i></h3><p class="rd-bdesc"></p><div class="rd-chain"></div>';
         sec.querySelector('h3').appendChild(document.createTextNode(b.name)); sec.querySelector('p').textContent = b.desc;
         var chain = sec.querySelector('.rd-chain'), prevOwned = true;
         G.branchNodes(b.id).forEach(function (n) {
@@ -1735,7 +1735,7 @@
       el.className = 'strip card';
       el.id = 'strip-' + act.id;
       el.innerHTML =
-        '<div class="strip-head"><span class="led" aria-hidden="true"></span><h3>' + act.name + '</h3><span class="who" data-k="who" hidden><i></i><span></span></span><span class="rank" data-k="rank"></span></div>' +
+        '<div class="strip-head"><span class="led" aria-hidden="true"></span><h3>' + act.name + '</h3><span class="who" data-k="who" hidden><i></i><span></span></span><span class="rank" data-k="rank"></span><button class="info-i" type="button" data-info aria-expanded="false" aria-label="Détails : ' + act.name + '">i</button></div>' +
         '<p class="desc">' + act.desc + '</p>' +
         '<p class="lock-note" data-k="lock" hidden></p>' +
         '<div class="live" data-k="live">' +
@@ -1759,6 +1759,19 @@
   }
 
   function bindPerks() {
+    // Petit « i »: affiche les détails facultatifs d'une carte (description, paliers, qualité...).
+    document.addEventListener('click', function (e) {
+      var ib = e.target.closest('[data-info]'); if (!ib) return;
+      var card = ib.closest('.strip, .unit, .card, .pane');
+      if (!card) return;
+      var cls = card.classList.contains('pane') ? 'hints' : 'open', on = !card.classList.contains(cls);
+      card.classList.toggle(cls, on); ib.setAttribute('aria-expanded', String(on));
+    });
+    document.querySelectorAll('.pane').forEach(function (p) {
+      var h = p.querySelector('h2'); if (!h || !p.querySelector('.hint')) return;
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'info-i pane-i'; b.setAttribute('data-info', ''); b.setAttribute('aria-expanded', 'false'); b.setAttribute('aria-label', 'Aide'); b.textContent = 'i';
+      h.appendChild(b);
+    });
     $('acts').addEventListener('click', function (e) {
       var b = e.target.closest('.perk'); if (!b) return;
       var p = G.PERKS.filter(function (x) { return x.id === b.getAttribute('data-perk'); })[0]; if (!p) return;
@@ -1796,7 +1809,7 @@
       var el = document.createElement('article');
       el.className = 'unit card';
       el.innerHTML =
-        '<div><span class="tag">' + (it.kind === 'gear' ? 'Matériel' : 'Logiciel et contrats') + '</span><h3>' + it.name + '</h3><p>' + it.desc + '</p>' +
+        '<div><span class="tag">' + (it.kind === 'gear' ? 'Matériel' : 'Logiciel et contrats') + '</span><h3>' + it.name + ' <button class="info-i" type="button" data-info aria-expanded="false" aria-label="Détails : ' + it.name + '">i</button></h3><p class="u-desc">' + it.desc + '</p>' +
         (it.unlock ? '<p class="unlock" data-k="unlock"></p>' : '') + '</div>' +
         '<button class="btn primary" type="button" id="buy-' + it.id + '" data-buy="' + it.id + '"><span class="t"><b>Acheter</b></span><span class="p">' + eur(it.cost) + '</span></button>';
       host.appendChild(el);
@@ -1888,8 +1901,10 @@
       setText(r.goT, a.run ? 'Accélérer' : 'Lancer');
       setText(r.goS, a.run ? (a.auto ? 'Automatique · ' : '') + 'chaque clic gagne ' + nf1.format(G.TAP) + ' s' : 'Un clic pour démarrer');
       var np = G.nextPerk(a.lvl), to = a.lvl + plan.n, crossed = G.perksBetween(a.lvl, to);
-      setText(r.upT, buyN === 1 ? 'Perfectionner' : buyN === 'max' ? (plan.ok ? 'Perfectionner ×' + plan.n : 'Perfectionner · max') : 'Perfectionner ×' + buyN);
-      setText(r.upS, (plan.n > 1 ? 'Rang ' + a.lvl + ' → ' + to : 'Rang ' + to) + (crossed.length ? ' · palier ' + crossed.map(function (p) { return '« ' + p.name + ' »'; }).join(', ') + ' !' : np ? ' · « ' + np.name + ' » au rang ' + np.lvl : ''));
+      if (narrow()) setText(r.upT, buyN === 1 ? 'Améliorer' : buyN === 'max' ? (plan.ok ? 'Améliorer ×' + plan.n : 'Améliorer · max') : 'Améliorer ×' + buyN);
+      else setText(r.upT, buyN === 1 ? 'Perfectionner' : buyN === 'max' ? (plan.ok ? 'Perfectionner ×' + plan.n : 'Perfectionner · max') : 'Perfectionner ×' + buyN);
+      if (narrow()) setText(r.upS, (plan.n > 1 ? a.lvl + ' → ' + to : 'Rang ' + to) + (crossed.length ? ' · palier !' : np ? ' · palier au ' + np.lvl : ''));
+      else setText(r.upS, (plan.n > 1 ? 'Rang ' + a.lvl + ' → ' + to : 'Rang ' + to) + (crossed.length ? ' · palier ' + crossed.map(function (p) { return '« ' + p.name + ' »'; }).join(', ') + ' !' : np ? ' · « ' + np.name + ' » au rang ' + np.lvl : ''));
       var pk = G.perkFx(a.lvl).n;
       if (r.pk !== pk) { r.pk = pk; [].forEach.call(r.perks.children, function (b, i) { b.classList.toggle('on', i < pk); b.classList.toggle('next', i === pk); }); }
       setText(r.upP, eur(cost));
@@ -2170,7 +2185,7 @@
     box.innerHTML = '';
     team.cards = {};
     if (!S.team.staff.length) {
-      var e = document.createElement('p'); e.className = 'small-note'; e.textContent = 'Personne pour l’instant. Recrute un premier membre parmi les candidats.'; box.appendChild(e);
+      var e = document.createElement('p'); e.className = 'small-note m-hide'; e.textContent = 'Personne pour l’instant. Recrute un premier membre parmi les candidats.'; box.appendChild(e);
     }
     S.team.staff.forEach(function (m) {
       var el = document.createElement('article');
@@ -2203,9 +2218,10 @@
       var el = document.createElement('article');
       el.className = 'card member cand';
       el.innerHTML = headHtml(c) +
-        '<p class="fits">Excelle sur : ' + esc(fitsText(c.role)) + '</p>' +
+        '<p class="fits opt">Excelle sur : ' + esc(fitsText(c.role)) + '</p>' +
         (c.back ? '<span class="back-tag">Ancien membre : revient sans prime d’embauche</span>' : '') +
-        '<p class="small-note" style="margin:0">Salaire : ' + eur(c.salary) + '/s</p>' +
+        '<p class="small-note opt" style="margin:0">Salaire : ' + eur(c.salary) + '/s</p>' +
+        '<button class="info-i card-i" type="button" data-info aria-expanded="false" aria-label="Détails : ' + esc(c.name) + '">i</button>' +
         '<button class="btn primary" type="button" data-hire="' + c.id + '"><span class="t"><b>Recruter</b><small data-k="why"></small></span><span class="p">' + (c.back ? 'Gratuit' : eur(G.signCost(S, c))) + '</span></button>';
       box.appendChild(el);
       team.pcards[c.id] = { btn: el.querySelector('button'), why: el.querySelector('[data-k="why"]'), c: c };

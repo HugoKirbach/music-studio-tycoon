@@ -732,6 +732,75 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   .sheet { align-self: end; border-radius: 18px 18px 0 0; }
   .scrim { padding: 0; place-items: end stretch; }
 }
+/* Mobile compact: l'essentiel d'abord, les détails derrière un petit « i » */
+.info-i { display: none; flex: none; place-items: center; width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); color: var(--ink-soft); font: italic 800 13px Georgia, serif; line-height: 1; vertical-align: middle; }
+.info-i[aria-expanded="true"] { background: var(--blue); border-color: var(--blue); color: #fff; }
+@media (max-width: 599px) {
+  .info-i { display: inline-grid; }
+  .panes { height: min(60vh, 600px); height: min(60dvh, 600px); }
+  .pane h2 { font-size: 22px; display: flex; align-items: center; gap: 8px; }
+  .pane h2 .pane-i { margin-left: 2px; }
+  .pane .hint { display: none; }
+  .pane.hints .hint { display: block; }
+  .panes .list { gap: 8px; }
+  .card { padding: 10px 12px; }
+  .strip-head { gap: 6px; }
+  .strip-head h3 { font-size: 15.5px; }
+  .rank { font-size: 11px; padding: 2px 6px; }
+  .strip .desc, .strip .foot-line, .strip .perks { display: none; }
+  .strip.open .desc, .strip.open .foot-line { display: block; }
+  .strip.open .perks { display: flex; }
+  .strip.locked .desc { display: block; margin: 2px 0 0; font-size: 12.5px; }
+  .strip .meter { height: 7px; margin-top: 6px; }
+  .meter-info { font-size: 12px; margin: 3px 0 6px; }
+  .actions, .go-row { gap: 6px; }
+  .strip .pad { min-height: 42px; padding: 4px 10px; }
+  .strip .pad b { font-size: 15px; }
+  .strip .pad small { display: none; }
+  .strip .mixbtn { min-width: 54px; padding: 2px 6px; }
+  .strip .mixbtn svg { width: 18px; height: 18px; }
+  .strip .mixbtn small { font-size: 10.5px; }
+  .actions { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+  .actions .go-row { grid-column: 1; }
+  .actions > [data-do="up"], .actions:has(> [data-do="auto"][hidden]) > [data-do="up"] { grid-column: 2; flex-direction: column; align-items: stretch; justify-content: center; gap: 0; }
+  .actions > [data-do="up"], .actions:has(> [data-do="auto"][hidden]) > [data-do="up"] { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 6px; align-items: baseline; }
+  .actions > [data-do="up"] .t { display: contents; }
+  .actions > [data-do="up"] .t b { grid-column: 1; grid-row: 1; }
+  .actions > [data-do="up"] .t small { grid-column: 1 / -1; grid-row: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .actions > [data-do="up"] .p { grid-column: 2; grid-row: 1; font-size: 12.5px; }
+  .strip-head .vogue { font-size: 10.5px; padding: 1px 6px; white-space: nowrap; }
+  .actions > [data-do="up"] .t b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; font-size: 13px; }
+  .actions > [data-do="up"] .p { font-size: 12px; }
+  .card .opt { display: none; }
+  .card.open .opt { display: block; }
+  .card-i { position: absolute; right: 10px; bottom: 62px; }
+  .member.cand { position: relative; }
+  .trend-card .trend-list span { display: none; }
+  .trend-card.open .trend-list span { display: block; }
+  .trend-list li { font-size: 13px; align-items: center; }
+  .trend-head .info-i { margin-left: auto; }
+  .rd-bdesc { display: none; }
+  .m-hide { display: none !important; }
+  .team-sum .card { padding: 6px 10px; }
+  .team-sum b { font-size: 16px; }
+  .rd-points .small-note { font-size: 11.5px; }
+  .actions > [data-do="auto"] { grid-column: 1 / -1; }
+  .actions .btn { min-height: 40px; padding: 4px 10px; gap: 6px; }
+  .actions .btn .t b { font-size: 13.5px; }
+  .actions .btn .t small { font-size: 11px; }
+  .actions .btn .p { font-size: 13px; }
+  .unit { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 10px; }
+  .unit .tag, .unit .u-desc { display: none; }
+  .unit.open .u-desc { display: block; }
+  .unit h3 { font-size: 15px; display: flex; align-items: center; gap: 6px; }
+  .unit .unlock { font-size: 12px; }
+  .unit > .btn { min-height: 40px; padding: 4px 10px; flex-direction: column; align-items: flex-end; gap: 0; }
+  .unit > .btn .t b { font-size: 13px; }
+  .goal { padding: 8px 12px; }
+  .clash-card:not(.hot) .league-bar, .clash-card:not(.hot) .proj-meta + .league-bar + .proj-meta { display: none; }
+  #orderNote:empty { display: none; }
+  .orders-head h3, .sec { font-size: 16px; }
+}
 @media (max-width: 380px) {
   .tabs { gap: 1px; padding-left: 2px; padding-right: 2px; }
   .tabs button { font-size: 10.5px; }
@@ -879,7 +948,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
         <div class="card chart-lock" id="chartLock"><b>Le Top 50 t’attend</b><span id="chartLockText"></span></div>
         <div id="chartOpen">
           <article class="card trend-card" id="trendCard" hidden>
-            <div class="trend-head"><h3>Tendances de la semaine</h3><span class="rep-chip" id="trendLeft"></span></div>
+            <div class="trend-head"><h3>Tendances de la semaine</h3><span class="rep-chip" id="trendLeft"></span><button class="info-i" type="button" data-info aria-expanded="false" aria-label="Détails des tendances">i</button></div>
             <ul class="trend-list" id="trendList"></ul>
           </article>
           <div class="proj-box" id="projBox" hidden>
@@ -7194,7 +7263,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
           (pjv.confirm ? '<div class="confirm"><span>Abandonner « ' + esc(c.title) + ' » ? La moitié du budget est remboursée.</span><div class="row"><button class="btn sm danger" type="button" data-pj="cancelGo">Abandonner</button><button class="btn sm" type="button" data-pj="cancelNo">Continuer</button></div></div>'
             : '<div class="proj-row"><button class="btn sm" type="button" data-pj="cancel">Abandonner le projet</button></div>') + '</article>';
       } else {
-        h += '<article class="card proj-card"><p class="proj-meta" style="font-weight:600">Choisis un genre, une ambiance, un public et règle chaque phase. Tes productions continuent pendant ce temps : c’est un bonus, pas une obligation.</p>' +
+        h += '<article class="card proj-card"><p class="proj-meta m-hide" style="font-weight:600">Choisis un genre, une ambiance, un public et règle chaque phase. Tes productions continuent pendant ce temps : c’est un bonus, pas une obligation.</p>' +
           '<div class="proj-row"><button class="btn primary" type="button" data-pj="new"><span>Nouveau projet</span><small id="pjFrom"></small></button></div></article>';
       }
       body.innerHTML = h;
@@ -7375,7 +7444,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var tb = $('rdTree'); tb.innerHTML = ''; rdv.nodes = {};
       R.branches.forEach(function (b) {
         var sec = document.createElement('section'); sec.className = 'rd-branch rd-' + b.id;
-        sec.innerHTML = '<h3><i aria-hidden="true"></i></h3><p></p><div class="rd-chain"></div>';
+        sec.innerHTML = '<h3><i aria-hidden="true"></i></h3><p class="rd-bdesc"></p><div class="rd-chain"></div>';
         sec.querySelector('h3').appendChild(document.createTextNode(b.name)); sec.querySelector('p').textContent = b.desc;
         var chain = sec.querySelector('.rd-chain'), prevOwned = true;
         G.branchNodes(b.id).forEach(function (n) {
@@ -7554,7 +7623,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       el.className = 'strip card';
       el.id = 'strip-' + act.id;
       el.innerHTML =
-        '<div class="strip-head"><span class="led" aria-hidden="true"></span><h3>' + act.name + '</h3><span class="who" data-k="who" hidden><i></i><span></span></span><span class="rank" data-k="rank"></span></div>' +
+        '<div class="strip-head"><span class="led" aria-hidden="true"></span><h3>' + act.name + '</h3><span class="who" data-k="who" hidden><i></i><span></span></span><span class="rank" data-k="rank"></span><button class="info-i" type="button" data-info aria-expanded="false" aria-label="Détails : ' + act.name + '">i</button></div>' +
         '<p class="desc">' + act.desc + '</p>' +
         '<p class="lock-note" data-k="lock" hidden></p>' +
         '<div class="live" data-k="live">' +
@@ -7578,6 +7647,19 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
 
   function bindPerks() {
+    // Petit « i »: affiche les détails facultatifs d'une carte (description, paliers, qualité...).
+    document.addEventListener('click', function (e) {
+      var ib = e.target.closest('[data-info]'); if (!ib) return;
+      var card = ib.closest('.strip, .unit, .card, .pane');
+      if (!card) return;
+      var cls = card.classList.contains('pane') ? 'hints' : 'open', on = !card.classList.contains(cls);
+      card.classList.toggle(cls, on); ib.setAttribute('aria-expanded', String(on));
+    });
+    document.querySelectorAll('.pane').forEach(function (p) {
+      var h = p.querySelector('h2'); if (!h || !p.querySelector('.hint')) return;
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'info-i pane-i'; b.setAttribute('data-info', ''); b.setAttribute('aria-expanded', 'false'); b.setAttribute('aria-label', 'Aide'); b.textContent = 'i';
+      h.appendChild(b);
+    });
     $('acts').addEventListener('click', function (e) {
       var b = e.target.closest('.perk'); if (!b) return;
       var p = G.PERKS.filter(function (x) { return x.id === b.getAttribute('data-perk'); })[0]; if (!p) return;
@@ -7615,7 +7697,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var el = document.createElement('article');
       el.className = 'unit card';
       el.innerHTML =
-        '<div><span class="tag">' + (it.kind === 'gear' ? 'Matériel' : 'Logiciel et contrats') + '</span><h3>' + it.name + '</h3><p>' + it.desc + '</p>' +
+        '<div><span class="tag">' + (it.kind === 'gear' ? 'Matériel' : 'Logiciel et contrats') + '</span><h3>' + it.name + ' <button class="info-i" type="button" data-info aria-expanded="false" aria-label="Détails : ' + it.name + '">i</button></h3><p class="u-desc">' + it.desc + '</p>' +
         (it.unlock ? '<p class="unlock" data-k="unlock"></p>' : '') + '</div>' +
         '<button class="btn primary" type="button" id="buy-' + it.id + '" data-buy="' + it.id + '"><span class="t"><b>Acheter</b></span><span class="p">' + eur(it.cost) + '</span></button>';
       host.appendChild(el);
@@ -7707,8 +7789,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       setText(r.goT, a.run ? 'Accélérer' : 'Lancer');
       setText(r.goS, a.run ? (a.auto ? 'Automatique · ' : '') + 'chaque clic gagne ' + nf1.format(G.TAP) + ' s' : 'Un clic pour démarrer');
       var np = G.nextPerk(a.lvl), to = a.lvl + plan.n, crossed = G.perksBetween(a.lvl, to);
-      setText(r.upT, buyN === 1 ? 'Perfectionner' : buyN === 'max' ? (plan.ok ? 'Perfectionner ×' + plan.n : 'Perfectionner · max') : 'Perfectionner ×' + buyN);
-      setText(r.upS, (plan.n > 1 ? 'Rang ' + a.lvl + ' → ' + to : 'Rang ' + to) + (crossed.length ? ' · palier ' + crossed.map(function (p) { return '« ' + p.name + ' »'; }).join(', ') + ' !' : np ? ' · « ' + np.name + ' » au rang ' + np.lvl : ''));
+      if (narrow()) setText(r.upT, buyN === 1 ? 'Améliorer' : buyN === 'max' ? (plan.ok ? 'Améliorer ×' + plan.n : 'Améliorer · max') : 'Améliorer ×' + buyN);
+      else setText(r.upT, buyN === 1 ? 'Perfectionner' : buyN === 'max' ? (plan.ok ? 'Perfectionner ×' + plan.n : 'Perfectionner · max') : 'Perfectionner ×' + buyN);
+      if (narrow()) setText(r.upS, (plan.n > 1 ? a.lvl + ' → ' + to : 'Rang ' + to) + (crossed.length ? ' · palier !' : np ? ' · palier au ' + np.lvl : ''));
+      else setText(r.upS, (plan.n > 1 ? 'Rang ' + a.lvl + ' → ' + to : 'Rang ' + to) + (crossed.length ? ' · palier ' + crossed.map(function (p) { return '« ' + p.name + ' »'; }).join(', ') + ' !' : np ? ' · « ' + np.name + ' » au rang ' + np.lvl : ''));
       var pk = G.perkFx(a.lvl).n;
       if (r.pk !== pk) { r.pk = pk; [].forEach.call(r.perks.children, function (b, i) { b.classList.toggle('on', i < pk); b.classList.toggle('next', i === pk); }); }
       setText(r.upP, eur(cost));
@@ -7989,7 +8073,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     box.innerHTML = '';
     team.cards = {};
     if (!S.team.staff.length) {
-      var e = document.createElement('p'); e.className = 'small-note'; e.textContent = 'Personne pour l’instant. Recrute un premier membre parmi les candidats.'; box.appendChild(e);
+      var e = document.createElement('p'); e.className = 'small-note m-hide'; e.textContent = 'Personne pour l’instant. Recrute un premier membre parmi les candidats.'; box.appendChild(e);
     }
     S.team.staff.forEach(function (m) {
       var el = document.createElement('article');
@@ -8022,9 +8106,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var el = document.createElement('article');
       el.className = 'card member cand';
       el.innerHTML = headHtml(c) +
-        '<p class="fits">Excelle sur : ' + esc(fitsText(c.role)) + '</p>' +
+        '<p class="fits opt">Excelle sur : ' + esc(fitsText(c.role)) + '</p>' +
         (c.back ? '<span class="back-tag">Ancien membre : revient sans prime d’embauche</span>' : '') +
-        '<p class="small-note" style="margin:0">Salaire : ' + eur(c.salary) + '/s</p>' +
+        '<p class="small-note opt" style="margin:0">Salaire : ' + eur(c.salary) + '/s</p>' +
+        '<button class="info-i card-i" type="button" data-info aria-expanded="false" aria-label="Détails : ' + esc(c.name) + '">i</button>' +
         '<button class="btn primary" type="button" data-hire="' + c.id + '"><span class="t"><b>Recruter</b><small data-k="why"></small></span><span class="p">' + (c.back ? 'Gratuit' : eur(G.signCost(S, c))) + '</span></button>';
       box.appendChild(el);
       team.pcards[c.id] = { btn: el.querySelector('button'), why: el.querySelector('[data-k="why"]'), c: c };
