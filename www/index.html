@@ -3932,42 +3932,75 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
   // ---------- Personnages ----------
   // pose: 'sit' (assis face à -z) ou 'stand'. Renvoie un objet animable.
+  // Personnage stylisé mais proportionné: jambes et bras articulés (genou, coude), cou, visage, mains.
+  // Environ 25 petits maillages partagés (géométries et matériaux en cache): léger même avec une grande équipe.
+  // Le personnage regarde vers -z. Rotation x positive d'un membre: il part vers l'avant.
+  var HIP_STAND = 0.72, HIP_SIT = 0.55;
   function person(look, pose, opts) {
     opts = opts || {};
     var g = grp(null), skin = M(SKIN[look.s % 8]), hair = M(HAIR[look.h % 8]), shirt = M(SHIRT[look.c % 16]), pants = M(opts.pants || 0x3b4a63);
-    var sit = pose === 'sit', hip = sit ? 0.47 : 0.86;
-    if (sit) {
-      box(g, 0.15, 0.13, 0.42, pants, -0.1, hip - 0.06, -0.2); box(g, 0.15, 0.13, 0.42, pants, 0.1, hip - 0.06, -0.2);
-      box(g, 0.12, hip - 0.06, 0.13, pants, -0.1, 0, -0.38); box(g, 0.12, hip - 0.06, 0.13, pants, 0.1, 0, -0.38);
-      box(g, 0.13, 0.07, 0.2, M(0x222222), -0.1, 0, -0.44); box(g, 0.13, 0.07, 0.2, M(0x222222), 0.1, 0, -0.44);
-    } else {
-      box(g, 0.14, hip, 0.15, pants, -0.09, 0, 0); box(g, 0.14, hip, 0.15, pants, 0.09, 0, 0);
-      box(g, 0.14, 0.07, 0.22, M(0x222222), -0.09, 0, -0.03); box(g, 0.14, 0.07, 0.22, M(0x222222), 0.09, 0, -0.03);
+    var shoe = M(0x23252a), dark = M(0x1b1b1b, { r: 0.4 });
+    var sit = pose === 'sit', hip = sit ? HIP_SIT : HIP_STAND;
+    // jambes: cuisse (pivot à la hanche) puis tibia (pivot au genou) et chaussure
+    function leg(side) {
+      var th = grp(g, side * 0.085, hip, 0);
+      mesh(th, G('cap', 0.07, 0.22), pants, 0, -0.18, 0, 1, 1, 1);
+      var sh = grp(th, 0, -0.36, 0);
+      mesh(sh, G('cap', 0.057, 0.24), pants, 0, -0.16, 0, 1, 1, 1);
+      var ft = grp(sh, 0, -0.31, 0);
+      mesh(ft, G('cap', 0.05, 0.12), shoe, 0, 0.0, -0.045, 1.15, 1, 1).rotation.x = Math.PI / 2;
+      // assis: cuisses légèrement inclinées vers le genou, tibias à la verticale jusqu'au sol
+      if (sit) { th.rotation.x = 1.3; sh.rotation.x = -1.3; sh.scale.y = 1.2; ft.scale.y = 1 / 1.2; }
+      return { th: th, sh: sh };
     }
+    var legL = leg(-1), legR = leg(1);
     var body = grp(g, 0, hip, 0);
-    var torso = mesh(body, G('cap', 0.19, 0.3), shirt, 0, 0.3, 0, 1, 1, 0.78);
+    // bassin (pantalon), buste (haut), épaules arrondies
+    mesh(body, G('cap', 0.13, 0.08), pants, 0, 0.04, 0, 1.12, 1, 0.76);
+    mesh(body, G('cap', 0.15, 0.2), shirt, 0, 0.29, 0, 1.18, 1, 0.74);
+    mesh(body, G('cap', 0.07, 0.3), shirt, 0, 0.45, 0, 1, 1, 0.9).rotation.z = Math.PI / 2;
+    cyl(body, 0.048, 0.08, skin, 0, 0.5, 0, 10);
     var head = grp(body, 0, 0.7, 0);
-    sph(head, 0.15, skin, 0, 0.0, 0);
-    var face = 0;
-    box(head, 0.03, 0.03, 0.02, M(0x1b1b1b), -0.05, 0.01, -0.145); box(head, 0.03, 0.03, 0.02, M(0x1b1b1b), 0.05, 0.01, -0.145);
-    var hs = look.y % 4;
-    if (hs === 0) { var hc = sph(head, 0.158, hair, 0, 0.035, 0.015); hc.scale.set(0.158, 0.13, 0.158); }
-    else if (hs === 1) { var hl = sph(head, 0.16, hair, 0, 0.02, 0.03); hl.scale.set(0.17, 0.16, 0.17); box(head, 0.32, 0.26, 0.1, hair, 0, -0.22, 0.09); }
-    else if (hs === 2) { var hb = sph(head, 0.158, hair, 0, 0.035, 0.015); hb.scale.set(0.16, 0.13, 0.16); sph(head, 0.075, hair, 0, 0.13, 0.11); }
-    else { var cap = sph(head, 0.16, M(SHIRT[(look.c + 5) % 16]), 0, 0.05, 0.01); cap.scale.set(0.162, 0.11, 0.162); box(head, 0.2, 0.025, 0.13, M(SHIRT[(look.c + 5) % 16]), 0, 0.03, -0.18); }
-    if (opts.headphones) { mesh(head, G('tor', 0.16, 0.018, 16), M(C.black), 0, 0.02, 0, 1, 1, 1).rotation.z = 0; cyl(head, 0.055, 0.05, M(C.black), -0.165, -0.04, 0).rotation.z = Math.PI / 2; cyl(head, 0.055, 0.05, M(C.black), 0.165, -0.04, 0).rotation.z = Math.PI / 2; }
-    // bras: pivot à l'épaule
-    function arm(side) {
-      var a = grp(body, side * 0.22, 0.5, 0);
-      mesh(a, G('cap', 0.055, 0.26), shirt, 0, -0.16, 0, 1, 1, 1);
-      sph(a, 0.05, skin, 0, -0.33, 0);
-      a.rotation.x = sit ? 1.05 : 0.05; // positif: le bras part vers l'avant (le personnage regarde vers -z) a.rotation.z = side * (sit ? -0.05 : 0.08);
-      return a;
+    sph(head, 0.13, skin, 0, 0, 0).scale.set(0.125, 0.14, 0.13);
+    // visage: yeux, sourcils, nez, oreilles
+    mesh(head, G('sph', 8, 6), dark, -0.045, 0.012, -0.117, 0.017, 0.022, 0.012, false);
+    mesh(head, G('sph', 8, 6), dark, 0.045, 0.012, -0.117, 0.017, 0.022, 0.012, false);
+    box(head, 0.045, 0.012, 0.01, hair, -0.047, 0.045, -0.118).castShadow = false;
+    box(head, 0.045, 0.012, 0.01, hair, 0.047, 0.045, -0.118).castShadow = false;
+    mesh(head, G('sph', 8, 6), skin, 0, -0.02, -0.13, 0.022, 0.03, 0.022, false);
+    mesh(head, G('sph', 8, 6), skin, -0.125, 0, 0.005, 0.02, 0.035, 0.028, false);
+    mesh(head, G('sph', 8, 6), skin, 0.125, 0, 0.005, 0.02, 0.035, 0.028, false);
+    var hs = look.y % 4, top;
+    if (hs === 3) { // casquette
+      var capC = M(SHIRT[(look.c + 5) % 16]);
+      top = sph(head, 0.14, capC, 0, 0.045, 0.01); top.scale.set(0.138, 0.11, 0.142);
+      box(head, 0.19, 0.018, 0.12, capC, 0, 0.055, -0.15);
+    } else {
+      top = sph(head, 0.14, hair, 0, 0.035, 0.022); top.scale.set(0.136, 0.125, 0.135);
+      if (hs === 1) mesh(head, G('cap', 0.1, 0.16), hair, 0, -0.1, 0.07, 1.25, 1, 0.55); // cheveux longs
+      else if (hs === 2) sph(head, 0.065, hair, 0, 0.1, 0.1); // chignon
     }
-    var armL = arm(-1), armR = arm(1);
-    if (opts.mic) { cyl(armR, 0.02, 0.15, M(C.black), 0, -0.48, -0.02); sph(armR, 0.045, M(0x9aa0a8, { m: 0.7, r: 0.35 }), 0, -0.5, -0.02); }
-    g.userData.p = { body: body, head: head, armL: armL, armR: armR, sit: sit, t: Math.random() * 10 };
+    if (opts.headphones) { mesh(head, G('tor', 0.15, 0.016, 16), M(C.black), 0, 0.03, 0, 1, 1, 1); cyl(head, 0.05, 0.045, M(C.black), -0.14, -0.03, 0).rotation.z = Math.PI / 2; cyl(head, 0.05, 0.045, M(C.black), 0.14, -0.03, 0).rotation.z = Math.PI / 2; }
+    // bras: épaule -> coude -> main
+    function arm(side) {
+      var a = grp(body, side * 0.205, 0.46, 0);
+      mesh(a, G('cap', 0.05, 0.16), shirt, 0, -0.12, 0, 1, 1, 1);
+      var f = grp(a, 0, -0.25, 0);
+      mesh(f, G('cap', 0.042, 0.15), skin, 0, -0.1, 0, 1, 1, 1);
+      mesh(f, G('sph', 10, 8), skin, 0, -0.22, -0.005, 0.046, 0.055, 0.04, false);
+      return { a: a, f: f };
+    }
+    var aL = arm(-1), aR = arm(1);
+    if (opts.mic) { cyl(aR.f, 0.017, 0.12, M(C.black), 0, -0.34, -0.01, 10); sph(aR.f, 0.038, M(0x9aa0a8, { m: 0.7, r: 0.35 }), 0, -0.36, -0.01, 10); }
+    g.userData.p = { body: body, head: head, armL: aL.a, armR: aR.a, foreL: aL.f, foreR: aR.f, legL: legL, legR: legR, sit: sit, hip: hip, t: Math.random() * 10 };
+    pose3(g.userData.p, 0.08, 0.15, 0.08, 0.15);
     return g;
+  }
+  // Pose des bras: épaule (x), coude (x), écart (z) des deux côtés.
+  // fzL / fzR: l'avant-bras pivote vers l'intérieur (bras croisés, micro vers la bouche).
+  function pose3(p, aL, fL, aR, fR, zL, zR, fzL, fzR) {
+    p.armL.rotation.set(aL, 0, zL || 0.06); p.foreL.rotation.set(fL, 0, fzL || 0);
+    p.armR.rotation.set(aR, 0, zR || -0.06); p.foreR.rotation.set(fR, 0, fzR || 0);
   }
   function chair(p, x, z, ry, col) {
     var g = grp(p, x, 0, z, ry || 0), m = M(col || C.plastic);
@@ -4511,7 +4544,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
         g = n.sitG; g.position.set(deskPos[0], 0, deskPos[1] + 0.35); g.rotation.y = 0; g.userData.p.mode = m.status === 'work' ? 'work' : 'idle';
       }
       g.visible = true; n.cur = g;
-      head = g.userData.p.mode === 'rest' ? 0.85 : g === n.standG ? 1.95 : 1.55;
+      head = g.userData.p.mode === 'rest' ? 0.85 : g === n.standG ? 1.7 : 1.48;
       n.gem.position.set(g.position.x, head + 0.12, g.position.z);
       n.gem.material = M(m.morale >= 60 ? STATUS_COL.ok : m.morale >= 25 ? STATUS_COL.mid : STATUS_COL.low, { e: m.morale >= 60 ? STATUS_COL.ok : m.morale >= 25 ? STATUS_COL.mid : STATUS_COL.low, ei: 0.9 });
       n.anchor = new V3(g.position.x, head, g.position.z);
@@ -4533,7 +4566,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       }
       seen[a.id] = 1; n.mood = a.mood;
       n.g.position.set(sp[0], 0, sp[1]); n.g.rotation.y = sp[2] || 0;
-      n.anchor = new V3(sp[0], 2.0, sp[1]);
+      n.anchor = new V3(sp[0], 1.8, sp[1]);
     });
     Object.keys(artistNodes).forEach(function (id) { if (!seen[id]) { staffG.remove(artistNodes[id].g); delete artistNodes[id]; } });
   }
@@ -4826,27 +4859,32 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
   // ---------- Animation ----------
   var live = {}, anyLive = false;
+  function smooth(x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }
   function animatePerson(g, t, mode) {
     var p = g.userData.p; if (!p) return;
-    var k = reduce ? 0.3 : 1;
-    if (mode === 'work') {
-      p.armL.rotation.x = 1.05 + Math.sin(t * 13 + p.t) * 0.09 * k;
-      p.armR.rotation.x = 1.05 + Math.sin(t * 11.3 + p.t + 1.3) * 0.09 * k;
-      p.head.rotation.x = Math.sin(t * 9.2 / 2 + p.t) * 0.06 * k + 0.05;
-      p.body.rotation.y = 0;
-    } else if (mode === 'rest') {
-      p.armL.rotation.x = 0.3; p.armR.rotation.x = 1.4 + Math.sin(t * 0.9 + p.t) * 0.15 * k;
-      p.head.rotation.x = -0.1; p.body.rotation.y = Math.sin(t * 0.4 + p.t) * 0.15 * k;
+    var k = reduce ? 0.3 : 1, ph = t + p.t;
+    p.head.rotation.set(0, 0, 0); p.body.rotation.set(0, 0, 0); p.body.position.y = p.hip;
+    if (mode === 'work') { // au clavier: avant-bras posés vers le bureau, doigts qui tapent
+      pose3(p, 0.42, 0.95 + Math.sin(t * 13 + p.t) * 0.06 * k, 0.42, 0.95 + Math.sin(t * 11.3 + p.t + 1.3) * 0.06 * k, 0.12, -0.12);
+      p.head.rotation.x = 0.12 + Math.sin(ph * 0.9) * 0.04 * k;
+    } else if (mode === 'rest') { // pause canapé: une main sur la cuisse, l'autre tient un téléphone
+      pose3(p, 0.35, 0.55, 0.3, 1.55 + Math.sin(ph * 0.9) * 0.08 * k, 0.1, -0.22);
+      p.head.rotation.x = 0.28; p.body.rotation.y = Math.sin(ph * 0.4) * 0.1 * k;
     } else if (mode === 'artist') {
-      // micro en main, la tête suit le tempo
-      p.armR.rotation.x = 2.55 + Math.sin(t * 2.2 + p.t) * 0.05 * k; p.armR.rotation.z = -0.55; p.armL.rotation.x = 0.3 + Math.sin(t * 4.4 + p.t) * 0.25 * k;
-      p.head.rotation.x = Math.sin(t * 4.4 + p.t) * 0.08 * k; p.body.rotation.y = Math.sin(t * 1.1 + p.t) * 0.12 * k;
-    } else if (mode === 'train') {
-      p.armL.rotation.x = 1.2; p.armR.rotation.x = 1.2; p.head.rotation.x = 0.35 + Math.sin(t * 0.7 + p.t) * 0.05 * k;
-    } else {
-      p.armL.rotation.x = 0.6; p.armR.rotation.x = 0.6;
-      p.head.rotation.x = 0; p.head.rotation.y = Math.sin(t * 0.5 + p.t) * 0.35 * k;
-      p.body.position.y = (p.sit ? 0.47 : 0.86) + Math.sin(t * 1.6 + p.t) * 0.004;
+      // l'artiste chante par moments (micro à la bouche), puis baisse le micro et se balance
+      var cyc = (ph * 0.12) % 1, sing = smooth((cyc < 0.5 ? cyc : 1 - cyc) * 6 - 0.6), beat = Math.sin(ph * 4.2);
+      pose3(p, 0.12 + 0.2 * sing + 0.04 * beat * k, 0.35 + 0.45 * sing, 0.12 + 0.12 * sing, 0.45 + 2.2 * sing,
+        0.08 + 0.18 * sing, -0.07 - 0.2 * sing, 0, -0.75 * sing);
+      p.head.rotation.x = -0.08 * sing + beat * 0.05 * k; p.head.rotation.y = (1 - sing) * Math.sin(ph * 0.6) * 0.3 * k;
+      p.body.rotation.z = Math.sin(ph * 2.1) * 0.03 * k; p.body.rotation.y = Math.sin(ph * 1.05) * 0.1 * k;
+      p.body.position.y = p.hip + Math.abs(Math.sin(ph * 2.1)) * 0.012 * k;
+    } else if (mode === 'train') { // devant le tableau: bras croisés, tête qui acquiesce
+      pose3(p, 0.18, 1.5, 0.22, 1.45, 0.12, -0.12, 1.15, -1.1);
+      p.head.rotation.x = 0.1 + Math.sin(ph * 0.7) * 0.05 * k;
+    } else { // assis, mains sur les genoux, regard qui balaie la pièce
+      pose3(p, 0.32, 0.45, 0.32, 0.45, 0.08, -0.08);
+      p.head.rotation.y = Math.sin(ph * 0.5) * 0.35 * k;
+      p.body.position.y = p.hip + Math.sin(ph * 1.6) * 0.004;
     }
   }
   function frame(now) {
@@ -5045,7 +5083,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (cur.def) { fitCamera(); applyCam(); }
   };
   S3.PLACES = PLACES;
-  S3._person = person; // tests
+  S3._person = person; S3._animate = animatePerson; // tests
   // Tests: boîtes englobantes des objets posés (décor, équipements, bureaux) pour repérer les collisions.
   S3._boxes = function () {
     var out = [], def = cur.def;
