@@ -670,7 +670,7 @@
     { id: 'carnet-studio', name: 'Carnet du studio', m: 'book', levels: [4, 12, 30], desc: 'Découvre {n} associations genre et ambiance.', old: [null, 'carnet-plein'] },
     { id: 'clash', name: 'Clash', m: 'battles', levels: [1, 10, 50, 150], desc: 'Remporte {n} clashs de beatmakers.', descs: ['Remporte ton premier clash de beatmakers.'] },
     { id: 'ligue', name: 'Ligue des beatmakers', m: 'league', levels: [2, 3, 4, 5], descs: ['Monte en ligue Régionale.', 'Monte en ligue Nationale.', 'Monte en ligue Internationale.', 'Atteins la ligue Légende.'] },
-    { id: 'piano', name: 'Oreille musicale', m: 'pianoBest', levels: [5, 9, 13], desc: 'Rejoue une mélodie de {n} notes à l’atelier piano.' },
+    { id: 'piano', name: 'Doigts de fée', m: 'pianoBest', levels: [25, 60, 120], desc: 'Enchaîne {n} tuiles sans faute à l’atelier piano.' },
     { id: 'label', name: 'Directeur de label', m: 'signed', levels: [1, 2, 4], desc: 'Signe {n} artistes sur ton label.', descs: ['Signe ton premier artiste.'] },
     { id: 'albums', name: 'Disques d’artistes', m: 'artistAlbums', levels: [1, 10, 30], desc: 'Réalise {n} albums pour tes artistes.', descs: ['Réalise le premier album d’un de tes artistes.'] },
     { id: 'vedette', name: 'Faiseur de vedettes', m: 'artistFame', levels: [40, 75, 100], desc: 'Porte un artiste à {n} de notoriété.' },
@@ -768,18 +768,33 @@
   // Clash de beatmakers: ligues, rivaux et pistes du mini-jeu de rythme.
   var BATTLE = {
     leagues: [
-      { name: 'Quartier', bpm: 86, target: 0.5, dens: 0 },
-      { name: 'Régionale', bpm: 94, target: 0.58, dens: 1 },
-      { name: 'Nationale', bpm: 102, target: 0.65, dens: 2 },
-      { name: 'Internationale', bpm: 110, target: 0.72, dens: 3 },
-      { name: 'Légende', bpm: 118, target: 0.8, dens: 4 }
+      { name: 'Quartier', bpm: 86, target: 0.5, dens: 0, tiles: 28, tps: 2.3 },
+      { name: 'Régionale', bpm: 94, target: 0.58, dens: 1, tiles: 32, tps: 2.7 },
+      { name: 'Nationale', bpm: 102, target: 0.65, dens: 2, tiles: 36, tps: 3.1 },
+      { name: 'Internationale', bpm: 110, target: 0.72, dens: 3, tiles: 40, tps: 3.5 },
+      { name: 'Légende', bpm: 118, target: 0.8, dens: 4, tiles: 44, tps: 3.9 }
     ],
     lanes: [
       { id: 'kick', name: 'Kick', key: 'D' }, { id: 'snare', name: 'Caisse claire', key: 'F' },
       { id: 'hat', name: 'Charleston', key: 'J' }, { id: 'clap', name: 'Clap', key: 'K' }
     ],
     rivals: ['MC Gravier', 'Lil Boucle', 'DJ Sablier', 'Kenza Kick', 'Le Baron du 808', 'Nina Snare', 'Yo-Yo Loop', 'Big Tempo', 'Sœur Sampler', 'Rico Groove',
-      'La Machine', 'Prince Charley', 'Mamadou Bass', 'Capitaine Clap', 'Zélie Swing', 'Oscar Offbeat', 'Duchesse Dub', 'Toto Trap']
+      'La Machine', 'Prince Charley', 'Mamadou Bass', 'Capitaine Clap', 'Zélie Swing', 'Oscar Offbeat', 'Duchesse Dub', 'Toto Trap'],
+    pianists: ['Lady Arpège', 'Max Ivoire', 'Clara Touche', 'Hugo Legato', 'Mlle Staccato', 'Le Comte Bémol', 'Rosa Ritournelle', 'Félix Fa Dièse', 'Inès Glissando', 'Doc Pédale']
+  };
+
+  // Atelier piano « tuiles »: mélodies du domaine public (notes MIDI) jouées tuile après tuile.
+  var PIANO = {
+    songs: [
+      { id: 'joie', name: 'Ode à la joie', notes: [64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 64, 62, 62, 64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 62, 60, 60,
+        62, 62, 64, 60, 62, 64, 65, 64, 60, 62, 64, 65, 64, 62, 60, 62, 55, 64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 62, 60, 60] },
+      { id: 'jacques', name: 'Frère Jacques', notes: [60, 62, 64, 60, 60, 62, 64, 60, 64, 65, 67, 64, 65, 67, 67, 69, 67, 65, 64, 60, 67, 69, 67, 65, 64, 60, 60, 55, 60, 60, 55, 60] },
+      { id: 'lune', name: 'Au clair de la lune', notes: [60, 60, 60, 62, 64, 62, 60, 64, 62, 62, 60, 60, 60, 60, 62, 64, 62, 60, 64, 62, 62, 60,
+        62, 62, 62, 62, 57, 57, 62, 60, 59, 57, 55, 60, 60, 60, 62, 64, 62, 60, 64, 62, 62, 60] },
+      { id: 'elise', name: 'Lettre à Élise', notes: [76, 75, 76, 75, 76, 71, 74, 72, 69, 60, 64, 69, 71, 64, 68, 71, 72, 64, 76, 75, 76, 75, 76, 71, 74, 72, 69, 60, 64, 69, 71, 64, 72, 71, 69] },
+      { id: 'danube', name: 'Le Beau Danube bleu', notes: [60, 60, 64, 67, 67, 79, 79, 76, 76, 60, 60, 64, 67, 67, 79, 79, 77, 77, 59, 59, 62, 69, 69, 81, 81, 77, 77, 59, 59, 62, 69, 69, 81, 81, 76, 76] }
+    ],
+    min: 10
   };
 
 
@@ -793,7 +808,7 @@
         { id: 'sauge', name: 'Vert sauge', v: [0x9fb59a, 0xb4c8af], need: { m: 'tier', n: 2, t: 'Emménage dans le garage' } },
         { id: 'terracotta', name: 'Terracotta', v: [0xc8735a, 0xd9896f], need: { m: 'projects', n: 3, t: 'Termine 3 projets de création' } },
         { id: 'nuit', name: 'Bleu nuit', v: [0x2d3550, 0x3a4462], need: { m: 'league', n: 2, t: 'Monte en ligue Régionale au clash' } },
-        { id: 'aubergine', name: 'Aubergine', v: [0x5b3b5e, 0x6e4a72], need: { m: 'pianoBest', n: 9, t: 'Rejoue 9 notes à l’atelier piano' } },
+        { id: 'aubergine', name: 'Aubergine', v: [0x5b3b5e, 0x6e4a72], need: { m: 'pianoBest', n: 60, t: 'Enchaîne 60 tuiles à l’atelier piano' } },
         { id: 'sable-or', name: 'Sable doré', v: [0xe6d3a8, 0xefe0bd], need: { m: 'num1', n: 3, t: 'Passe 3 semaines numéro 1 du Top 50' } }
       ] },
       { id: 'floor', name: 'Sol', options: [
@@ -936,7 +951,7 @@
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, PIANO: PIANO, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);

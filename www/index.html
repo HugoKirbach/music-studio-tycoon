@@ -401,6 +401,9 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 @keyframes hotPulse { 0%, 100% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 50% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 8px transparent; } }
 /* Atelier piano */
 .piano-sheet { width: min(640px, 100%); }
+.tiles-stage { position: relative; height: min(52vh, 420px); border-radius: 14px; overflow: hidden; background: #fbf8f2; box-shadow: inset 0 0 0 1px var(--line); touch-action: none; user-select: none; -webkit-user-select: none; }
+.tiles-stage canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; }
+.tiles-stage[hidden], .piano[hidden] { display: none; }
 .pi-mode { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .pi-status { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; min-height: 26px; }
 .pi-status b { font: 800 19px var(--f-title); }
@@ -432,6 +435,8 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .cl-hud b { font: 800 18px var(--f-title); color: var(--ink); }
 .cl-stage { position: relative; height: min(46vh, 360px); border-radius: 14px; overflow: hidden; background: #12151c; }
 .cl-stage canvas { display: block; width: 100%; height: 100%; }
+.cl-play.tiles .cl-stage { height: min(56vh, 440px); background: #fbf8f2; touch-action: none; }
+.cl-keys[hidden], .promo[hidden] { display: none; }
 .cl-pads { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .clpad { display: grid; place-items: center; gap: 0; min-height: 64px; padding: 6px 2px; border-radius: 14px; border: 0; background: var(--lc); color: #fff; font: 800 14px var(--f-body); box-shadow: 0 4px 0 color-mix(in srgb, var(--lc) 60%, #000); touch-action: none; user-select: none; -webkit-user-select: none; }
 .clpad small { font-size: 11px; opacity: 0.8; }
@@ -834,11 +839,16 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
         <p class="small-note" id="themeNote">Automatique suit le réglage de ton appareil.</p>
         <h3 class="sec">Son</h3>
         <div class="card set-card">
-          <div class="set-row"><div><b>Sons du jeu</b><p class="small-note">Petits sons quand une production se termine, un trophée tombe ou un client appelle.</p></div>
-            <button class="switch" id="soundBtn" type="button" aria-pressed="false" aria-label="Sons du jeu"><i aria-hidden="true"></i></button></div>
-          <label class="vol-row" for="volSfx"><span>Volume</span><output id="volSfxOut" for="volSfx">70 %</output>
+          <div class="set-row"><div><b>Sons du studio</b><p class="small-note">Petits sons quand une production rapporte, un trophée tombe ou un client appelle.</p></div>
+            <button class="switch" id="soundBtn" type="button" aria-pressed="false" aria-label="Sons du studio"><i aria-hidden="true"></i></button></div>
+          <label class="vol-row" for="volSfx"><span>Volume du studio</span><output id="volSfxOut" for="volSfx">70 %</output>
             <input type="range" id="volSfx" min="0" max="100" step="5" value="70"></label>
-          <p class="vol-hint" id="volSfxHint" hidden>Le son est coupé : active « Sons du jeu » pour l’entendre en jeu.</p>
+          <p class="vol-hint" id="volSfxHint" hidden>Coupé : active « Sons du studio » pour les entendre.</p>
+          <div class="set-row"><div><b>Sons des mini-jeux</b><p class="small-note">Batterie des clashs et concerts, piano, métronome.</p></div>
+            <button class="switch" id="gameSoundBtn" type="button" aria-pressed="true" aria-label="Sons des mini-jeux"><i aria-hidden="true"></i></button></div>
+          <label class="vol-row" for="volGame"><span>Volume des mini-jeux</span><output id="volGameOut" for="volGame">70 %</output>
+            <input type="range" id="volGame" min="0" max="100" step="5" value="70"></label>
+          <p class="vol-hint" id="volGameHint" hidden>Coupé : active « Sons des mini-jeux » pour les entendre.</p>
           <button class="btn sm" id="volReset" type="button">Volume par défaut</button>
         </div>
         <h3 class="sec" id="accTitle">Compte et sauvegarde</h3>
@@ -943,13 +953,14 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   <div class="sheet piano-sheet" role="dialog" aria-modal="true" aria-labelledby="piTitle">
     <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Atelier piano</p>
     <h2 id="piTitle">Au piano</h2>
-    <div class="seg pi-mode" role="group" aria-label="Mode de jeu"><button type="button" data-pm="ear" aria-pressed="true">Défi d’oreille</button><button type="button" data-pm="free" aria-pressed="false">Jeu libre</button></div>
+    <div class="seg pi-mode" role="group" aria-label="Mode de jeu"><button type="button" data-pm="tiles" aria-pressed="true">Piano tiles</button><button type="button" data-pm="free" aria-pressed="false">Jeu libre</button></div>
     <p class="ev-text" id="piText"></p>
     <div class="pi-status" aria-live="polite"><b id="piState"></b><span id="piInfo"></span></div>
-    <div class="piano" id="piKeys" role="group" aria-label="Clavier de piano"></div>
+    <div class="piano" id="piKeys" role="group" aria-label="Clavier de piano" hidden></div>
+    <div class="tiles-stage" id="piStage"><canvas id="piCanvas" tabindex="-1" aria-label="Piano tiles : touche les tuiles noires de bas en haut"></canvas></div>
     <p class="small-note" id="piTip"></p>
     <button class="btn sm" id="piSoundOn" type="button" hidden>Activer le son du jeu</button>
-    <button class="pad" id="piStart" type="button"><b id="piStartT">Écouter la mélodie</b><small id="piStartS"></small></button>
+    <button class="pad" id="piStart" type="button"><b id="piStartT">Jouer</b><small id="piStartS"></small></button>
     <button class="btn sm" id="piClose" type="button">Retour au studio</button>
   </div>
 </div>
@@ -959,8 +970,10 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <h2 id="clTitle"></h2>
     <div id="clIntro" class="cl-intro">
       <p class="ev-text" id="clIntroText">Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.</p>
-      <div class="cl-keys" aria-hidden="true"><span><kbd>D</kbd>Kick</span><span><kbd>F</kbd>Caisse claire</span><span><kbd>J</kbd>Charleston</span><span><kbd>K</kbd>Clap</span></div>
+      <div class="cl-keys" id="clKeysP" aria-hidden="true" hidden><span><kbd>D</kbd>Colonne 1</span><span><kbd>F</kbd>Colonne 2</span><span><kbd>J</kbd>Colonne 3</span><span><kbd>K</kbd>Colonne 4</span></div>
+      <div class="cl-keys" id="clKeysD" aria-hidden="true"><span><kbd>D</kbd>Kick</span><span><kbd>F</kbd>Caisse claire</span><span><kbd>J</kbd>Charleston</span><span><kbd>K</kbd>Clap</span></div>
       <p class="small-note" id="clTip"></p>
+      <label class="promo" for="clMetro" id="clMetroL"><input type="checkbox" id="clMetro" checked><span>Métronome <small>un clic et un voyant à chaque temps</small></span></label>
       <button class="btn sm" id="clSoundOn" type="button" hidden>Activer le son du jeu</button>
       <button class="pad" id="clGo" type="button"><b>C’est parti</b><small id="clGoSub"></small></button>
       <button class="btn sm" id="clLater" type="button">Plus tard</button>
@@ -1704,7 +1717,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     { id: 'carnet-studio', name: 'Carnet du studio', m: 'book', levels: [4, 12, 30], desc: 'Découvre {n} associations genre et ambiance.', old: [null, 'carnet-plein'] },
     { id: 'clash', name: 'Clash', m: 'battles', levels: [1, 10, 50, 150], desc: 'Remporte {n} clashs de beatmakers.', descs: ['Remporte ton premier clash de beatmakers.'] },
     { id: 'ligue', name: 'Ligue des beatmakers', m: 'league', levels: [2, 3, 4, 5], descs: ['Monte en ligue Régionale.', 'Monte en ligue Nationale.', 'Monte en ligue Internationale.', 'Atteins la ligue Légende.'] },
-    { id: 'piano', name: 'Oreille musicale', m: 'pianoBest', levels: [5, 9, 13], desc: 'Rejoue une mélodie de {n} notes à l’atelier piano.' },
+    { id: 'piano', name: 'Doigts de fée', m: 'pianoBest', levels: [25, 60, 120], desc: 'Enchaîne {n} tuiles sans faute à l’atelier piano.' },
     { id: 'label', name: 'Directeur de label', m: 'signed', levels: [1, 2, 4], desc: 'Signe {n} artistes sur ton label.', descs: ['Signe ton premier artiste.'] },
     { id: 'albums', name: 'Disques d’artistes', m: 'artistAlbums', levels: [1, 10, 30], desc: 'Réalise {n} albums pour tes artistes.', descs: ['Réalise le premier album d’un de tes artistes.'] },
     { id: 'vedette', name: 'Faiseur de vedettes', m: 'artistFame', levels: [40, 75, 100], desc: 'Porte un artiste à {n} de notoriété.' },
@@ -1802,18 +1815,33 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   // Clash de beatmakers: ligues, rivaux et pistes du mini-jeu de rythme.
   var BATTLE = {
     leagues: [
-      { name: 'Quartier', bpm: 86, target: 0.5, dens: 0 },
-      { name: 'Régionale', bpm: 94, target: 0.58, dens: 1 },
-      { name: 'Nationale', bpm: 102, target: 0.65, dens: 2 },
-      { name: 'Internationale', bpm: 110, target: 0.72, dens: 3 },
-      { name: 'Légende', bpm: 118, target: 0.8, dens: 4 }
+      { name: 'Quartier', bpm: 86, target: 0.5, dens: 0, tiles: 28, tps: 2.3 },
+      { name: 'Régionale', bpm: 94, target: 0.58, dens: 1, tiles: 32, tps: 2.7 },
+      { name: 'Nationale', bpm: 102, target: 0.65, dens: 2, tiles: 36, tps: 3.1 },
+      { name: 'Internationale', bpm: 110, target: 0.72, dens: 3, tiles: 40, tps: 3.5 },
+      { name: 'Légende', bpm: 118, target: 0.8, dens: 4, tiles: 44, tps: 3.9 }
     ],
     lanes: [
       { id: 'kick', name: 'Kick', key: 'D' }, { id: 'snare', name: 'Caisse claire', key: 'F' },
       { id: 'hat', name: 'Charleston', key: 'J' }, { id: 'clap', name: 'Clap', key: 'K' }
     ],
     rivals: ['MC Gravier', 'Lil Boucle', 'DJ Sablier', 'Kenza Kick', 'Le Baron du 808', 'Nina Snare', 'Yo-Yo Loop', 'Big Tempo', 'Sœur Sampler', 'Rico Groove',
-      'La Machine', 'Prince Charley', 'Mamadou Bass', 'Capitaine Clap', 'Zélie Swing', 'Oscar Offbeat', 'Duchesse Dub', 'Toto Trap']
+      'La Machine', 'Prince Charley', 'Mamadou Bass', 'Capitaine Clap', 'Zélie Swing', 'Oscar Offbeat', 'Duchesse Dub', 'Toto Trap'],
+    pianists: ['Lady Arpège', 'Max Ivoire', 'Clara Touche', 'Hugo Legato', 'Mlle Staccato', 'Le Comte Bémol', 'Rosa Ritournelle', 'Félix Fa Dièse', 'Inès Glissando', 'Doc Pédale']
+  };
+
+  // Atelier piano « tuiles »: mélodies du domaine public (notes MIDI) jouées tuile après tuile.
+  var PIANO = {
+    songs: [
+      { id: 'joie', name: 'Ode à la joie', notes: [64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 64, 62, 62, 64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 62, 60, 60,
+        62, 62, 64, 60, 62, 64, 65, 64, 60, 62, 64, 65, 64, 62, 60, 62, 55, 64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 62, 60, 60] },
+      { id: 'jacques', name: 'Frère Jacques', notes: [60, 62, 64, 60, 60, 62, 64, 60, 64, 65, 67, 64, 65, 67, 67, 69, 67, 65, 64, 60, 67, 69, 67, 65, 64, 60, 60, 55, 60, 60, 55, 60] },
+      { id: 'lune', name: 'Au clair de la lune', notes: [60, 60, 60, 62, 64, 62, 60, 64, 62, 62, 60, 60, 60, 60, 62, 64, 62, 60, 64, 62, 62, 60,
+        62, 62, 62, 62, 57, 57, 62, 60, 59, 57, 55, 60, 60, 60, 62, 64, 62, 60, 64, 62, 62, 60] },
+      { id: 'elise', name: 'Lettre à Élise', notes: [76, 75, 76, 75, 76, 71, 74, 72, 69, 60, 64, 69, 71, 64, 68, 71, 72, 64, 76, 75, 76, 75, 76, 71, 74, 72, 69, 60, 64, 69, 71, 64, 72, 71, 69] },
+      { id: 'danube', name: 'Le Beau Danube bleu', notes: [60, 60, 64, 67, 67, 79, 79, 76, 76, 60, 60, 64, 67, 67, 79, 79, 77, 77, 59, 59, 62, 69, 69, 81, 81, 77, 77, 59, 59, 62, 69, 69, 81, 81, 76, 76] }
+    ],
+    min: 10
   };
 
 
@@ -1827,7 +1855,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
         { id: 'sauge', name: 'Vert sauge', v: [0x9fb59a, 0xb4c8af], need: { m: 'tier', n: 2, t: 'Emménage dans le garage' } },
         { id: 'terracotta', name: 'Terracotta', v: [0xc8735a, 0xd9896f], need: { m: 'projects', n: 3, t: 'Termine 3 projets de création' } },
         { id: 'nuit', name: 'Bleu nuit', v: [0x2d3550, 0x3a4462], need: { m: 'league', n: 2, t: 'Monte en ligue Régionale au clash' } },
-        { id: 'aubergine', name: 'Aubergine', v: [0x5b3b5e, 0x6e4a72], need: { m: 'pianoBest', n: 9, t: 'Rejoue 9 notes à l’atelier piano' } },
+        { id: 'aubergine', name: 'Aubergine', v: [0x5b3b5e, 0x6e4a72], need: { m: 'pianoBest', n: 60, t: 'Enchaîne 60 tuiles à l’atelier piano' } },
         { id: 'sable-or', name: 'Sable doré', v: [0xe6d3a8, 0xefe0bd], need: { m: 'num1', n: 3, t: 'Passe 3 semaines numéro 1 du Top 50' } }
       ] },
       { id: 'floor', name: 'Sol', options: [
@@ -1970,7 +1998,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, PIANO: PIANO, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -2014,6 +2042,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   STORIES.forEach(function (s) { STORY_BY[s.id] = s; });
   var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
+  var PIANO = D.PIANO || { songs: [{ id: 'gamme', name: 'Gamme', notes: [60, 62, 64, 65, 67, 69, 71, 72] }], min: 10 };
 
   var hooks = {};
   var cache = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
@@ -2116,7 +2145,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (o.deco.seen && typeof o.deco.seen === 'object') Object.keys(o.deco.seen).forEach(function (k) { var p = k.split(':'); if (DECO_BY[p[0]] && DECO_BY[p[0]][p[1]]) S.deco.seen[k] = 1; });
     }
     if (o.piano && typeof o.piano === 'object') {
-      S.piano.best = Math.max(0, Math.min(60, Math.floor(num(o.piano.best, 0)))); S.piano.plays = Math.max(0, Math.floor(num(o.piano.plays, 0)));
+      S.piano.best = Math.max(0, Math.min(999, Math.floor(num(o.piano.best, 0)))); S.piano.plays = Math.max(0, Math.floor(num(o.piano.plays, 0)));
       S.piano.cd = Math.max(0, Math.min(T.pianoEvery, num(o.piano.cd, 0)));
     }
     if (o.battle && typeof o.battle === 'object') {
@@ -2126,7 +2155,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       B.cd = Math.max(0, num(b.cd, T.battleFirst));
       var r = b.rival;
       if (r && typeof r === 'object') B.rival = { name: String(r.name || 'Rival').slice(0, 30), league: Math.max(1, Math.min(L, Math.floor(num(r.league, B.league)))),
-        target: Math.max(0.3, Math.min(0.95, num(r.target, 0.5))), seed: Math.floor(num(r.seed, 1)) >>> 0, rule: RULES.indexOf(r.rule) >= 0 ? r.rule : null };
+        target: Math.max(0.3, Math.min(0.95, num(r.target, 0.5))), seed: Math.floor(num(r.seed, 1)) >>> 0, rule: RULES.indexOf(r.rule) >= 0 ? r.rule : null, kind: r.kind === 'piano' ? 'piano' : 'drums' };
     }
     return S;
   }
@@ -3177,15 +3206,15 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
   // ---------- Atelier piano ----------
   function pianoOpen(S) { return !!S.owned.clavier; }
-  function pianoReward(len) { return { m: Math.round(Math.min(2.5, 1 + 0.12 * len) * 100) / 100, s: Math.min(240, 60 + 12 * len) }; }
+  function pianoReward(len) { return { m: Math.round(Math.min(2.5, 1 + 0.03 * len) * 100) / 100, s: Math.min(240, 60 + 3 * len) }; }
   // len: longueur de la plus longue mélodie rejouée sans faute. L'inspiration n'est versée que hors délai d'attente.
   function finishPiano(S, len) {
     if (!pianoOpen(S)) return null;
-    var P = S.piano; len = Math.max(0, Math.min(60, Math.floor(num(len, 0))));
+    var P = S.piano; len = Math.max(0, Math.min(999, Math.floor(num(len, 0))));
     P.plays++; P.best = Math.max(P.best, len);
     var out = { len: len, best: P.best, reward: null };
-    if (P.cd <= 0 && len >= 3) {
-      var r = pianoReward(len), xp = xpNeeded(S.level) * 0.012 * len;
+    if (P.cd <= 0 && len >= PIANO.min) {
+      var r = pianoReward(len), xp = xpNeeded(S.level) * 0.003 * len;
       grantBoost(S, r.m, r.s); addXp(S, xp);
       P.cd = T.pianoEvery;
       out.reward = { m: r.m, s: r.s, xp: xp };
@@ -3200,9 +3229,12 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function league(S) { return BT.leagues[S.battle.league - 1]; }
   function makeRival(S) {
     var L = league(S), used = S.battle.rival ? S.battle.rival.name : '';
-    var names = BT.rivals.filter(function (n) { return n !== used; });
-    var tr = trendFor(S);
-    return { name: names[Math.floor(rand() * names.length)], league: S.battle.league, target: Math.min(0.95, L.target + (rand() - 0.5) * 0.08), seed: Math.floor(rand() * 4294967295) >>> 0, rule: tr ? tr.rule : null };
+    // Un défi sur deux se joue au piano (tuiles) dès que le studio a un clavier.
+    var kind = pianoOpen(S) && rand() < 0.5 ? 'piano' : 'drums';
+    var names = (kind === 'piano' ? BT.pianists : BT.rivals).filter(function (n) { return n !== used; });
+    var tr = trendFor(S), rule = tr ? tr.rule : null;
+    if (kind === 'piano' && rule === 'sans-clap') rule = null;
+    return { name: names[Math.floor(rand() * names.length)], kind: kind, league: S.battle.league, target: Math.min(0.95, L.target + (rand() - 0.5) * 0.08), seed: Math.floor(rand() * 4294967295) >>> 0, rule: rule };
   }
   function tickBattle(S, dt) {
     if (!battleOpen(S)) return;
@@ -3214,38 +3246,63 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function declineBattle(S) { var B = S.battle; if (!B.rival) return false; B.rival = null; B.cd = T.battleEvery / 2; return true; }
   // Générateur pseudo-aléatoire déterministe: une même graine donne toujours le même beat.
   function seeded(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
-  // Partition du clash en doubles-croches: [{ s: pas (16 par mesure), l: piste 0 kick, 1 caisse claire, 2 charleston, 3 clap }].
+  // Partition du clash sur une grille de croches (pas pairs sur 16 par mesure): pas de rafales, deux notes simultanées au plus,
+  // et un écart minimal entre deux frappes sur une même piste. l: 0 kick, 1 caisse claire, 2 charleston, 3 clap.
   function battlePattern(seed, dens, bars) {
-    var r = seeded(seed), out = [], has = {};
-    function add(s, l) { var k = s + ':' + l; if (!has[k]) { has[k] = 1; out.push({ s: s, l: l }); } }
+    var r = seeded(seed), out = [], at = {}, last = [-99, -99, -99, -99], gap = dens >= 3 ? 4 : dens >= 1 ? 4 : 8;
+    function add(s, l) {
+      if ((at[s] || 0) >= 2 || s - last[l] < gap) return false;
+      if (out.some(function (n) { return n.s === s && n.l === l; })) return false;
+      at[s] = (at[s] || 0) + 1; last[l] = s; out.push({ s: s, l: l }); return true;
+    }
     for (var b = 0; b < bars; b++) {
-      var o = b * 16, intro = b === 0, last = b === bars - 1, hits = {};
-      var kicks = [0, 8], snares = [4, 12], hats = [];
-      if (!intro) {
-        var extra = [3, 6, 10, 11, 14];
-        for (var i = 0; i < dens; i++) if (r() < 0.55) kicks.push(extra[Math.floor(r() * extra.length)]);
-        if (dens >= 3 && r() < 0.5) snares.push(r() < 0.5 ? 7 : 15);
-        if (dens === 0) hats = [2, 6, 10, 14];
-        else if (dens <= 2) hats = [0, 2, 4, 6, 8, 10, 12, 14];
-        else { hats = [0, 2, 4, 6, 8, 10, 12, 14]; for (var h = 1; h < 16; h += 2) if (r() < (dens === 3 ? 0.12 : 0.28)) hats.push(h); }
+      var o = b * 16, intro = b === 0, lastBar = b === bars - 1, ev = [];
+      if (intro || dens === 0) {
+        ev = [[0, 0], [8, 1]];
+        if (!intro) { ev.push([4, 2]); ev.push([12, 2]); }
+      } else {
+        ev = [[0, 0], [4, 1], [8, 0], [12, 1]];
+        var hp = [0, 0.35, 0.5, 0.65, 0.75][dens];
+        [2, 6, 10, 14].forEach(function (s) { if (r() < hp) ev.push([s, 2]); });
+        if (dens >= 2 && b % 2 === 1) ev.push([12, 3]);
+        if (dens >= 3 && r() < 0.6) ev.push([r() < 0.5 ? 6 : 10, 0]);
+        if (dens >= 4 && r() < 0.5) ev.push([0, 2]);
+        if (dens >= 2 && lastBar) { ev.push([14, 3]); }
       }
-      kicks.forEach(function (s) { hits[s] = 1; add(o + s, 0); });
-      snares.forEach(function (s) { hits[s] = 1; add(o + s, 1); });
-      // sans accords dans la première ligue: pas de charleston sur un kick ou une caisse claire
-      hats.forEach(function (s) { if (dens > 0 && dens < 2 && hits[s]) return; if (dens === 0 && hits[s]) return; add(o + s, 2); });
-      if (dens >= 1 && !intro && b % 2 === 1) add(o + 12, 3);
-      if (dens >= 2 && last) [13, 14, 15].forEach(function (s) { add(o + s, 3); });
+      ev.sort(function (x, y) { return x[0] - y[0] || x[1] - y[1]; });
+      ev.forEach(function (x) {
+        // pas d'accord dans la première ligue
+        if (dens === 0 && at[o + x[0]]) return;
+        add(o + x[0], x[1]);
+      });
     }
     out.sort(function (x, y) { return x.s - y.s || x.l - y.l; });
     return out;
+  }
+  // Partition « tuiles »: une tuile par rangée, la colonne suit le contour de la mélodie (plus aigu = plus à droite).
+  function tilesPattern(seed, n) {
+    var r = seeded(seed), song = PIANO.songs[Math.floor(r() * PIANO.songs.length)], cols = [], prev = Math.floor(r() * 4);
+    for (var i = 0; i < n; i++) {
+      var a = song.notes[(i - 1 + song.notes.length) % song.notes.length], b = song.notes[i % song.notes.length], c;
+      if (i === 0) c = prev;
+      else if (b > a) c = prev < 3 ? prev + 1 + (prev < 2 && b - a > 4 ? 1 : 0) : Math.floor(r() * 3);
+      else if (b < a) c = prev > 0 ? prev - 1 - (prev > 1 && a - b > 4 ? 1 : 0) : 1 + Math.floor(r() * 3);
+      else { c = Math.floor(r() * 3); if (c >= prev) c++; }
+      cols.push(c); prev = c;
+    }
+    return { song: song.id, cols: cols };
   }
   function startBattle(S) {
     var B = S.battle, R = B.rival;
     if (!battleOpen(S) || !R) return null;
     var L = BT.leagues[R.league - 1];
+    if (R.kind === 'piano') {
+      var tp = tilesPattern(R.seed, L.tiles);
+      return { kind: 'piano', rival: R, league: R.league, leagueName: L.name, song: tp.song, cols: tp.cols, tps: Math.round(L.tps * (R.rule === 'rapide' ? 1.1 : 1) * 100) / 100, rule: R.rule || null };
+    }
     var notes = battlePattern(R.seed, L.dens, T.battleBars);
     if (R.rule === 'sans-clap') notes = notes.filter(function (n) { return n.l !== 3; });
-    return { rival: R, league: R.league, leagueName: L.name, bpm: Math.round(L.bpm * (R.rule === 'rapide' ? 1.1 : 1)), bars: T.battleBars, notes: notes, rule: R.rule || null };
+    return { kind: 'drums', rival: R, league: R.league, leagueName: L.name, bpm: Math.round(L.bpm * (R.rule === 'rapide' ? 1.1 : 1)), bars: T.battleBars, notes: notes, rule: R.rule || null };
   }
   // res: { score 0 à 1, combo }. Renvoie le résultat et applique les récompenses.
   function finishBattle(S, res) {
@@ -3584,7 +3641,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     artistCost: artistCost, signArtist: signArtist, tickLabel: tickLabel, artistParts: artistParts,
     VENUES: VENUES, STORIES: STORIES, STORY_BY: STORY_BY, venueIndex: venueIndex, concertReady: concertReady, startConcert: startConcert, finishConcert: finishConcert,
     makeStory: makeStory, storyText: storyText, storyCost: storyCost, resolveStory: resolveStory,
-    trendFor: trendFor, trendAct: trendAct, makeTrend: makeTrend, RULES: RULES, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
+    trendFor: trendFor, trendAct: trendAct, makeTrend: makeTrend, RULES: RULES, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, tilesPattern: tilesPattern, startBattle: startBattle, finishBattle: finishBattle
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;
@@ -4660,7 +4717,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
   function frame(now) {
     requestAnimationFrame(frame);
+    // en pause pendant un mini-jeu plein écran: toute la fluidité va au jeu (et à la batterie du téléphone)
     if (document.hidden || !S3.ok) return;
+    if (S3.paused) { clock.getDelta(); return; }
     var dt = Math.min(0.1, clock.getDelta()), t = clock.elapsedTime;
     if (player) animatePerson(player, t, anyLive ? 'work' : 'idle');
     Object.keys(staffNodes).forEach(function (id) {
@@ -4938,10 +4997,12 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   // ---------- Sons ----------
   var ac = null, lastBlip = 0;
   // Volumes (0 à 100, propres à l'appareil). 70 = niveau d'origine; la courbe est quadratique pour suivre l'oreille.
-  var VKEY = 'premier-mix:volumes', VDEF = 70, vol = { sfx: VDEF };
+  var VKEY = 'premier-mix:volumes', VDEF = 70, vol = { sfx: VDEF, game: VDEF, gameOn: true };
+  // Sons des mini-jeux (clash, concerts, piano, métronome), réglables à part des sons du studio.
+  function gameSnd() { return vol.gameOn && vol.game > 0; }
   function volMul(v) { return Math.pow(v / VDEF, 2); }
   function loadVol() {
-    try { var o = JSON.parse(localStorage.getItem(VKEY) || 'null'); if (o) ['sfx'].forEach(function (k) { var n = +o[k]; if (isFinite(n)) vol[k] = Math.max(0, Math.min(100, Math.round(n))); }); } catch (e) { /* valeurs par défaut */ }
+    try { var o = JSON.parse(localStorage.getItem(VKEY) || 'null'); if (o) { ['sfx', 'game'].forEach(function (k) { var n = +o[k]; if (isFinite(n)) vol[k] = Math.max(0, Math.min(100, Math.round(n))); }); if (typeof o.gameOn === 'boolean') vol.gameOn = o.gameOn; } } catch (e) { /* valeurs par défaut */ }
   }
   function saveVol() { try { localStorage.setItem(VKEY, JSON.stringify(vol)); } catch (e) { /* stockage indisponible */ } }
   var SCALE = [0, 2, 4, 7, 9];
@@ -5219,7 +5280,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   var PI_LOW = 60, PI_HIGH = 79, PI_SCALE = [60, 62, 64, 67, 69, 72, 74, 76];
   var PI_CODES = { KeyA: 60, KeyW: 61, KeyS: 62, KeyE: 63, KeyD: 64, KeyF: 65, KeyT: 66, KeyG: 67, KeyY: 68, KeyH: 69, KeyU: 70, KeyJ: 71, KeyK: 72, KeyO: 73, KeyL: 74, KeyP: 75, Semicolon: 76, Quote: 77 };
   var PI_NAMES = ['Do', 'Do♯', 'Ré', 'Ré♯', 'Mi', 'Fa', 'Fa♯', 'Sol', 'Sol♯', 'La', 'La♯', 'Si'];
-  var pi = { open: false, mode: 'ear', state: 'idle', mel: [], pos: 0, len: 0, timers: [], keys: {}, labels: {}, gain: null, opener: null, built: false };
+  var pi = { open: false, mode: 'tiles', state: 'idle', tiles: null, songName: '', result: '', timers: [], keys: {}, labels: {}, gain: null, opener: null, built: false };
   function piBlack(n) { return [1, 3, 6, 8, 10].indexOf(n % 12) >= 0; }
   function piBuild() {
     var box = $('piKeys'); box.innerHTML = ''; pi.keys = {};
@@ -5249,12 +5310,12 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     try { if (navigator.keyboard && navigator.keyboard.getLayoutMap) navigator.keyboard.getLayoutMap().then(apply, function () { /* étiquettes QWERTY */ }); } catch (e) { /* étiquettes QWERTY */ }
   }
   function piAudio() {
-    if (!S.sound || vol.sfx <= 0) return false;
+    if (!gameSnd()) return false;
     try {
       ac = ac || new (window.AudioContext || window.webkitAudioContext)();
       if (ac.state === 'suspended') ac.resume();
       if (!pi.gain) { pi.gain = ac.createGain(); pi.gain.connect(ac.destination); }
-      pi.gain.gain.value = 0.5 * volMul(vol.sfx);
+      pi.gain.gain.value = 0.5 * volMul(vol.game);
       return true;
     } catch (e) { return false; }
   }
@@ -5275,84 +5336,187 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     pi.timers.push(setTimeout(function () { k.classList.remove(cls); }, ms || 260));
   }
   function piClear() { pi.timers.forEach(clearTimeout); pi.timers = []; Object.keys(pi.keys).forEach(function (n) { pi.keys[n].classList.remove('on', 'bad', 'cue'); }); }
-  function piNextNote(prev) {
-    var i = prev == null ? Math.floor(Math.random() * 5) : PI_SCALE.indexOf(prev), j;
-    do { j = i + Math.floor(Math.random() * 7) - 3; } while (j < 0 || j >= PI_SCALE.length || (j === i && Math.random() < 0.7));
-    return PI_SCALE[j];
+  // ---------- Moteur « piano tiles » (atelier et clashs au piano) ----------
+  // Une tuile noire par rangée: on touche la plus basse avant qu'elle ne sorte de l'écran. Chaque bonne tuile joue la note suivante.
+  var TILE_KEYS = { d: 0, f: 1, j: 2, k: 3 }, TILE_ROWS = 4;
+  function songOf(id) { var s = D.PIANO.songs.filter(function (x) { return x.id === id; })[0]; return s || D.PIANO.songs[0]; }
+  function makeTiles(canvas, cb) {
+    var t = { cv: canvas, ctx: null, W: 0, H: 0, cols: [], song: null, endless: false, n: 0, i: 0, dist: 0, speed: 2, acc: 0, max: 6,
+      started: false, over: false, hits: 0, wrong: 0, missed: 0, combo: 0, best: 0, last: 0, fx: [], raf: 0, endAt: 0 };
+    t.size = function () {
+      var r = canvas.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+      t.W = r.width; t.H = r.height; canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+      t.ctx = canvas.getContext('2d'); t.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    // cfg: { song, cols (clash) | endless: true, speed, acc }
+    t.reset = function (cfg) {
+      cancelAnimationFrame(t.raf);
+      t.song = songOf(cfg.song); t.endless = !!cfg.endless; t.cols = (cfg.cols || []).slice(); t.n = t.endless ? Infinity : t.cols.length;
+      t.speed = cfg.speed || 2; t.acc = cfg.acc || 0; t.i = 0; t.dist = 0; t.started = false; t.over = false;
+      t.hits = 0; t.wrong = 0; t.missed = 0; t.combo = 0; t.best = 0; t.fx = []; t.state = []; t.endAt = 0;
+      if (t.endless) { t.cols = []; t.grow(12); }
+      t.size(); t.draw(); t.raf = requestAnimationFrame(t.loop);
+    };
+    // en mode infini, la colonne suit le contour de la mélodie
+    t.grow = function (k) {
+      var N = t.song.notes;
+      while (t.cols.length < k) {
+        var i = t.cols.length, prev = i ? t.cols[i - 1] : Math.floor(Math.random() * 4), a = N[(i - 1 + N.length) % N.length], b2 = N[i % N.length], c;
+        if (!i) c = prev;
+        else if (b2 > a) c = prev < 3 ? prev + 1 : Math.floor(Math.random() * 3);
+        else if (b2 < a) c = prev > 0 ? prev - 1 : 1 + Math.floor(Math.random() * 3);
+        else { c = Math.floor(Math.random() * 3); if (c >= prev) c++; }
+        t.cols.push(c);
+      }
+    };
+    t.note = function (k) { var N = t.song.notes; return N[k % N.length] + (t.endless && Math.floor(k / N.length) % 2 ? 12 : 0); };
+    t.done = function () { return t.over || (!t.endless && t.i >= t.n); };
+    t.tap = function (col) {
+      if (t.done() || col < 0 || col > 3) return;
+      var now = performance.now() / 1000;
+      if (t.cols[t.i] === col) {
+        t.state[t.i] = 1; t.fx.push({ k: 'ok', c: col, row: t.i, at: now });
+        if (cb.note) cb.note(t.note(t.i));
+        t.i++; t.hits++; t.combo++; t.best = Math.max(t.best, t.combo);
+        if (!t.started) { t.started = true; t.last = now; }
+        if (t.endless) { t.speed = Math.min(t.max, t.speed + t.acc); t.grow(t.i + 12); }
+      } else {
+        t.fx.push({ k: 'bad', c: col, row: t.i, at: now }); t.combo = 0;
+        if (cb.wrong) cb.wrong();
+        if (t.endless) { t.over = true; t.endAt = now; }
+        else if (t.started) t.wrong++;
+      }
+      if (cb.hud) cb.hud(t);
+      if (t.done() && !t.endAt) t.endAt = now;
+    };
+    t.loop = function () {
+      var now = performance.now() / 1000;
+      if (t.started && !t.done()) {
+        t.dist += Math.min(0.1, now - t.last) * t.speed;
+        // une tuile ratée sort de l'écran
+        while (t.i < t.n && t.dist > t.i + 1.45) {
+          t.state[t.i] = -1; t.fx.push({ k: 'miss', c: t.cols[t.i], row: t.i, at: now }); t.combo = 0;
+          if (cb.wrong) cb.wrong();
+          if (t.endless) { t.over = true; t.endAt = now; t.dist = t.i + 0.9; break; }
+          t.missed++; t.i++;
+          if (cb.hud) cb.hud(t);
+          if (t.done()) t.endAt = now;
+        }
+      }
+      t.last = now;
+      t.draw();
+      if (t.endAt && now - t.endAt > (t.endless ? 0.9 : 0.6)) { if (cb.end) cb.end(t); return; }
+      t.raf = requestAnimationFrame(t.loop);
+    };
+    t.stop = function () { cancelAnimationFrame(t.raf); t.raf = 0; };
+    t.score = function () { return t.n && t.n !== Infinity ? Math.max(0, t.hits - 0.5 * t.wrong) / t.n : 0; };
+    t.draw = function () {
+      var c = t.ctx; if (!c) return;
+      var W = t.W, H = t.H, cw = W / 4, rh = H / TILE_ROWS, now = performance.now() / 1000;
+      c.fillStyle = '#fbf8f2'; c.fillRect(0, 0, W, H);
+      c.strokeStyle = 'rgba(30,25,20,0.12)'; c.lineWidth = 1;
+      for (var x = 1; x < 4; x++) { c.beginPath(); c.moveTo(x * cw, 0); c.lineTo(x * cw, H); c.stroke(); }
+      var first = Math.max(0, Math.floor(t.dist) - 2), lastK = Math.min(t.cols.length - 1, Math.ceil(t.dist) + TILE_ROWS + 1);
+      for (var k = first; k <= lastK; k++) {
+        var yb = H - (k + 1 - t.dist) * rh, y = yb - rh;
+        if (yb < 0 || y > H) continue;
+        var st = t.state[k], col = t.cols[k], px = col * cw + 2, pw = cw - 4;
+        c.fillStyle = st === 1 ? 'rgba(30,30,36,0.16)' : st === -1 ? '#e05a4f' : '#1d1f26';
+        c.fillRect(px, y + 2, pw, rh - 4);
+        if (!st) { c.fillStyle = 'rgba(255,255,255,0.08)'; c.fillRect(px, y + 2, pw, Math.min(10, rh * 0.12)); }
+        if (k === 0 && !t.started) {
+          c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '800 ' + Math.round(Math.min(18, cw * 0.2)) + 'px system-ui, sans-serif';
+          c.fillText('Départ', px + pw / 2, y + rh / 2);
+        }
+      }
+      // retours visuels: bonne tuile (onde orange), erreur (case rouge)
+      t.fx = t.fx.filter(function (f) { return now - f.at < 0.45; });
+      t.fx.forEach(function (f) {
+        var a = 1 - (now - f.at) / 0.45, yb2 = H - (f.row + 1 - t.dist) * rh;
+        c.globalAlpha = a;
+        if (f.k === 'ok') { c.strokeStyle = '#ff7a2f'; c.lineWidth = 3; c.strokeRect(f.c * cw + 3, yb2 - rh + 3, cw - 6, rh - 6); }
+        else { c.fillStyle = 'rgba(224,90,79,0.55)'; c.fillRect(f.c * cw, f.k === 'miss' ? H - rh : yb2 - rh, cw, rh); }
+        c.globalAlpha = 1;
+      });
+      // progression ou compteur
+      if (!t.endless) { c.fillStyle = 'rgba(30,25,20,0.12)'; c.fillRect(0, 0, W, 4); c.fillStyle = '#ff7a2f'; c.fillRect(0, 0, W * Math.min(1, t.i / t.n), 4); }
+      else if (t.started) { c.fillStyle = 'rgba(255,122,47,0.9)'; c.textAlign = 'center'; c.textBaseline = 'top'; c.font = '800 34px system-ui, sans-serif'; c.fillText(String(t.hits), W / 2, 10); }
+    };
+    canvas.addEventListener('pointerdown', function (e) {
+      e.preventDefault(); var r = canvas.getBoundingClientRect();
+      t.tap(Math.max(0, Math.min(3, Math.floor((e.clientX - r.left) / (r.width / 4)))));
+    });
+    return t;
   }
+  function tileWrong() { if (!piAudio()) return; var o = ac.createOscillator(), g = ac.createGain(), at = ac.currentTime; o.type = 'square'; o.frequency.setValueAtTime(98, at); g.gain.setValueAtTime(0.12, at); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.25); o.connect(g); g.connect(pi.gain); o.start(at); o.stop(at + 0.3); }
+
   function piStatus() {
-    var P = S.piano, ready = P.cd <= 0, r = G.pianoReward(Math.max(3, pi.len || 3));
-    var info = 'Record : ' + P.best + ' note' + (P.best > 1 ? 's' : '') + ' · ' + (ready ? 'inspiration disponible' : 'prochaine inspiration dans ' + clock(P.cd));
-    if (pi.mode === 'free') {
+    var P = S.piano, ready = P.cd <= 0, mn = D.PIANO.min;
+    var free = pi.mode === 'free';
+    $('piKeys').hidden = !free; $('piStage').hidden = free; $('piText').hidden = false;
+    if (free) {
       setText($('piText'), 'Joue librement : chaque touche sonne comme un vrai piano. Idéal pour trouver une idée de mélodie.');
       setText($('piState'), 'Jeu libre'); setText($('piInfo'), '');
       $('piStart').hidden = true; return;
     }
-    $('piStart').hidden = pi.state === 'listen' || pi.state === 'input';
-    setText($('piText'), 'Écoute la mélodie, puis rejoue-la note par note. À chaque réussite, elle s’allonge d’une note. Plus tu vas loin, plus ton inspiration dope les gains du studio' + (ready ? '.' : ' (une fois toutes les ' + Math.round(D.TUNING.pianoEvery / 60) + ' minutes ; tu peux t’entraîner en attendant).'));
-    setText($('piInfo'), info);
-    var st = pi.state;
-    setText($('piState'), st === 'listen' ? 'Écoute… (' + pi.mel.length + ' notes)' : st === 'input' ? 'À toi ! ' + pi.pos + ' / ' + pi.mel.length : st === 'over' ? pi.result : 'Prêt ?');
-    setText($('piStartT'), st === 'over' ? 'Rejouer' : 'Écouter la mélodie');
+    var tl = pi.tiles, playing = tl && pi.state === 'play';
+    $('piStart').hidden = playing; $('piText').hidden = playing;
+    setText($('piText'), 'Touche les tuiles noires de bas en haut, sans toucher le blanc ni en laisser filer une : chaque tuile joue la note suivante de la mélodie, et ça accélère. Dès ' + mn + ' tuiles, ton inspiration dope les gains du studio' + (ready ? '.' : ' (une fois toutes les ' + Math.round(D.TUNING.pianoEvery / 60) + ' minutes ; tu peux t’entraîner en attendant).'));
+    setText($('piInfo'), 'Record : ' + P.best + ' tuile' + (P.best > 1 ? 's' : '') + ' · ' + (ready ? 'inspiration disponible' : 'prochaine inspiration dans ' + clock(P.cd)));
+    setText($('piState'), playing ? (tl.started ? tl.hits + ' tuile' + (tl.hits > 1 ? 's' : '') + ' · ' + pi.songName : 'Touche « Départ » pour lancer ' + pi.songName) : pi.state === 'over' ? pi.result : 'Prêt ?');
+    setText($('piStartT'), pi.state === 'over' ? 'Rejouer' : 'Jouer');
     setText($('piStartS'), ready ? 'Inspiration en jeu' : 'Entraînement');
   }
-  function piPlayMel() {
-    piClear(); pi.state = 'listen'; pi.pos = 0; piStatus();
-    var gap = Math.max(0.32, 0.55 - pi.mel.length * 0.015), now = ac && piAudio() ? ac.currentTime : 0;
-    pi.mel.forEach(function (n, i) {
-      if (now) piSound(n, now + 0.35 + i * gap);
-      pi.timers.push(setTimeout(function () { piFlash(n, 'cue', gap * 900); }, (0.35 + i * gap) * 1000));
+  function piTiles() {
+    if (!pi.tiles) pi.tiles = makeTiles($('piCanvas'), {
+      note: function (n) { piSound(n); },
+      wrong: tileWrong,
+      hud: function () { piStatus(); },
+      end: function (t) { piEnd(t.hits); }
     });
-    pi.timers.push(setTimeout(function () { pi.state = 'input'; piStatus(); }, (0.35 + pi.mel.length * gap) * 1000));
+    return pi.tiles;
   }
   function piStart() {
-    if (pi.mode !== 'ear') return;
-    pi.mel = []; for (var i = 0; i < 3; i++) pi.mel.push(piNextNote(pi.mel[i - 1]));
-    pi.len = 0; pi.result = '';
-    piPlayMel();
+    if (pi.mode !== 'tiles') return;
+    var songs = D.PIANO.songs, s = songs[Math.floor(Math.random() * songs.length)];
+    pi.songName = s.name; pi.state = 'play'; pi.result = '';
+    piStatus();
+    piTiles().reset({ song: s.id, endless: true, speed: 1.9, acc: 0.035 });
+    try { $('piCanvas').focus(); } catch (e) { /* facultatif */ }
   }
-  function piEnd() {
-    pi.state = 'over';
-    var res = G.finishPiano(S, pi.len);
+  function piEnd(n) {
+    if (pi.state !== 'play') return;
+    pi.state = 'over'; if (pi.tiles) pi.tiles.stop();
+    var res = G.finishPiano(S, n), mn = D.PIANO.min;
     if (res && res.reward) {
-      pi.result = pi.len + ' note' + (pi.len > 1 ? 's' : '') + ' : inspiration !';
+      pi.result = n + ' tuiles : inspiration !';
       toast('Inspiration : gains ×' + nf1.format(res.reward.m) + ' pendant ' + dur(res.reward.s) + '.', 5000); blip(12);
-    } else pi.result = pi.len >= 3 ? pi.len + ' notes rejouées. Bel entraînement !' : 'Raté ! Écoute bien et retente ta chance.';
+    } else pi.result = n >= mn ? n + ' tuiles. Bel entraînement !' : n + ' tuile' + (n > 1 ? 's' : '') + ' : vise au moins ' + mn + ' tuiles.';
     saveLocal(); markCloud(); piStatus(); render();
+    $('piStart').focus();
   }
   function piPress(n) {
     if (!pi.open) return;
-    piSound(n);
-    if (pi.mode === 'free' || pi.state !== 'input') { piFlash(n, 'on', 220); return; }
-    if (n === pi.mel[pi.pos]) {
-      piFlash(n, 'on', 220); pi.pos++;
-      if (pi.pos >= pi.mel.length) {
-        pi.len = pi.mel.length; pi.state = 'listen'; piStatus();
-        pi.mel.push(piNextNote(pi.mel[pi.mel.length - 1]));
-        pi.timers.push(setTimeout(piPlayMel, 700));
-      } else piStatus();
-    } else {
-      piFlash(n, 'bad', 500); piFlash(pi.mel[pi.pos], 'cue', 700);
-      piEnd();
-    }
+    piSound(n); piFlash(n, 'on', 220);
   }
   function openPiano() {
     if (pi.open || !G.pianoOpen(S)) return;
     if (!pi.built) piBuild();
     pi.open = true; pi.opener = document.activeElement; pi.state = 'idle';
     $('piTitle').textContent = S.owned.orchestre ? 'Au piano à queue' : 'Au clavier maître';
-    var snd = S.sound && vol.sfx > 0;
+    var snd = gameSnd();
     $('piSoundOn').hidden = snd;
-    setText($('piTip'), (snd ? '' : 'Le son est coupé : les touches s’allument quand même, mais c’est bien plus facile à l’oreille. ') + 'Sur ordinateur, joue avec les touches de ton clavier indiquées sur le piano.');
+    setText($('piTip'), (snd ? '' : 'Le son est coupé : tu peux jouer quand même, mais la mélodie fait tout le charme. ') + 'Sur ordinateur : touches D, F, J et K pour les quatre colonnes (et ton clavier en jeu libre).');
+    $('pianoScrim').hidden = false; $('app').inert = true; $('tabs').inert = true; if (S3) if (S3) S3.paused = true;
     piStatus();
-    $('pianoScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
-    (pi.mode === 'ear' ? $('piStart') : pi.keys[PI_LOW]).focus();
+    if (pi.mode === 'tiles') { piTiles().size(); pi.tiles.draw(); }
+    (pi.mode === 'tiles' ? $('piStart') : pi.keys[PI_LOW]).focus();
   }
   function closePiano() {
     if (!pi.open) return;
-    if (pi.state === 'listen' || pi.state === 'input') { if (pi.len >= 3) piEnd(); }
+    if (pi.state === 'play' && pi.tiles) { var h = pi.tiles.hits; pi.tiles.stop(); if (h >= D.PIANO.min) piEnd(h); }
     pi.open = false; pi.state = 'idle'; piClear();
-    $('pianoScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    $('pianoScrim').hidden = true; $('app').inert = false; $('tabs').inert = false; if (S3) S3.paused = false;
     var o = pi.opener; pi.opener = null;
     if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
     render();
@@ -5365,24 +5529,33 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     $('pianoScrim').addEventListener('click', function (e) { if (e.target === $('pianoScrim')) closePiano(); });
     $('pianoScrim').querySelector('.pi-mode').addEventListener('click', function (e) {
       var b = e.target.closest('[data-pm]'); if (!b) return;
-      if (pi.state === 'listen' || pi.state === 'input') { if (pi.len >= 3) piEnd(); }
+      if (pi.state === 'play' && pi.tiles) { var h = pi.tiles.hits; pi.tiles.stop(); if (h >= D.PIANO.min) piEnd(h); }
       pi.mode = b.getAttribute('data-pm'); pi.state = 'idle'; piClear();
       $('pianoScrim').querySelectorAll('[data-pm]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
       piStatus();
+      if (pi.mode === 'tiles') { piTiles().size(); pi.tiles.draw(); }
     });
     $('piSoundOn').addEventListener('click', function () {
-      S.sound = true; if (vol.sfx <= 0) { vol.sfx = VDEF; saveVol(); }
+      vol.gameOn = true; if (vol.game <= 0) vol.game = VDEF; saveVol();
       markCloud(); saveLocal(); $('piSoundOn').hidden = true;
       if (bind.syncSound) bind.syncSound(); if (bind.syncVol) bind.syncVol();
-      piSound(72); setText($('piTip'), 'Sur ordinateur, joue avec les touches de ton clavier indiquées sur le piano.');
+      piSound(72); setText($('piTip'), 'Sur ordinateur : touches D, F, J et K pour les quatre colonnes (et ton clavier en jeu libre).');
     });
     document.addEventListener('keydown', function (e) {
       if (!pi.open) return;
       if (e.key === 'Escape') { e.preventDefault(); closePiano(); return; }
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      if (pi.mode === 'tiles') {
+        var c = TILE_KEYS[(e.key || '').toLowerCase()];
+        if (c !== undefined && pi.state === 'play') { e.preventDefault(); pi.tiles.tap(c); }
+        return;
+      }
       var n = PI_CODES[e.code];
-      if (n !== undefined && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); piPress(n); }
+      if (n !== undefined) { e.preventDefault(); piPress(n); }
     });
-    setInterval(function () { if (pi.open && pi.state !== 'listen') piStatus(); }, 1000);
+    window.addEventListener('resize', function () { if (pi.open && pi.tiles && pi.mode === 'tiles') { pi.tiles.size(); pi.tiles.draw(); } });
+    document.addEventListener('visibilitychange', function () { if (document.hidden && pi.open && pi.state === 'play' && pi.tiles) { var h = pi.tiles.hits; pi.tiles.stop(); pi.state = 'play'; piEnd(h); } });
+    setInterval(function () { if (pi.open && pi.state !== 'play') piStatus(); }, 1000);
   }
 
   // ---------- Icônes dans la scène 3D ----------
@@ -5393,9 +5566,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var list = [];
     if (G.battleOpen(S)) {
       var R = S.battle.rival;
-      list.push({ id: 'clash', anchor: 'drums', hot: !!R,
-        label: R ? 'Clash de beatmakers : ' + R.name + ' te défie' : 'Clash de beatmakers : prochain défi dans ' + clock(S.battle.cd),
-        html: HOT_DRUM + '<span>Clash</span>' + (R ? '<i class="bang" aria-hidden="true">!</i>' : '<small>' + clock(S.battle.cd) + '</small>') });
+      var pk = !!R && R.kind === 'piano' && G.pianoOpen(S);
+      list.push({ id: 'clash', anchor: pk ? 'piano' : 'drums', hot: !!R,
+        label: R ? (pk ? 'Duel au piano : ' : 'Clash de beatmakers : ') + R.name + ' te défie' : 'Clash : prochain défi dans ' + clock(S.battle.cd),
+        html: (pk ? HOT_PIANO : HOT_DRUM) + '<span>' + (pk ? 'Duel' : 'Clash') + '</span>' + (R ? '<i class="bang" aria-hidden="true">!</i>' : '<small>' + clock(S.battle.cd) + '</small>') });
     }
     var dn = G.decoNew(S).length;
     list.push({ id: 'deco', anchor: 'shelf', hot: dn > 0, label: 'Décoration du studio' + (dn ? ' : ' + dn + ' nouveauté' + (dn > 1 ? 's' : '') : ''),
@@ -5415,7 +5589,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
 
   // ---------- Clash de beatmakers ----------
   var LANE_COL = ['#ff7a2f', '#3d7be0', '#24a066', '#7a5cd6'], LANE_KEYS = { d: 0, f: 1, j: 2, k: 3 };
-  var cl = { open: false, playing: false, done: false, cfg: null, notes: [], t0: 0, raf: 0, score: 0, combo: 0, best: 0, opener: null, gain: null, flash: [0, 0, 0, 0], judge: [null, null, null, null], end: 0, lead: 0, step: 0, key: '', wasOpen: null, ctx: null, W: 0, H: 0, dpr: 1 };
+  var METKEY = 'premier-mix:metro';
+  function metroPref() { try { return localStorage.getItem(METKEY) !== '0'; } catch (e) { return true; } }
+  var cl = { metro: true, open: false, playing: false, done: false, cfg: null, notes: [], t0: 0, raf: 0, score: 0, combo: 0, best: 0, opener: null, gain: null, flash: [0, 0, 0, 0], judge: [null, null, null, null], end: 0, lead: 0, step: 0, key: '', wasOpen: null, ctx: null, W: 0, H: 0, dpr: 1 };
   function clNow() { return performance.now() / 1000; }
   function renderClash(force) {
     var open = G.battleOpen(S), B = S.battle, onProd = $('app').getAttribute('data-view') === 'prod';
@@ -5425,14 +5601,14 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (!open) return;
     var L = D.BATTLE.leagues[B.league - 1], R = B.rival;
     setText($('clashChip'), 'Ligue ' + L.name);
-    var key = (R ? 'r' + R.name + R.target : 'w') + '|' + B.league + '|' + B.pts + '|' + B.wins + '|' + B.losses;
+    var key = (R ? 'r' + R.name + R.target + R.kind : 'w') + '|' + B.league + '|' + B.pts + '|' + B.wins + '|' + B.losses;
     if (key !== cl.key || force) {
       cl.key = key;
       var up = B.league < D.BATTLE.leagues.length;
       var bar = '<span class="league-bar" aria-hidden="true">' + D.BATTLE.leagues.map(function (x, i) { return '<i class="' + (i < B.league ? 'on' : '') + '"></i>'; }).join('') + '</span>';
       var prog = up ? B.pts + ' / ' + D.TUNING.battleUp + ' victoires pour monter en ligue ' + D.BATTLE.leagues[B.league].name + '.' : 'Tu es au sommet : ligue Légende.';
       $('clashBody').innerHTML = R
-        ? '<article class="card clash-card hot"><span class="who-r"></span><p class="proj-meta">Score à battre : <b>' + Math.round(R.target * 100) + ' %</b> · ' + Math.round(L.bpm * (R.rule === 'rapide' ? 1.1 : 1)) + ' BPM · ' + prog + '</p>' + (R.rule ? '<p class="proj-meta"><span class="vogue">' + esc(RULE_TXT[R.rule][0]) + '</span> ' + esc(RULE_TXT[R.rule][1]) + '</p>' : '') + bar +
+        ? '<article class="card clash-card hot"><span class="who-r"></span><p class="proj-meta">' + (R.kind === 'piano' ? '<span class="vogue">Au piano</span> ' : '<span class="vogue">À la batterie</span> ') + 'Score à battre : <b>' + Math.round(R.target * 100) + ' %</b> · ' + (R.kind === 'piano' ? L.tiles + ' tuiles' : Math.round(L.bpm * (R.rule === 'rapide' ? 1.1 : 1)) + ' BPM') + ' · ' + prog + '</p>' + (R.rule ? '<p class="proj-meta"><span class="vogue">' + esc(RULE_TXT[R.rule][0]) + '</span> ' + esc(RULE_TXT[R.rule][1]) + '</p>' : '') + bar +
           '<div class="proj-row"><button class="btn primary" type="button" data-cl="go">Relever le défi</button><button class="btn sm" type="button" data-cl="no">Décliner</button></div></article>'
         : '<article class="card clash-card"><p class="proj-meta" id="clWait"></p>' + bar + '<p class="proj-meta">' + prog + ' ' + B.wins + ' victoire' + (B.wins > 1 ? 's' : '') + ', ' + B.losses + ' défaite' + (B.losses > 1 ? 's' : '') + (B.best ? ', meilleur combo ' + B.best : '') + '.</p></article>';
       var w = $('clashBody').querySelector('.who-r'); if (w) w.textContent = R.name + ' te défie !';
@@ -5471,11 +5647,11 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     o.connect(g); g.connect(cl.gain); o.start(t); o.stop(t + len + 0.02);
   }
   function clAudioOn() {
-    if (!S.sound || vol.sfx <= 0) return false;
+    if (!gameSnd()) return false;
     try {
       ac = ac || new (window.AudioContext || window.webkitAudioContext)();
       if (ac.state === 'suspended') ac.resume();
-      cl.gain = ac.createGain(); cl.gain.gain.value = 0.55 * volMul(vol.sfx); cl.gain.connect(ac.destination);
+      cl.gain = ac.createGain(); cl.gain.gain.value = 0.55 * volMul(vol.game); cl.gain.connect(ac.destination);
       return true;
     } catch (e) { cl.gain = null; return false; }
   }
@@ -5484,25 +5660,27 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var cfg = given && given.concert ? given : G.startBattle(S);
     if (!cfg || cl.open) return;
     cl.open = true; cl.playing = false; cl.done = false; cl.cfg = cfg; cl.opener = document.activeElement;
-    var conc = cfg.concert, an = conc ? artName(conc.artist) : '';
-    setText($('clKind'), conc ? 'Concert' : 'Clash de beatmakers');
+    var conc = cfg.concert, an = conc ? artName(conc.artist) : '', pk = cfg.kind === 'piano';
+    setText($('clKind'), conc ? 'Concert' : pk ? 'Duel au piano' : 'Clash de beatmakers');
+    $('clKeysD').hidden = pk; $('clKeysP').hidden = !pk; $('clMetroL').hidden = pk;
     setText($('clLeague'), conc ? cfg.leagueName + ' · ' + D.VENUES[conc.venue].cap : 'Ligue ' + cfg.leagueName);
     $('clTitle').textContent = conc ? an + ' en concert' : cfg.rival.name + ' te défie';
-    $('clIntroText').textContent = conc ? an + ' monte sur scène et compte sur toi à la batterie. Frappe chaque note quand elle touche la ligne : plus tu es en rythme, plus le public s’enflamme. Vise ' + Math.round(cfg.rival.target * 100) + ' % pour un beau concert.' : 'Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.';
+    $('clIntroText').textContent = pk ? cfg.rival.name + ' t’attend au piano sur « ' + songOf(cfg.song).name + ' ». Touche les tuiles noires de bas en haut avant qu’elles ne sortent de l’écran : chaque tuile joue une note. Une tuile ratée ou une fausse note fait baisser ton score.' : conc ? an + ' monte sur scène et compte sur toi à la batterie. Frappe chaque note quand elle touche la ligne : plus tu es en rythme, plus le public s’enflamme. Vise ' + Math.round(cfg.rival.target * 100) + ' % pour un beau concert.' : 'Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.';
     setText($('clTargetL'), conc ? 'Objectif' : 'À battre'); setText($('clTheirsL'), conc ? 'Objectif' : 'Rival');
-    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + (conc ? ' % visés · ' : ' % à battre · ') + cfg.bpm + ' BPM' + (cfg.rule ? ' · ' + RULE_TXT[cfg.rule][0] : ''));
-    var snd = S.sound && vol.sfx > 0;
-    setText($('clTip'), snd ? (conc ? 'Le son est activé : ta batterie accompagne la ligne de basse du groupe.' : 'Le son est activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.') : 'Le son est coupé : tu peux jouer quand même, mais c’est bien plus amusant en musique.');
+    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + (conc ? ' % visés · ' : ' % à battre · ') + (pk ? cfg.cols.length + ' tuiles' : cfg.bpm + ' BPM') + (cfg.rule ? ' · ' + RULE_TXT[cfg.rule][0] : ''));
+    var snd = gameSnd();
+    setText($('clTip'), pk ? (snd ? 'Le son est activé : chaque tuile joue la note suivante de la mélodie.' : 'Le son est coupé : tu peux jouer quand même, mais la mélodie fait tout le charme.') : snd ? (conc ? 'Le son est activé : ta batterie accompagne la ligne de basse du groupe.' : 'Le son est activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.') : 'Le son est coupé : tu peux jouer quand même, mais c’est bien plus amusant en musique.');
     $('clSoundOn').hidden = snd;
+    cl.metro = metroPref(); $('clMetro').checked = cl.metro;
     $('clIntro').hidden = false; $('clPlay').hidden = true; $('clDone').hidden = true;
-    $('clashScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    $('clashScrim').hidden = false; $('app').inert = true; $('tabs').inert = true; if (S3) if (S3) S3.paused = true;
     $('clGo').focus();
   }
   function closeClash() {
     if (!cl.open) return;
     if (cl.playing) return; // pendant la partie, il faut abandonner explicitement
     cl.open = false; cancelAnimationFrame(cl.raf); clAudioOff();
-    $('clashScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    $('clashScrim').hidden = true; $('app').inert = false; $('tabs').inert = false; if (S3) S3.paused = false;
     var o = cl.opener; cl.opener = null;
     if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
     cl.key = ''; render();
@@ -5516,6 +5694,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function startClash() {
     var cfg = cl.cfg;
     $('clIntro').hidden = true; $('clPlay').hidden = false;
+    if (cfg.kind === 'piano') { clStartTiles(cfg); return; }
+    $('clPlay').classList.remove('tiles'); $('clPads').hidden = false;
     clSize();
     var beat = 60 / cfg.bpm; cl.step = beat / 4; cl.lead = beat * 4 + 0.4;
     cl.notes = cfg.notes.map(function (n) { return { t: cl.lead + n.s * cl.step, l: n.l, hit: 0 }; });
@@ -5529,11 +5709,28 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       for (var b = 0; b < cfg.bars; b++) for (var q = 0; q < 4; q++) {
         var at = a0 + cl.lead + (b * 4 + q) * beat, f = BASS[Math.floor(b / 2) % 4];
         tone(f, at, beat * 0.9, 0.22, 'triangle'); if (q % 2 === 1) tone(f * 2, at + beat / 2, beat * 0.4, 0.08, 'sawtooth');
+        if (cl.metro) tone(q === 0 ? 1560 : 1040, at, 0.035, 0.11, 'square');
       }
     }
     cl.playing = true; cl.done = false;
     $('clPads').querySelector('.clpad').focus();
     cancelAnimationFrame(cl.raf); cl.raf = requestAnimationFrame(clLoop);
+  }
+  // Duel au piano: même scène, mais le canevas devient une piste de tuiles qu'on touche directement.
+  function clStartTiles(cfg) {
+    $('clPlay').classList.add('tiles'); $('clPads').hidden = true;
+    if (!cl.tiles) cl.tiles = makeTiles($('clCanvas'), {
+      note: function (n) { piSound(n); },
+      wrong: tileWrong,
+      hud: function (t) { setText($('clScore'), Math.round(t.score() * 100) + ' %'); setText($('clCombo'), String(t.combo)); },
+      end: function () { finishClash(false); }
+    });
+    cl.score = 0; cl.combo = 0; cl.best = 0; cl.pts = 0;
+    setText($('clTarget'), Math.round(cfg.rival.target * 100) + ' %'); setText($('clScore'), '0 %'); setText($('clCombo'), '0');
+    piAudio();
+    cl.playing = true; cl.done = false;
+    cl.tiles.reset({ song: cfg.song, cols: cfg.cols, speed: cfg.tps });
+    try { $('clCanvas').focus(); } catch (e) { /* facultatif */ }
   }
   var JUDGE = { p: 'Parfait', g: 'Bien', m: 'Raté' };
   function clHit(l) {
@@ -5604,6 +5801,15 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (now >= 0.4 && cnt >= 1 && cnt <= 4) { c.fillStyle = '#fff'; c.font = '800 64px system-ui, sans-serif'; c.fillText(String(cnt), W / 2, H / 2); }
       else if (now < 0.4) { c.fillStyle = '#fff'; c.font = '800 22px system-ui, sans-serif'; c.fillText('Prêt ?', W / 2, H / 2); }
     }
+    // métronome visuel: un voyant pulse à chaque temps
+    if (cl.metro && now > 0.4) {
+      var bp = (now - 0.4) / beat, ph = bp - Math.floor(bp), down = Math.floor(bp) % 4 === 0;
+      c.globalAlpha = Math.max(0.15, 1 - ph * 2.2);
+      c.fillStyle = down ? '#ffd166' : '#ffffff';
+      c.beginPath(); c.arc(W - 18, 20, down ? 8 : 6, 0, Math.PI * 2); c.fill();
+      c.fillRect(0, hy - 1.5, W * (1 - ph) * 0.12, 3); c.fillRect(W - W * (1 - ph) * 0.12, hy - 1.5, W * (1 - ph) * 0.12, 3);
+      c.globalAlpha = 1;
+    }
     // progression
     c.fillStyle = 'rgba(255,255,255,0.15)'; c.fillRect(0, 0, W, 4);
     c.fillStyle = '#ff7a2f'; c.fillRect(0, 0, W * Math.max(0, Math.min(1, now / cl.end)), 4);
@@ -5613,6 +5819,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     cl.playing = false; cancelAnimationFrame(cl.raf);
     if (quit) clAudioOff(); else setTimeout(clAudioOff, 1200);
     var score = cl.notes.length ? cl.pts / cl.notes.length : 0;
+    if (cl.cfg.kind === 'piano' && cl.tiles) { cl.tiles.stop(); score = cl.tiles.score(); cl.best = cl.tiles.best; }
     if (cl.cfg.concert) { finishConcertUi(quit, score); return; }
     var res = G.finishBattle(S, { score: score, combo: cl.best });
     cl.done = true;
@@ -5724,11 +5931,12 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       else { G.declineBattle(S); saveLocal(); toast('Défi décliné. Un autre rival se présentera bientôt.'); cl.key = ''; render(); }
     });
     $('clGo').addEventListener('click', startClash);
+    $('clMetro').addEventListener('change', function () { cl.metro = this.checked; try { localStorage.setItem(METKEY, cl.metro ? '1' : '0'); } catch (e) { /* facultatif */ } });
     $('clLater').addEventListener('click', closeClash);
     $('clClose').addEventListener('click', closeClash);
     $('clQuit').addEventListener('click', function () { finishClash(true); });
     $('clSoundOn').addEventListener('click', function () {
-      S.sound = true; if (vol.sfx <= 0) { vol.sfx = VDEF; saveVol(); }
+      vol.gameOn = true; if (vol.game <= 0) vol.game = VDEF; saveVol();
       markCloud(); saveLocal(); $('clSoundOn').hidden = true; setText($('clTip'), 'Son activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.'); blip(8);
       if (bind.syncSound) bind.syncSound(); if (bind.syncVol) bind.syncVol();
       $('clGo').focus();
@@ -5743,10 +5951,11 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     document.addEventListener('keydown', function (e) {
       if (!cl.open) return;
       var k = LANE_KEYS[(e.key || '').toLowerCase()];
+      if (cl.playing && k !== undefined && cl.cfg.kind === 'piano') { e.preventDefault(); if (!e.repeat) cl.tiles.tap(k); return; }
       if (cl.playing && k !== undefined) { e.preventDefault(); if (!e.repeat) { clHit(k); var pd = $('clPads').children[k]; pd.classList.add('down'); setTimeout(function () { pd.classList.remove('down'); }, 90); } return; }
       if (e.key === 'Escape' && !cl.playing) { e.preventDefault(); closeClash(); }
     });
-    window.addEventListener('resize', function () { if (cl.playing) clSize(); });
+    window.addEventListener('resize', function () { if (cl.playing) { if (cl.cfg.kind === 'piano') { cl.tiles.size(); cl.tiles.draw(); } else clSize(); } });
     document.addEventListener('visibilitychange', function () { if (document.hidden && cl.playing) finishClash(true); });
   }
 
@@ -7134,6 +7343,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       $('volSfxOut').textContent = vol.sfx + ' %';
       $('volSfx').setAttribute('aria-valuetext', vol.sfx + ' %');
       $('volSfxHint').hidden = !!S.sound;
+      $('volGame').value = vol.game; $('volGameOut').textContent = vol.game + ' %'; $('volGame').setAttribute('aria-valuetext', vol.game + ' %');
+      $('gameSoundBtn').setAttribute('aria-pressed', vol.gameOn ? 'true' : 'false');
+      $('volGameHint').hidden = vol.gameOn;
     }
     bind.syncVol = syncVol;
     var sfxT = 0;
@@ -7142,8 +7354,14 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       clearTimeout(sfxT); sfxT = setTimeout(function () { lastBlip = 0; blip(2, true); }, 120); // aperçu du niveau
     });
     $('volReset').addEventListener('click', function () {
-      vol.sfx = VDEF; syncVol(); saveVol();
+      vol.sfx = VDEF; vol.game = VDEF; syncVol(); saveVol();
     });
+    var gT = 0;
+    $('volGame').addEventListener('input', function () {
+      vol.game = +this.value; syncVol(); saveVol();
+      clearTimeout(gT); gT = setTimeout(function () { if (gameSnd() && typeof piSound === 'function') piSound(72); }, 120);
+    });
+    $('gameSoundBtn').addEventListener('click', function () { vol.gameOn = !vol.gameOn; syncVol(); saveVol(); if (gameSnd()) piSound(76); });
     syncVol();
 
 
@@ -7254,7 +7472,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (quiet) return;
     toast('Nouvelles tendances : « ' + G.ACT_BY[tr.act].name + ' » en vogue, le public veut du ' + G.PJ_G[tr.g].name + '. Détails dans le Top 50.', 6500);
   };
-  G.hooks.battleNew = function (r) { cl.key = ''; markCloud(); if (!quiet) { toast(r.name + ' te défie en clash de beatmakers ! Rendez-vous dans Productions.', 6000); blip(10); } };
+  G.hooks.battleNew = function (r) { cl.key = ''; markCloud(); if (!quiet) { toast(r.kind === 'piano' ? r.name + ' te défie en duel au piano ! Touche le piano du studio ou va dans Productions.' : r.name + ' te défie en clash de beatmakers ! Touche la batterie du studio ou va dans Productions.', 6000); blip(10); } };
   G.hooks.battleDone = function () { cl.key = ''; markCloud(); };
   G.hooks.projectStart = function (c) { markCloud(); if (!quiet) { toast('« ' + c.title + ' » est lancé : écriture en cours.', 4000); blip(6); } };
   G.hooks.projectPhase = function (c) { pjv.key = ''; markCloud(); if (!quiet) toast('« ' + c.title + ' » : ' + D.PROJECTS.phases[c.phase].name.toLowerCase() + ' en cours.', 3500); };

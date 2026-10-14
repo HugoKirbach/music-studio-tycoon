@@ -37,6 +37,7 @@
   STORIES.forEach(function (s) { STORY_BY[s.id] = s; });
   var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
+  var PIANO = D.PIANO || { songs: [{ id: 'gamme', name: 'Gamme', notes: [60, 62, 64, 65, 67, 69, 71, 72] }], min: 10 };
 
   var hooks = {};
   var cache = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
@@ -139,7 +140,7 @@
       if (o.deco.seen && typeof o.deco.seen === 'object') Object.keys(o.deco.seen).forEach(function (k) { var p = k.split(':'); if (DECO_BY[p[0]] && DECO_BY[p[0]][p[1]]) S.deco.seen[k] = 1; });
     }
     if (o.piano && typeof o.piano === 'object') {
-      S.piano.best = Math.max(0, Math.min(60, Math.floor(num(o.piano.best, 0)))); S.piano.plays = Math.max(0, Math.floor(num(o.piano.plays, 0)));
+      S.piano.best = Math.max(0, Math.min(999, Math.floor(num(o.piano.best, 0)))); S.piano.plays = Math.max(0, Math.floor(num(o.piano.plays, 0)));
       S.piano.cd = Math.max(0, Math.min(T.pianoEvery, num(o.piano.cd, 0)));
     }
     if (o.battle && typeof o.battle === 'object') {
@@ -149,7 +150,7 @@
       B.cd = Math.max(0, num(b.cd, T.battleFirst));
       var r = b.rival;
       if (r && typeof r === 'object') B.rival = { name: String(r.name || 'Rival').slice(0, 30), league: Math.max(1, Math.min(L, Math.floor(num(r.league, B.league)))),
-        target: Math.max(0.3, Math.min(0.95, num(r.target, 0.5))), seed: Math.floor(num(r.seed, 1)) >>> 0, rule: RULES.indexOf(r.rule) >= 0 ? r.rule : null };
+        target: Math.max(0.3, Math.min(0.95, num(r.target, 0.5))), seed: Math.floor(num(r.seed, 1)) >>> 0, rule: RULES.indexOf(r.rule) >= 0 ? r.rule : null, kind: r.kind === 'piano' ? 'piano' : 'drums' };
     }
     return S;
   }
@@ -1200,15 +1201,15 @@
 
   // ---------- Atelier piano ----------
   function pianoOpen(S) { return !!S.owned.clavier; }
-  function pianoReward(len) { return { m: Math.round(Math.min(2.5, 1 + 0.12 * len) * 100) / 100, s: Math.min(240, 60 + 12 * len) }; }
+  function pianoReward(len) { return { m: Math.round(Math.min(2.5, 1 + 0.03 * len) * 100) / 100, s: Math.min(240, 60 + 3 * len) }; }
   // len: longueur de la plus longue mélodie rejouée sans faute. L'inspiration n'est versée que hors délai d'attente.
   function finishPiano(S, len) {
     if (!pianoOpen(S)) return null;
-    var P = S.piano; len = Math.max(0, Math.min(60, Math.floor(num(len, 0))));
+    var P = S.piano; len = Math.max(0, Math.min(999, Math.floor(num(len, 0))));
     P.plays++; P.best = Math.max(P.best, len);
     var out = { len: len, best: P.best, reward: null };
-    if (P.cd <= 0 && len >= 3) {
-      var r = pianoReward(len), xp = xpNeeded(S.level) * 0.012 * len;
+    if (P.cd <= 0 && len >= PIANO.min) {
+      var r = pianoReward(len), xp = xpNeeded(S.level) * 0.003 * len;
       grantBoost(S, r.m, r.s); addXp(S, xp);
       P.cd = T.pianoEvery;
       out.reward = { m: r.m, s: r.s, xp: xp };
@@ -1223,9 +1224,12 @@
   function league(S) { return BT.leagues[S.battle.league - 1]; }
   function makeRival(S) {
     var L = league(S), used = S.battle.rival ? S.battle.rival.name : '';
-    var names = BT.rivals.filter(function (n) { return n !== used; });
-    var tr = trendFor(S);
-    return { name: names[Math.floor(rand() * names.length)], league: S.battle.league, target: Math.min(0.95, L.target + (rand() - 0.5) * 0.08), seed: Math.floor(rand() * 4294967295) >>> 0, rule: tr ? tr.rule : null };
+    // Un défi sur deux se joue au piano (tuiles) dès que le studio a un clavier.
+    var kind = pianoOpen(S) && rand() < 0.5 ? 'piano' : 'drums';
+    var names = (kind === 'piano' ? BT.pianists : BT.rivals).filter(function (n) { return n !== used; });
+    var tr = trendFor(S), rule = tr ? tr.rule : null;
+    if (kind === 'piano' && rule === 'sans-clap') rule = null;
+    return { name: names[Math.floor(rand() * names.length)], kind: kind, league: S.battle.league, target: Math.min(0.95, L.target + (rand() - 0.5) * 0.08), seed: Math.floor(rand() * 4294967295) >>> 0, rule: rule };
   }
   function tickBattle(S, dt) {
     if (!battleOpen(S)) return;
@@ -1237,38 +1241,63 @@
   function declineBattle(S) { var B = S.battle; if (!B.rival) return false; B.rival = null; B.cd = T.battleEvery / 2; return true; }
   // Générateur pseudo-aléatoire déterministe: une même graine donne toujours le même beat.
   function seeded(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
-  // Partition du clash en doubles-croches: [{ s: pas (16 par mesure), l: piste 0 kick, 1 caisse claire, 2 charleston, 3 clap }].
+  // Partition du clash sur une grille de croches (pas pairs sur 16 par mesure): pas de rafales, deux notes simultanées au plus,
+  // et un écart minimal entre deux frappes sur une même piste. l: 0 kick, 1 caisse claire, 2 charleston, 3 clap.
   function battlePattern(seed, dens, bars) {
-    var r = seeded(seed), out = [], has = {};
-    function add(s, l) { var k = s + ':' + l; if (!has[k]) { has[k] = 1; out.push({ s: s, l: l }); } }
+    var r = seeded(seed), out = [], at = {}, last = [-99, -99, -99, -99], gap = dens >= 3 ? 4 : dens >= 1 ? 4 : 8;
+    function add(s, l) {
+      if ((at[s] || 0) >= 2 || s - last[l] < gap) return false;
+      if (out.some(function (n) { return n.s === s && n.l === l; })) return false;
+      at[s] = (at[s] || 0) + 1; last[l] = s; out.push({ s: s, l: l }); return true;
+    }
     for (var b = 0; b < bars; b++) {
-      var o = b * 16, intro = b === 0, last = b === bars - 1, hits = {};
-      var kicks = [0, 8], snares = [4, 12], hats = [];
-      if (!intro) {
-        var extra = [3, 6, 10, 11, 14];
-        for (var i = 0; i < dens; i++) if (r() < 0.55) kicks.push(extra[Math.floor(r() * extra.length)]);
-        if (dens >= 3 && r() < 0.5) snares.push(r() < 0.5 ? 7 : 15);
-        if (dens === 0) hats = [2, 6, 10, 14];
-        else if (dens <= 2) hats = [0, 2, 4, 6, 8, 10, 12, 14];
-        else { hats = [0, 2, 4, 6, 8, 10, 12, 14]; for (var h = 1; h < 16; h += 2) if (r() < (dens === 3 ? 0.12 : 0.28)) hats.push(h); }
+      var o = b * 16, intro = b === 0, lastBar = b === bars - 1, ev = [];
+      if (intro || dens === 0) {
+        ev = [[0, 0], [8, 1]];
+        if (!intro) { ev.push([4, 2]); ev.push([12, 2]); }
+      } else {
+        ev = [[0, 0], [4, 1], [8, 0], [12, 1]];
+        var hp = [0, 0.35, 0.5, 0.65, 0.75][dens];
+        [2, 6, 10, 14].forEach(function (s) { if (r() < hp) ev.push([s, 2]); });
+        if (dens >= 2 && b % 2 === 1) ev.push([12, 3]);
+        if (dens >= 3 && r() < 0.6) ev.push([r() < 0.5 ? 6 : 10, 0]);
+        if (dens >= 4 && r() < 0.5) ev.push([0, 2]);
+        if (dens >= 2 && lastBar) { ev.push([14, 3]); }
       }
-      kicks.forEach(function (s) { hits[s] = 1; add(o + s, 0); });
-      snares.forEach(function (s) { hits[s] = 1; add(o + s, 1); });
-      // sans accords dans la première ligue: pas de charleston sur un kick ou une caisse claire
-      hats.forEach(function (s) { if (dens > 0 && dens < 2 && hits[s]) return; if (dens === 0 && hits[s]) return; add(o + s, 2); });
-      if (dens >= 1 && !intro && b % 2 === 1) add(o + 12, 3);
-      if (dens >= 2 && last) [13, 14, 15].forEach(function (s) { add(o + s, 3); });
+      ev.sort(function (x, y) { return x[0] - y[0] || x[1] - y[1]; });
+      ev.forEach(function (x) {
+        // pas d'accord dans la première ligue
+        if (dens === 0 && at[o + x[0]]) return;
+        add(o + x[0], x[1]);
+      });
     }
     out.sort(function (x, y) { return x.s - y.s || x.l - y.l; });
     return out;
+  }
+  // Partition « tuiles »: une tuile par rangée, la colonne suit le contour de la mélodie (plus aigu = plus à droite).
+  function tilesPattern(seed, n) {
+    var r = seeded(seed), song = PIANO.songs[Math.floor(r() * PIANO.songs.length)], cols = [], prev = Math.floor(r() * 4);
+    for (var i = 0; i < n; i++) {
+      var a = song.notes[(i - 1 + song.notes.length) % song.notes.length], b = song.notes[i % song.notes.length], c;
+      if (i === 0) c = prev;
+      else if (b > a) c = prev < 3 ? prev + 1 + (prev < 2 && b - a > 4 ? 1 : 0) : Math.floor(r() * 3);
+      else if (b < a) c = prev > 0 ? prev - 1 - (prev > 1 && a - b > 4 ? 1 : 0) : 1 + Math.floor(r() * 3);
+      else { c = Math.floor(r() * 3); if (c >= prev) c++; }
+      cols.push(c); prev = c;
+    }
+    return { song: song.id, cols: cols };
   }
   function startBattle(S) {
     var B = S.battle, R = B.rival;
     if (!battleOpen(S) || !R) return null;
     var L = BT.leagues[R.league - 1];
+    if (R.kind === 'piano') {
+      var tp = tilesPattern(R.seed, L.tiles);
+      return { kind: 'piano', rival: R, league: R.league, leagueName: L.name, song: tp.song, cols: tp.cols, tps: Math.round(L.tps * (R.rule === 'rapide' ? 1.1 : 1) * 100) / 100, rule: R.rule || null };
+    }
     var notes = battlePattern(R.seed, L.dens, T.battleBars);
     if (R.rule === 'sans-clap') notes = notes.filter(function (n) { return n.l !== 3; });
-    return { rival: R, league: R.league, leagueName: L.name, bpm: Math.round(L.bpm * (R.rule === 'rapide' ? 1.1 : 1)), bars: T.battleBars, notes: notes, rule: R.rule || null };
+    return { kind: 'drums', rival: R, league: R.league, leagueName: L.name, bpm: Math.round(L.bpm * (R.rule === 'rapide' ? 1.1 : 1)), bars: T.battleBars, notes: notes, rule: R.rule || null };
   }
   // res: { score 0 à 1, combo }. Renvoie le résultat et applique les récompenses.
   function finishBattle(S, res) {
@@ -1607,7 +1636,7 @@
     artistCost: artistCost, signArtist: signArtist, tickLabel: tickLabel, artistParts: artistParts,
     VENUES: VENUES, STORIES: STORIES, STORY_BY: STORY_BY, venueIndex: venueIndex, concertReady: concertReady, startConcert: startConcert, finishConcert: finishConcert,
     makeStory: makeStory, storyText: storyText, storyCost: storyCost, resolveStory: resolveStory,
-    trendFor: trendFor, trendAct: trendAct, makeTrend: makeTrend, RULES: RULES, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
+    trendFor: trendFor, trendAct: trendAct, makeTrend: makeTrend, RULES: RULES, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, tilesPattern: tilesPattern, startBattle: startBattle, finishBattle: finishBattle
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Game;

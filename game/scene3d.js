@@ -1067,7 +1067,9 @@
   }
   function frame(now) {
     requestAnimationFrame(frame);
+    // en pause pendant un mini-jeu plein écran: toute la fluidité va au jeu (et à la batterie du téléphone)
     if (document.hidden || !S3.ok) return;
+    if (S3.paused) { clock.getDelta(); return; }
     var dt = Math.min(0.1, clock.getDelta()), t = clock.elapsedTime;
     if (player) animatePerson(player, t, anyLive ? 'work' : 'idle');
     Object.keys(staffNodes).forEach(function (id) {

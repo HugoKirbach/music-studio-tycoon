@@ -54,10 +54,12 @@
   // ---------- Sons ----------
   var ac = null, lastBlip = 0;
   // Volumes (0 à 100, propres à l'appareil). 70 = niveau d'origine; la courbe est quadratique pour suivre l'oreille.
-  var VKEY = 'premier-mix:volumes', VDEF = 70, vol = { sfx: VDEF };
+  var VKEY = 'premier-mix:volumes', VDEF = 70, vol = { sfx: VDEF, game: VDEF, gameOn: true };
+  // Sons des mini-jeux (clash, concerts, piano, métronome), réglables à part des sons du studio.
+  function gameSnd() { return vol.gameOn && vol.game > 0; }
   function volMul(v) { return Math.pow(v / VDEF, 2); }
   function loadVol() {
-    try { var o = JSON.parse(localStorage.getItem(VKEY) || 'null'); if (o) ['sfx'].forEach(function (k) { var n = +o[k]; if (isFinite(n)) vol[k] = Math.max(0, Math.min(100, Math.round(n))); }); } catch (e) { /* valeurs par défaut */ }
+    try { var o = JSON.parse(localStorage.getItem(VKEY) || 'null'); if (o) { ['sfx', 'game'].forEach(function (k) { var n = +o[k]; if (isFinite(n)) vol[k] = Math.max(0, Math.min(100, Math.round(n))); }); if (typeof o.gameOn === 'boolean') vol.gameOn = o.gameOn; } } catch (e) { /* valeurs par défaut */ }
   }
   function saveVol() { try { localStorage.setItem(VKEY, JSON.stringify(vol)); } catch (e) { /* stockage indisponible */ } }
   var SCALE = [0, 2, 4, 7, 9];
@@ -335,7 +337,7 @@
   var PI_LOW = 60, PI_HIGH = 79, PI_SCALE = [60, 62, 64, 67, 69, 72, 74, 76];
   var PI_CODES = { KeyA: 60, KeyW: 61, KeyS: 62, KeyE: 63, KeyD: 64, KeyF: 65, KeyT: 66, KeyG: 67, KeyY: 68, KeyH: 69, KeyU: 70, KeyJ: 71, KeyK: 72, KeyO: 73, KeyL: 74, KeyP: 75, Semicolon: 76, Quote: 77 };
   var PI_NAMES = ['Do', 'Do♯', 'Ré', 'Ré♯', 'Mi', 'Fa', 'Fa♯', 'Sol', 'Sol♯', 'La', 'La♯', 'Si'];
-  var pi = { open: false, mode: 'ear', state: 'idle', mel: [], pos: 0, len: 0, timers: [], keys: {}, labels: {}, gain: null, opener: null, built: false };
+  var pi = { open: false, mode: 'tiles', state: 'idle', tiles: null, songName: '', result: '', timers: [], keys: {}, labels: {}, gain: null, opener: null, built: false };
   function piBlack(n) { return [1, 3, 6, 8, 10].indexOf(n % 12) >= 0; }
   function piBuild() {
     var box = $('piKeys'); box.innerHTML = ''; pi.keys = {};
@@ -365,12 +367,12 @@
     try { if (navigator.keyboard && navigator.keyboard.getLayoutMap) navigator.keyboard.getLayoutMap().then(apply, function () { /* étiquettes QWERTY */ }); } catch (e) { /* étiquettes QWERTY */ }
   }
   function piAudio() {
-    if (!S.sound || vol.sfx <= 0) return false;
+    if (!gameSnd()) return false;
     try {
       ac = ac || new (window.AudioContext || window.webkitAudioContext)();
       if (ac.state === 'suspended') ac.resume();
       if (!pi.gain) { pi.gain = ac.createGain(); pi.gain.connect(ac.destination); }
-      pi.gain.gain.value = 0.5 * volMul(vol.sfx);
+      pi.gain.gain.value = 0.5 * volMul(vol.game);
       return true;
     } catch (e) { return false; }
   }
@@ -391,84 +393,187 @@
     pi.timers.push(setTimeout(function () { k.classList.remove(cls); }, ms || 260));
   }
   function piClear() { pi.timers.forEach(clearTimeout); pi.timers = []; Object.keys(pi.keys).forEach(function (n) { pi.keys[n].classList.remove('on', 'bad', 'cue'); }); }
-  function piNextNote(prev) {
-    var i = prev == null ? Math.floor(Math.random() * 5) : PI_SCALE.indexOf(prev), j;
-    do { j = i + Math.floor(Math.random() * 7) - 3; } while (j < 0 || j >= PI_SCALE.length || (j === i && Math.random() < 0.7));
-    return PI_SCALE[j];
+  // ---------- Moteur « piano tiles » (atelier et clashs au piano) ----------
+  // Une tuile noire par rangée: on touche la plus basse avant qu'elle ne sorte de l'écran. Chaque bonne tuile joue la note suivante.
+  var TILE_KEYS = { d: 0, f: 1, j: 2, k: 3 }, TILE_ROWS = 4;
+  function songOf(id) { var s = D.PIANO.songs.filter(function (x) { return x.id === id; })[0]; return s || D.PIANO.songs[0]; }
+  function makeTiles(canvas, cb) {
+    var t = { cv: canvas, ctx: null, W: 0, H: 0, cols: [], song: null, endless: false, n: 0, i: 0, dist: 0, speed: 2, acc: 0, max: 6,
+      started: false, over: false, hits: 0, wrong: 0, missed: 0, combo: 0, best: 0, last: 0, fx: [], raf: 0, endAt: 0 };
+    t.size = function () {
+      var r = canvas.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+      t.W = r.width; t.H = r.height; canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+      t.ctx = canvas.getContext('2d'); t.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    // cfg: { song, cols (clash) | endless: true, speed, acc }
+    t.reset = function (cfg) {
+      cancelAnimationFrame(t.raf);
+      t.song = songOf(cfg.song); t.endless = !!cfg.endless; t.cols = (cfg.cols || []).slice(); t.n = t.endless ? Infinity : t.cols.length;
+      t.speed = cfg.speed || 2; t.acc = cfg.acc || 0; t.i = 0; t.dist = 0; t.started = false; t.over = false;
+      t.hits = 0; t.wrong = 0; t.missed = 0; t.combo = 0; t.best = 0; t.fx = []; t.state = []; t.endAt = 0;
+      if (t.endless) { t.cols = []; t.grow(12); }
+      t.size(); t.draw(); t.raf = requestAnimationFrame(t.loop);
+    };
+    // en mode infini, la colonne suit le contour de la mélodie
+    t.grow = function (k) {
+      var N = t.song.notes;
+      while (t.cols.length < k) {
+        var i = t.cols.length, prev = i ? t.cols[i - 1] : Math.floor(Math.random() * 4), a = N[(i - 1 + N.length) % N.length], b2 = N[i % N.length], c;
+        if (!i) c = prev;
+        else if (b2 > a) c = prev < 3 ? prev + 1 : Math.floor(Math.random() * 3);
+        else if (b2 < a) c = prev > 0 ? prev - 1 : 1 + Math.floor(Math.random() * 3);
+        else { c = Math.floor(Math.random() * 3); if (c >= prev) c++; }
+        t.cols.push(c);
+      }
+    };
+    t.note = function (k) { var N = t.song.notes; return N[k % N.length] + (t.endless && Math.floor(k / N.length) % 2 ? 12 : 0); };
+    t.done = function () { return t.over || (!t.endless && t.i >= t.n); };
+    t.tap = function (col) {
+      if (t.done() || col < 0 || col > 3) return;
+      var now = performance.now() / 1000;
+      if (t.cols[t.i] === col) {
+        t.state[t.i] = 1; t.fx.push({ k: 'ok', c: col, row: t.i, at: now });
+        if (cb.note) cb.note(t.note(t.i));
+        t.i++; t.hits++; t.combo++; t.best = Math.max(t.best, t.combo);
+        if (!t.started) { t.started = true; t.last = now; }
+        if (t.endless) { t.speed = Math.min(t.max, t.speed + t.acc); t.grow(t.i + 12); }
+      } else {
+        t.fx.push({ k: 'bad', c: col, row: t.i, at: now }); t.combo = 0;
+        if (cb.wrong) cb.wrong();
+        if (t.endless) { t.over = true; t.endAt = now; }
+        else if (t.started) t.wrong++;
+      }
+      if (cb.hud) cb.hud(t);
+      if (t.done() && !t.endAt) t.endAt = now;
+    };
+    t.loop = function () {
+      var now = performance.now() / 1000;
+      if (t.started && !t.done()) {
+        t.dist += Math.min(0.1, now - t.last) * t.speed;
+        // une tuile ratée sort de l'écran
+        while (t.i < t.n && t.dist > t.i + 1.45) {
+          t.state[t.i] = -1; t.fx.push({ k: 'miss', c: t.cols[t.i], row: t.i, at: now }); t.combo = 0;
+          if (cb.wrong) cb.wrong();
+          if (t.endless) { t.over = true; t.endAt = now; t.dist = t.i + 0.9; break; }
+          t.missed++; t.i++;
+          if (cb.hud) cb.hud(t);
+          if (t.done()) t.endAt = now;
+        }
+      }
+      t.last = now;
+      t.draw();
+      if (t.endAt && now - t.endAt > (t.endless ? 0.9 : 0.6)) { if (cb.end) cb.end(t); return; }
+      t.raf = requestAnimationFrame(t.loop);
+    };
+    t.stop = function () { cancelAnimationFrame(t.raf); t.raf = 0; };
+    t.score = function () { return t.n && t.n !== Infinity ? Math.max(0, t.hits - 0.5 * t.wrong) / t.n : 0; };
+    t.draw = function () {
+      var c = t.ctx; if (!c) return;
+      var W = t.W, H = t.H, cw = W / 4, rh = H / TILE_ROWS, now = performance.now() / 1000;
+      c.fillStyle = '#fbf8f2'; c.fillRect(0, 0, W, H);
+      c.strokeStyle = 'rgba(30,25,20,0.12)'; c.lineWidth = 1;
+      for (var x = 1; x < 4; x++) { c.beginPath(); c.moveTo(x * cw, 0); c.lineTo(x * cw, H); c.stroke(); }
+      var first = Math.max(0, Math.floor(t.dist) - 2), lastK = Math.min(t.cols.length - 1, Math.ceil(t.dist) + TILE_ROWS + 1);
+      for (var k = first; k <= lastK; k++) {
+        var yb = H - (k + 1 - t.dist) * rh, y = yb - rh;
+        if (yb < 0 || y > H) continue;
+        var st = t.state[k], col = t.cols[k], px = col * cw + 2, pw = cw - 4;
+        c.fillStyle = st === 1 ? 'rgba(30,30,36,0.16)' : st === -1 ? '#e05a4f' : '#1d1f26';
+        c.fillRect(px, y + 2, pw, rh - 4);
+        if (!st) { c.fillStyle = 'rgba(255,255,255,0.08)'; c.fillRect(px, y + 2, pw, Math.min(10, rh * 0.12)); }
+        if (k === 0 && !t.started) {
+          c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '800 ' + Math.round(Math.min(18, cw * 0.2)) + 'px system-ui, sans-serif';
+          c.fillText('Départ', px + pw / 2, y + rh / 2);
+        }
+      }
+      // retours visuels: bonne tuile (onde orange), erreur (case rouge)
+      t.fx = t.fx.filter(function (f) { return now - f.at < 0.45; });
+      t.fx.forEach(function (f) {
+        var a = 1 - (now - f.at) / 0.45, yb2 = H - (f.row + 1 - t.dist) * rh;
+        c.globalAlpha = a;
+        if (f.k === 'ok') { c.strokeStyle = '#ff7a2f'; c.lineWidth = 3; c.strokeRect(f.c * cw + 3, yb2 - rh + 3, cw - 6, rh - 6); }
+        else { c.fillStyle = 'rgba(224,90,79,0.55)'; c.fillRect(f.c * cw, f.k === 'miss' ? H - rh : yb2 - rh, cw, rh); }
+        c.globalAlpha = 1;
+      });
+      // progression ou compteur
+      if (!t.endless) { c.fillStyle = 'rgba(30,25,20,0.12)'; c.fillRect(0, 0, W, 4); c.fillStyle = '#ff7a2f'; c.fillRect(0, 0, W * Math.min(1, t.i / t.n), 4); }
+      else if (t.started) { c.fillStyle = 'rgba(255,122,47,0.9)'; c.textAlign = 'center'; c.textBaseline = 'top'; c.font = '800 34px system-ui, sans-serif'; c.fillText(String(t.hits), W / 2, 10); }
+    };
+    canvas.addEventListener('pointerdown', function (e) {
+      e.preventDefault(); var r = canvas.getBoundingClientRect();
+      t.tap(Math.max(0, Math.min(3, Math.floor((e.clientX - r.left) / (r.width / 4)))));
+    });
+    return t;
   }
+  function tileWrong() { if (!piAudio()) return; var o = ac.createOscillator(), g = ac.createGain(), at = ac.currentTime; o.type = 'square'; o.frequency.setValueAtTime(98, at); g.gain.setValueAtTime(0.12, at); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.25); o.connect(g); g.connect(pi.gain); o.start(at); o.stop(at + 0.3); }
+
   function piStatus() {
-    var P = S.piano, ready = P.cd <= 0, r = G.pianoReward(Math.max(3, pi.len || 3));
-    var info = 'Record : ' + P.best + ' note' + (P.best > 1 ? 's' : '') + ' · ' + (ready ? 'inspiration disponible' : 'prochaine inspiration dans ' + clock(P.cd));
-    if (pi.mode === 'free') {
+    var P = S.piano, ready = P.cd <= 0, mn = D.PIANO.min;
+    var free = pi.mode === 'free';
+    $('piKeys').hidden = !free; $('piStage').hidden = free; $('piText').hidden = false;
+    if (free) {
       setText($('piText'), 'Joue librement : chaque touche sonne comme un vrai piano. Idéal pour trouver une idée de mélodie.');
       setText($('piState'), 'Jeu libre'); setText($('piInfo'), '');
       $('piStart').hidden = true; return;
     }
-    $('piStart').hidden = pi.state === 'listen' || pi.state === 'input';
-    setText($('piText'), 'Écoute la mélodie, puis rejoue-la note par note. À chaque réussite, elle s’allonge d’une note. Plus tu vas loin, plus ton inspiration dope les gains du studio' + (ready ? '.' : ' (une fois toutes les ' + Math.round(D.TUNING.pianoEvery / 60) + ' minutes ; tu peux t’entraîner en attendant).'));
-    setText($('piInfo'), info);
-    var st = pi.state;
-    setText($('piState'), st === 'listen' ? 'Écoute… (' + pi.mel.length + ' notes)' : st === 'input' ? 'À toi ! ' + pi.pos + ' / ' + pi.mel.length : st === 'over' ? pi.result : 'Prêt ?');
-    setText($('piStartT'), st === 'over' ? 'Rejouer' : 'Écouter la mélodie');
+    var tl = pi.tiles, playing = tl && pi.state === 'play';
+    $('piStart').hidden = playing; $('piText').hidden = playing;
+    setText($('piText'), 'Touche les tuiles noires de bas en haut, sans toucher le blanc ni en laisser filer une : chaque tuile joue la note suivante de la mélodie, et ça accélère. Dès ' + mn + ' tuiles, ton inspiration dope les gains du studio' + (ready ? '.' : ' (une fois toutes les ' + Math.round(D.TUNING.pianoEvery / 60) + ' minutes ; tu peux t’entraîner en attendant).'));
+    setText($('piInfo'), 'Record : ' + P.best + ' tuile' + (P.best > 1 ? 's' : '') + ' · ' + (ready ? 'inspiration disponible' : 'prochaine inspiration dans ' + clock(P.cd)));
+    setText($('piState'), playing ? (tl.started ? tl.hits + ' tuile' + (tl.hits > 1 ? 's' : '') + ' · ' + pi.songName : 'Touche « Départ » pour lancer ' + pi.songName) : pi.state === 'over' ? pi.result : 'Prêt ?');
+    setText($('piStartT'), pi.state === 'over' ? 'Rejouer' : 'Jouer');
     setText($('piStartS'), ready ? 'Inspiration en jeu' : 'Entraînement');
   }
-  function piPlayMel() {
-    piClear(); pi.state = 'listen'; pi.pos = 0; piStatus();
-    var gap = Math.max(0.32, 0.55 - pi.mel.length * 0.015), now = ac && piAudio() ? ac.currentTime : 0;
-    pi.mel.forEach(function (n, i) {
-      if (now) piSound(n, now + 0.35 + i * gap);
-      pi.timers.push(setTimeout(function () { piFlash(n, 'cue', gap * 900); }, (0.35 + i * gap) * 1000));
+  function piTiles() {
+    if (!pi.tiles) pi.tiles = makeTiles($('piCanvas'), {
+      note: function (n) { piSound(n); },
+      wrong: tileWrong,
+      hud: function () { piStatus(); },
+      end: function (t) { piEnd(t.hits); }
     });
-    pi.timers.push(setTimeout(function () { pi.state = 'input'; piStatus(); }, (0.35 + pi.mel.length * gap) * 1000));
+    return pi.tiles;
   }
   function piStart() {
-    if (pi.mode !== 'ear') return;
-    pi.mel = []; for (var i = 0; i < 3; i++) pi.mel.push(piNextNote(pi.mel[i - 1]));
-    pi.len = 0; pi.result = '';
-    piPlayMel();
+    if (pi.mode !== 'tiles') return;
+    var songs = D.PIANO.songs, s = songs[Math.floor(Math.random() * songs.length)];
+    pi.songName = s.name; pi.state = 'play'; pi.result = '';
+    piStatus();
+    piTiles().reset({ song: s.id, endless: true, speed: 1.9, acc: 0.035 });
+    try { $('piCanvas').focus(); } catch (e) { /* facultatif */ }
   }
-  function piEnd() {
-    pi.state = 'over';
-    var res = G.finishPiano(S, pi.len);
+  function piEnd(n) {
+    if (pi.state !== 'play') return;
+    pi.state = 'over'; if (pi.tiles) pi.tiles.stop();
+    var res = G.finishPiano(S, n), mn = D.PIANO.min;
     if (res && res.reward) {
-      pi.result = pi.len + ' note' + (pi.len > 1 ? 's' : '') + ' : inspiration !';
+      pi.result = n + ' tuiles : inspiration !';
       toast('Inspiration : gains ×' + nf1.format(res.reward.m) + ' pendant ' + dur(res.reward.s) + '.', 5000); blip(12);
-    } else pi.result = pi.len >= 3 ? pi.len + ' notes rejouées. Bel entraînement !' : 'Raté ! Écoute bien et retente ta chance.';
+    } else pi.result = n >= mn ? n + ' tuiles. Bel entraînement !' : n + ' tuile' + (n > 1 ? 's' : '') + ' : vise au moins ' + mn + ' tuiles.';
     saveLocal(); markCloud(); piStatus(); render();
+    $('piStart').focus();
   }
   function piPress(n) {
     if (!pi.open) return;
-    piSound(n);
-    if (pi.mode === 'free' || pi.state !== 'input') { piFlash(n, 'on', 220); return; }
-    if (n === pi.mel[pi.pos]) {
-      piFlash(n, 'on', 220); pi.pos++;
-      if (pi.pos >= pi.mel.length) {
-        pi.len = pi.mel.length; pi.state = 'listen'; piStatus();
-        pi.mel.push(piNextNote(pi.mel[pi.mel.length - 1]));
-        pi.timers.push(setTimeout(piPlayMel, 700));
-      } else piStatus();
-    } else {
-      piFlash(n, 'bad', 500); piFlash(pi.mel[pi.pos], 'cue', 700);
-      piEnd();
-    }
+    piSound(n); piFlash(n, 'on', 220);
   }
   function openPiano() {
     if (pi.open || !G.pianoOpen(S)) return;
     if (!pi.built) piBuild();
     pi.open = true; pi.opener = document.activeElement; pi.state = 'idle';
     $('piTitle').textContent = S.owned.orchestre ? 'Au piano à queue' : 'Au clavier maître';
-    var snd = S.sound && vol.sfx > 0;
+    var snd = gameSnd();
     $('piSoundOn').hidden = snd;
-    setText($('piTip'), (snd ? '' : 'Le son est coupé : les touches s’allument quand même, mais c’est bien plus facile à l’oreille. ') + 'Sur ordinateur, joue avec les touches de ton clavier indiquées sur le piano.');
+    setText($('piTip'), (snd ? '' : 'Le son est coupé : tu peux jouer quand même, mais la mélodie fait tout le charme. ') + 'Sur ordinateur : touches D, F, J et K pour les quatre colonnes (et ton clavier en jeu libre).');
+    $('pianoScrim').hidden = false; $('app').inert = true; $('tabs').inert = true; if (S3) if (S3) S3.paused = true;
     piStatus();
-    $('pianoScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
-    (pi.mode === 'ear' ? $('piStart') : pi.keys[PI_LOW]).focus();
+    if (pi.mode === 'tiles') { piTiles().size(); pi.tiles.draw(); }
+    (pi.mode === 'tiles' ? $('piStart') : pi.keys[PI_LOW]).focus();
   }
   function closePiano() {
     if (!pi.open) return;
-    if (pi.state === 'listen' || pi.state === 'input') { if (pi.len >= 3) piEnd(); }
+    if (pi.state === 'play' && pi.tiles) { var h = pi.tiles.hits; pi.tiles.stop(); if (h >= D.PIANO.min) piEnd(h); }
     pi.open = false; pi.state = 'idle'; piClear();
-    $('pianoScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    $('pianoScrim').hidden = true; $('app').inert = false; $('tabs').inert = false; if (S3) S3.paused = false;
     var o = pi.opener; pi.opener = null;
     if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
     render();
@@ -481,24 +586,33 @@
     $('pianoScrim').addEventListener('click', function (e) { if (e.target === $('pianoScrim')) closePiano(); });
     $('pianoScrim').querySelector('.pi-mode').addEventListener('click', function (e) {
       var b = e.target.closest('[data-pm]'); if (!b) return;
-      if (pi.state === 'listen' || pi.state === 'input') { if (pi.len >= 3) piEnd(); }
+      if (pi.state === 'play' && pi.tiles) { var h = pi.tiles.hits; pi.tiles.stop(); if (h >= D.PIANO.min) piEnd(h); }
       pi.mode = b.getAttribute('data-pm'); pi.state = 'idle'; piClear();
       $('pianoScrim').querySelectorAll('[data-pm]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
       piStatus();
+      if (pi.mode === 'tiles') { piTiles().size(); pi.tiles.draw(); }
     });
     $('piSoundOn').addEventListener('click', function () {
-      S.sound = true; if (vol.sfx <= 0) { vol.sfx = VDEF; saveVol(); }
+      vol.gameOn = true; if (vol.game <= 0) vol.game = VDEF; saveVol();
       markCloud(); saveLocal(); $('piSoundOn').hidden = true;
       if (bind.syncSound) bind.syncSound(); if (bind.syncVol) bind.syncVol();
-      piSound(72); setText($('piTip'), 'Sur ordinateur, joue avec les touches de ton clavier indiquées sur le piano.');
+      piSound(72); setText($('piTip'), 'Sur ordinateur : touches D, F, J et K pour les quatre colonnes (et ton clavier en jeu libre).');
     });
     document.addEventListener('keydown', function (e) {
       if (!pi.open) return;
       if (e.key === 'Escape') { e.preventDefault(); closePiano(); return; }
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      if (pi.mode === 'tiles') {
+        var c = TILE_KEYS[(e.key || '').toLowerCase()];
+        if (c !== undefined && pi.state === 'play') { e.preventDefault(); pi.tiles.tap(c); }
+        return;
+      }
       var n = PI_CODES[e.code];
-      if (n !== undefined && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); piPress(n); }
+      if (n !== undefined) { e.preventDefault(); piPress(n); }
     });
-    setInterval(function () { if (pi.open && pi.state !== 'listen') piStatus(); }, 1000);
+    window.addEventListener('resize', function () { if (pi.open && pi.tiles && pi.mode === 'tiles') { pi.tiles.size(); pi.tiles.draw(); } });
+    document.addEventListener('visibilitychange', function () { if (document.hidden && pi.open && pi.state === 'play' && pi.tiles) { var h = pi.tiles.hits; pi.tiles.stop(); pi.state = 'play'; piEnd(h); } });
+    setInterval(function () { if (pi.open && pi.state !== 'play') piStatus(); }, 1000);
   }
 
   // ---------- Icônes dans la scène 3D ----------
@@ -509,9 +623,10 @@
     var list = [];
     if (G.battleOpen(S)) {
       var R = S.battle.rival;
-      list.push({ id: 'clash', anchor: 'drums', hot: !!R,
-        label: R ? 'Clash de beatmakers : ' + R.name + ' te défie' : 'Clash de beatmakers : prochain défi dans ' + clock(S.battle.cd),
-        html: HOT_DRUM + '<span>Clash</span>' + (R ? '<i class="bang" aria-hidden="true">!</i>' : '<small>' + clock(S.battle.cd) + '</small>') });
+      var pk = !!R && R.kind === 'piano' && G.pianoOpen(S);
+      list.push({ id: 'clash', anchor: pk ? 'piano' : 'drums', hot: !!R,
+        label: R ? (pk ? 'Duel au piano : ' : 'Clash de beatmakers : ') + R.name + ' te défie' : 'Clash : prochain défi dans ' + clock(S.battle.cd),
+        html: (pk ? HOT_PIANO : HOT_DRUM) + '<span>' + (pk ? 'Duel' : 'Clash') + '</span>' + (R ? '<i class="bang" aria-hidden="true">!</i>' : '<small>' + clock(S.battle.cd) + '</small>') });
     }
     var dn = G.decoNew(S).length;
     list.push({ id: 'deco', anchor: 'shelf', hot: dn > 0, label: 'Décoration du studio' + (dn ? ' : ' + dn + ' nouveauté' + (dn > 1 ? 's' : '') : ''),
@@ -531,7 +646,9 @@
 
   // ---------- Clash de beatmakers ----------
   var LANE_COL = ['#ff7a2f', '#3d7be0', '#24a066', '#7a5cd6'], LANE_KEYS = { d: 0, f: 1, j: 2, k: 3 };
-  var cl = { open: false, playing: false, done: false, cfg: null, notes: [], t0: 0, raf: 0, score: 0, combo: 0, best: 0, opener: null, gain: null, flash: [0, 0, 0, 0], judge: [null, null, null, null], end: 0, lead: 0, step: 0, key: '', wasOpen: null, ctx: null, W: 0, H: 0, dpr: 1 };
+  var METKEY = 'premier-mix:metro';
+  function metroPref() { try { return localStorage.getItem(METKEY) !== '0'; } catch (e) { return true; } }
+  var cl = { metro: true, open: false, playing: false, done: false, cfg: null, notes: [], t0: 0, raf: 0, score: 0, combo: 0, best: 0, opener: null, gain: null, flash: [0, 0, 0, 0], judge: [null, null, null, null], end: 0, lead: 0, step: 0, key: '', wasOpen: null, ctx: null, W: 0, H: 0, dpr: 1 };
   function clNow() { return performance.now() / 1000; }
   function renderClash(force) {
     var open = G.battleOpen(S), B = S.battle, onProd = $('app').getAttribute('data-view') === 'prod';
@@ -541,14 +658,14 @@
     if (!open) return;
     var L = D.BATTLE.leagues[B.league - 1], R = B.rival;
     setText($('clashChip'), 'Ligue ' + L.name);
-    var key = (R ? 'r' + R.name + R.target : 'w') + '|' + B.league + '|' + B.pts + '|' + B.wins + '|' + B.losses;
+    var key = (R ? 'r' + R.name + R.target + R.kind : 'w') + '|' + B.league + '|' + B.pts + '|' + B.wins + '|' + B.losses;
     if (key !== cl.key || force) {
       cl.key = key;
       var up = B.league < D.BATTLE.leagues.length;
       var bar = '<span class="league-bar" aria-hidden="true">' + D.BATTLE.leagues.map(function (x, i) { return '<i class="' + (i < B.league ? 'on' : '') + '"></i>'; }).join('') + '</span>';
       var prog = up ? B.pts + ' / ' + D.TUNING.battleUp + ' victoires pour monter en ligue ' + D.BATTLE.leagues[B.league].name + '.' : 'Tu es au sommet : ligue Légende.';
       $('clashBody').innerHTML = R
-        ? '<article class="card clash-card hot"><span class="who-r"></span><p class="proj-meta">Score à battre : <b>' + Math.round(R.target * 100) + ' %</b> · ' + Math.round(L.bpm * (R.rule === 'rapide' ? 1.1 : 1)) + ' BPM · ' + prog + '</p>' + (R.rule ? '<p class="proj-meta"><span class="vogue">' + esc(RULE_TXT[R.rule][0]) + '</span> ' + esc(RULE_TXT[R.rule][1]) + '</p>' : '') + bar +
+        ? '<article class="card clash-card hot"><span class="who-r"></span><p class="proj-meta">' + (R.kind === 'piano' ? '<span class="vogue">Au piano</span> ' : '<span class="vogue">À la batterie</span> ') + 'Score à battre : <b>' + Math.round(R.target * 100) + ' %</b> · ' + (R.kind === 'piano' ? L.tiles + ' tuiles' : Math.round(L.bpm * (R.rule === 'rapide' ? 1.1 : 1)) + ' BPM') + ' · ' + prog + '</p>' + (R.rule ? '<p class="proj-meta"><span class="vogue">' + esc(RULE_TXT[R.rule][0]) + '</span> ' + esc(RULE_TXT[R.rule][1]) + '</p>' : '') + bar +
           '<div class="proj-row"><button class="btn primary" type="button" data-cl="go">Relever le défi</button><button class="btn sm" type="button" data-cl="no">Décliner</button></div></article>'
         : '<article class="card clash-card"><p class="proj-meta" id="clWait"></p>' + bar + '<p class="proj-meta">' + prog + ' ' + B.wins + ' victoire' + (B.wins > 1 ? 's' : '') + ', ' + B.losses + ' défaite' + (B.losses > 1 ? 's' : '') + (B.best ? ', meilleur combo ' + B.best : '') + '.</p></article>';
       var w = $('clashBody').querySelector('.who-r'); if (w) w.textContent = R.name + ' te défie !';
@@ -587,11 +704,11 @@
     o.connect(g); g.connect(cl.gain); o.start(t); o.stop(t + len + 0.02);
   }
   function clAudioOn() {
-    if (!S.sound || vol.sfx <= 0) return false;
+    if (!gameSnd()) return false;
     try {
       ac = ac || new (window.AudioContext || window.webkitAudioContext)();
       if (ac.state === 'suspended') ac.resume();
-      cl.gain = ac.createGain(); cl.gain.gain.value = 0.55 * volMul(vol.sfx); cl.gain.connect(ac.destination);
+      cl.gain = ac.createGain(); cl.gain.gain.value = 0.55 * volMul(vol.game); cl.gain.connect(ac.destination);
       return true;
     } catch (e) { cl.gain = null; return false; }
   }
@@ -600,25 +717,27 @@
     var cfg = given && given.concert ? given : G.startBattle(S);
     if (!cfg || cl.open) return;
     cl.open = true; cl.playing = false; cl.done = false; cl.cfg = cfg; cl.opener = document.activeElement;
-    var conc = cfg.concert, an = conc ? artName(conc.artist) : '';
-    setText($('clKind'), conc ? 'Concert' : 'Clash de beatmakers');
+    var conc = cfg.concert, an = conc ? artName(conc.artist) : '', pk = cfg.kind === 'piano';
+    setText($('clKind'), conc ? 'Concert' : pk ? 'Duel au piano' : 'Clash de beatmakers');
+    $('clKeysD').hidden = pk; $('clKeysP').hidden = !pk; $('clMetroL').hidden = pk;
     setText($('clLeague'), conc ? cfg.leagueName + ' · ' + D.VENUES[conc.venue].cap : 'Ligue ' + cfg.leagueName);
     $('clTitle').textContent = conc ? an + ' en concert' : cfg.rival.name + ' te défie';
-    $('clIntroText').textContent = conc ? an + ' monte sur scène et compte sur toi à la batterie. Frappe chaque note quand elle touche la ligne : plus tu es en rythme, plus le public s’enflamme. Vise ' + Math.round(cfg.rival.target * 100) + ' % pour un beau concert.' : 'Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.';
+    $('clIntroText').textContent = pk ? cfg.rival.name + ' t’attend au piano sur « ' + songOf(cfg.song).name + ' ». Touche les tuiles noires de bas en haut avant qu’elles ne sortent de l’écran : chaque tuile joue une note. Une tuile ratée ou une fausse note fait baisser ton score.' : conc ? an + ' monte sur scène et compte sur toi à la batterie. Frappe chaque note quand elle touche la ligne : plus tu es en rythme, plus le public s’enflamme. Vise ' + Math.round(cfg.rival.target * 100) + ' % pour un beau concert.' : 'Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.';
     setText($('clTargetL'), conc ? 'Objectif' : 'À battre'); setText($('clTheirsL'), conc ? 'Objectif' : 'Rival');
-    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + (conc ? ' % visés · ' : ' % à battre · ') + cfg.bpm + ' BPM' + (cfg.rule ? ' · ' + RULE_TXT[cfg.rule][0] : ''));
-    var snd = S.sound && vol.sfx > 0;
-    setText($('clTip'), snd ? (conc ? 'Le son est activé : ta batterie accompagne la ligne de basse du groupe.' : 'Le son est activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.') : 'Le son est coupé : tu peux jouer quand même, mais c’est bien plus amusant en musique.');
+    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + (conc ? ' % visés · ' : ' % à battre · ') + (pk ? cfg.cols.length + ' tuiles' : cfg.bpm + ' BPM') + (cfg.rule ? ' · ' + RULE_TXT[cfg.rule][0] : ''));
+    var snd = gameSnd();
+    setText($('clTip'), pk ? (snd ? 'Le son est activé : chaque tuile joue la note suivante de la mélodie.' : 'Le son est coupé : tu peux jouer quand même, mais la mélodie fait tout le charme.') : snd ? (conc ? 'Le son est activé : ta batterie accompagne la ligne de basse du groupe.' : 'Le son est activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.') : 'Le son est coupé : tu peux jouer quand même, mais c’est bien plus amusant en musique.');
     $('clSoundOn').hidden = snd;
+    cl.metro = metroPref(); $('clMetro').checked = cl.metro;
     $('clIntro').hidden = false; $('clPlay').hidden = true; $('clDone').hidden = true;
-    $('clashScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    $('clashScrim').hidden = false; $('app').inert = true; $('tabs').inert = true; if (S3) if (S3) S3.paused = true;
     $('clGo').focus();
   }
   function closeClash() {
     if (!cl.open) return;
     if (cl.playing) return; // pendant la partie, il faut abandonner explicitement
     cl.open = false; cancelAnimationFrame(cl.raf); clAudioOff();
-    $('clashScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    $('clashScrim').hidden = true; $('app').inert = false; $('tabs').inert = false; if (S3) S3.paused = false;
     var o = cl.opener; cl.opener = null;
     if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
     cl.key = ''; render();
@@ -632,6 +751,8 @@
   function startClash() {
     var cfg = cl.cfg;
     $('clIntro').hidden = true; $('clPlay').hidden = false;
+    if (cfg.kind === 'piano') { clStartTiles(cfg); return; }
+    $('clPlay').classList.remove('tiles'); $('clPads').hidden = false;
     clSize();
     var beat = 60 / cfg.bpm; cl.step = beat / 4; cl.lead = beat * 4 + 0.4;
     cl.notes = cfg.notes.map(function (n) { return { t: cl.lead + n.s * cl.step, l: n.l, hit: 0 }; });
@@ -645,11 +766,28 @@
       for (var b = 0; b < cfg.bars; b++) for (var q = 0; q < 4; q++) {
         var at = a0 + cl.lead + (b * 4 + q) * beat, f = BASS[Math.floor(b / 2) % 4];
         tone(f, at, beat * 0.9, 0.22, 'triangle'); if (q % 2 === 1) tone(f * 2, at + beat / 2, beat * 0.4, 0.08, 'sawtooth');
+        if (cl.metro) tone(q === 0 ? 1560 : 1040, at, 0.035, 0.11, 'square');
       }
     }
     cl.playing = true; cl.done = false;
     $('clPads').querySelector('.clpad').focus();
     cancelAnimationFrame(cl.raf); cl.raf = requestAnimationFrame(clLoop);
+  }
+  // Duel au piano: même scène, mais le canevas devient une piste de tuiles qu'on touche directement.
+  function clStartTiles(cfg) {
+    $('clPlay').classList.add('tiles'); $('clPads').hidden = true;
+    if (!cl.tiles) cl.tiles = makeTiles($('clCanvas'), {
+      note: function (n) { piSound(n); },
+      wrong: tileWrong,
+      hud: function (t) { setText($('clScore'), Math.round(t.score() * 100) + ' %'); setText($('clCombo'), String(t.combo)); },
+      end: function () { finishClash(false); }
+    });
+    cl.score = 0; cl.combo = 0; cl.best = 0; cl.pts = 0;
+    setText($('clTarget'), Math.round(cfg.rival.target * 100) + ' %'); setText($('clScore'), '0 %'); setText($('clCombo'), '0');
+    piAudio();
+    cl.playing = true; cl.done = false;
+    cl.tiles.reset({ song: cfg.song, cols: cfg.cols, speed: cfg.tps });
+    try { $('clCanvas').focus(); } catch (e) { /* facultatif */ }
   }
   var JUDGE = { p: 'Parfait', g: 'Bien', m: 'Raté' };
   function clHit(l) {
@@ -720,6 +858,15 @@
       if (now >= 0.4 && cnt >= 1 && cnt <= 4) { c.fillStyle = '#fff'; c.font = '800 64px system-ui, sans-serif'; c.fillText(String(cnt), W / 2, H / 2); }
       else if (now < 0.4) { c.fillStyle = '#fff'; c.font = '800 22px system-ui, sans-serif'; c.fillText('Prêt ?', W / 2, H / 2); }
     }
+    // métronome visuel: un voyant pulse à chaque temps
+    if (cl.metro && now > 0.4) {
+      var bp = (now - 0.4) / beat, ph = bp - Math.floor(bp), down = Math.floor(bp) % 4 === 0;
+      c.globalAlpha = Math.max(0.15, 1 - ph * 2.2);
+      c.fillStyle = down ? '#ffd166' : '#ffffff';
+      c.beginPath(); c.arc(W - 18, 20, down ? 8 : 6, 0, Math.PI * 2); c.fill();
+      c.fillRect(0, hy - 1.5, W * (1 - ph) * 0.12, 3); c.fillRect(W - W * (1 - ph) * 0.12, hy - 1.5, W * (1 - ph) * 0.12, 3);
+      c.globalAlpha = 1;
+    }
     // progression
     c.fillStyle = 'rgba(255,255,255,0.15)'; c.fillRect(0, 0, W, 4);
     c.fillStyle = '#ff7a2f'; c.fillRect(0, 0, W * Math.max(0, Math.min(1, now / cl.end)), 4);
@@ -729,6 +876,7 @@
     cl.playing = false; cancelAnimationFrame(cl.raf);
     if (quit) clAudioOff(); else setTimeout(clAudioOff, 1200);
     var score = cl.notes.length ? cl.pts / cl.notes.length : 0;
+    if (cl.cfg.kind === 'piano' && cl.tiles) { cl.tiles.stop(); score = cl.tiles.score(); cl.best = cl.tiles.best; }
     if (cl.cfg.concert) { finishConcertUi(quit, score); return; }
     var res = G.finishBattle(S, { score: score, combo: cl.best });
     cl.done = true;
@@ -840,11 +988,12 @@
       else { G.declineBattle(S); saveLocal(); toast('Défi décliné. Un autre rival se présentera bientôt.'); cl.key = ''; render(); }
     });
     $('clGo').addEventListener('click', startClash);
+    $('clMetro').addEventListener('change', function () { cl.metro = this.checked; try { localStorage.setItem(METKEY, cl.metro ? '1' : '0'); } catch (e) { /* facultatif */ } });
     $('clLater').addEventListener('click', closeClash);
     $('clClose').addEventListener('click', closeClash);
     $('clQuit').addEventListener('click', function () { finishClash(true); });
     $('clSoundOn').addEventListener('click', function () {
-      S.sound = true; if (vol.sfx <= 0) { vol.sfx = VDEF; saveVol(); }
+      vol.gameOn = true; if (vol.game <= 0) vol.game = VDEF; saveVol();
       markCloud(); saveLocal(); $('clSoundOn').hidden = true; setText($('clTip'), 'Son activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.'); blip(8);
       if (bind.syncSound) bind.syncSound(); if (bind.syncVol) bind.syncVol();
       $('clGo').focus();
@@ -859,10 +1008,11 @@
     document.addEventListener('keydown', function (e) {
       if (!cl.open) return;
       var k = LANE_KEYS[(e.key || '').toLowerCase()];
+      if (cl.playing && k !== undefined && cl.cfg.kind === 'piano') { e.preventDefault(); if (!e.repeat) cl.tiles.tap(k); return; }
       if (cl.playing && k !== undefined) { e.preventDefault(); if (!e.repeat) { clHit(k); var pd = $('clPads').children[k]; pd.classList.add('down'); setTimeout(function () { pd.classList.remove('down'); }, 90); } return; }
       if (e.key === 'Escape' && !cl.playing) { e.preventDefault(); closeClash(); }
     });
-    window.addEventListener('resize', function () { if (cl.playing) clSize(); });
+    window.addEventListener('resize', function () { if (cl.playing) { if (cl.cfg.kind === 'piano') { cl.tiles.size(); cl.tiles.draw(); } else clSize(); } });
     document.addEventListener('visibilitychange', function () { if (document.hidden && cl.playing) finishClash(true); });
   }
 
@@ -2250,6 +2400,9 @@
       $('volSfxOut').textContent = vol.sfx + ' %';
       $('volSfx').setAttribute('aria-valuetext', vol.sfx + ' %');
       $('volSfxHint').hidden = !!S.sound;
+      $('volGame').value = vol.game; $('volGameOut').textContent = vol.game + ' %'; $('volGame').setAttribute('aria-valuetext', vol.game + ' %');
+      $('gameSoundBtn').setAttribute('aria-pressed', vol.gameOn ? 'true' : 'false');
+      $('volGameHint').hidden = vol.gameOn;
     }
     bind.syncVol = syncVol;
     var sfxT = 0;
@@ -2258,8 +2411,14 @@
       clearTimeout(sfxT); sfxT = setTimeout(function () { lastBlip = 0; blip(2, true); }, 120); // aperçu du niveau
     });
     $('volReset').addEventListener('click', function () {
-      vol.sfx = VDEF; syncVol(); saveVol();
+      vol.sfx = VDEF; vol.game = VDEF; syncVol(); saveVol();
     });
+    var gT = 0;
+    $('volGame').addEventListener('input', function () {
+      vol.game = +this.value; syncVol(); saveVol();
+      clearTimeout(gT); gT = setTimeout(function () { if (gameSnd() && typeof piSound === 'function') piSound(72); }, 120);
+    });
+    $('gameSoundBtn').addEventListener('click', function () { vol.gameOn = !vol.gameOn; syncVol(); saveVol(); if (gameSnd()) piSound(76); });
     syncVol();
 
 
@@ -2370,7 +2529,7 @@
     if (quiet) return;
     toast('Nouvelles tendances : « ' + G.ACT_BY[tr.act].name + ' » en vogue, le public veut du ' + G.PJ_G[tr.g].name + '. Détails dans le Top 50.', 6500);
   };
-  G.hooks.battleNew = function (r) { cl.key = ''; markCloud(); if (!quiet) { toast(r.name + ' te défie en clash de beatmakers ! Rendez-vous dans Productions.', 6000); blip(10); } };
+  G.hooks.battleNew = function (r) { cl.key = ''; markCloud(); if (!quiet) { toast(r.kind === 'piano' ? r.name + ' te défie en duel au piano ! Touche le piano du studio ou va dans Productions.' : r.name + ' te défie en clash de beatmakers ! Touche la batterie du studio ou va dans Productions.', 6000); blip(10); } };
   G.hooks.battleDone = function () { cl.key = ''; markCloud(); };
   G.hooks.projectStart = function (c) { markCloud(); if (!quiet) { toast('« ' + c.title + ' » est lancé : écriture en cours.', 4000); blip(6); } };
   G.hooks.projectPhase = function (c) { pjv.key = ''; markCloud(); if (!quiet) toast('« ' + c.title + ' » : ' + D.PROJECTS.phases[c.phase].name.toLowerCase() + ' en cours.', 3500); };

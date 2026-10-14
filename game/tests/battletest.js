@@ -13,6 +13,10 @@ for (let i = 1; i < per.length; i++) assert(per[i] >= per[i - 1], 'densité croi
 const steps = {}; p1.forEach(n => { assert(n.s >= 0 && n.s < 128 && n.l >= 0 && n.l < 4); steps[n.s] = (steps[n.s] || 0) + 1; });
 assert(Object.values(steps).every(c => c === 1), 'aucun accord en ligue Quartier');
 assert(p1.filter(n => n.s < 16).every(n => n.l < 2), 'première mesure: kick et caisse claire seulement');
+B.leagues.forEach(L => { for (let sd = 1; sd < 40; sd++) { const p = G.battlePattern(sd * 7919, L.dens, 8), by = {}; p.forEach(n => { by[n.s] = (by[n.s] || 0) + 1; });
+  assert(Math.max(...Object.values(by)) <= 2, 'deux notes simultanées au plus');
+  [0, 1, 2, 3].forEach(l => { const st = p.filter(n => n.l === l).map(n => n.s); for (let i = 1; i < st.length; i++) assert(st[i] - st[i - 1] >= 4, 'pas de rafale sur une piste'); });
+  assert(p.every(n => n.s % 2 === 0), 'grille en croches'); } });
 const secs = L => 8 * 4 * 60 / L.bpm;
 console.log('OK: partitions', per.join(' / '), 'notes |', B.leagues.map(L => (G.battlePattern(77, L.dens, 8).length / secs(L)).toFixed(1) + '/s').join(' '));
 // 2. apparition des défis
@@ -46,12 +50,32 @@ console.log('OK: hydrate');
 const Pn = G.newState(0); Pn.level = 5;
 assert.strictEqual(G.finishPiano(Pn, 5), null, 'il faut le clavier MIDI');
 Pn.owned.clavier = 1;
-const a1 = G.finishPiano(Pn, 6);
+const a1 = G.finishPiano(Pn, 30);
 assert(a1.reward && Pn.boost.m === a1.reward.m && Pn.boost.left === a1.reward.s && Pn.piano.cd === T.pianoEvery, 'inspiration versée');
-const a2 = G.finishPiano(Pn, 9);
-assert(!a2.reward && Pn.piano.best === 9 && Pn.piano.plays === 2, 'pas de deuxième inspiration pendant l’attente');
+const a2 = G.finishPiano(Pn, 64);
+assert(!a2.reward && Pn.piano.best === 64 && Pn.piano.plays === 2, 'pas de deuxième inspiration pendant l’attente');
 G.tickLive(Pn, T.pianoEvery); assert.strictEqual(Pn.piano.cd, 0);
-assert(!G.finishPiano(Pn, 2).reward, 'il faut au moins 3 notes');
-assert(Pn.trophies.piano === 2, 'trophée Oreille musicale niveau Argent');
+assert(!G.finishPiano(Pn, 9).reward, 'il faut au moins 10 tuiles');
+assert(Pn.trophies.piano === 2, 'trophée Doigts de fée niveau Argent');
+assert(G.decoUnlocked(Pn, 'wall', 'aubergine'), 'peinture aubergine débloquée à 60 tuiles');
 assert.deepStrictEqual(G.hydrate(JSON.parse(JSON.stringify(Pn)), 0).piano, Pn.piano);
 console.log('OK: piano, inspiration ×' + a1.reward.m + ' pendant ' + a1.reward.s + ' s');
+// 7. Clashs au piano (tuiles)
+const tp = G.tilesPattern(42, 40), tp2 = G.tilesPattern(42, 40);
+assert.deepStrictEqual(tp, tp2, 'même graine, même partition');
+assert(tp.cols.length === 40 && tp.cols.every(c => c >= 0 && c < 4) && GameData.PIANO.songs.some(x => x.id === tp.song));
+for (let sd = 1; sd < 60; sd++) { const p = G.tilesPattern(sd * 104729, 44); assert(p.cols.every(c => c >= 0 && c <= 3 && Number.isInteger(c)), 'colonnes valides'); }
+const K = G.newState(0); K.level = T.battleLevel; K.money = 1e5; K.lifetime = 1e5;
+const kinds = { drums: 0, piano: 0 };
+for (let i = 0; i < 60; i++) { K.battle.rival = null; K.battle.cd = 0; G.tickBattle(K, 1); kinds[K.battle.rival.kind]++; }
+assert.strictEqual(kinds.piano, 0, 'pas de clash piano sans clavier');
+K.owned.clavier = 1; kinds.drums = 0;
+for (let i = 0; i < 60; i++) { K.battle.rival = null; K.battle.cd = 0; G.tickBattle(K, 1); kinds[K.battle.rival.kind]++; if (K.battle.rival.kind === 'piano') assert(GameData.BATTLE.pianists.includes(K.battle.rival.name)); }
+assert(kinds.piano > 15 && kinds.drums > 15, 'environ un clash sur deux au piano ' + JSON.stringify(kinds));
+K.battle.rival = { name: 'Lady Arpège', kind: 'piano', league: 3, target: 0.6, seed: 7, rule: 'rapide' };
+const cp = G.startBattle(K);
+assert(cp.kind === 'piano' && cp.cols.length === B.leagues[2].tiles && Math.abs(cp.tps - B.leagues[2].tps * 1.1) < 0.01 && !cp.notes);
+const hk = G.hydrate(JSON.parse(JSON.stringify(K)), 0); assert.strictEqual(hk.battle.rival.kind, 'piano');
+assert.strictEqual(G.hydrate({ battle: { rival: { name: 'a', target: 0.5 } } }, 0).battle.rival.kind, 'drums', 'anciennes sauvegardes: batterie');
+const m1 = K.money, wp = G.finishBattle(K, { score: 0.9, combo: 30 }); assert(wp.win && K.money > m1);
+console.log('OK: clash piano', kinds, cp.cols.length, 'tuiles à', cp.tps, 'tuiles/s');

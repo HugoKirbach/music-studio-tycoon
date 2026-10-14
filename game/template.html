@@ -401,6 +401,9 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 @keyframes hotPulse { 0%, 100% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 50% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 8px transparent; } }
 /* Atelier piano */
 .piano-sheet { width: min(640px, 100%); }
+.tiles-stage { position: relative; height: min(52vh, 420px); border-radius: 14px; overflow: hidden; background: #fbf8f2; box-shadow: inset 0 0 0 1px var(--line); touch-action: none; user-select: none; -webkit-user-select: none; }
+.tiles-stage canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; }
+.tiles-stage[hidden], .piano[hidden] { display: none; }
 .pi-mode { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .pi-status { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; min-height: 26px; }
 .pi-status b { font: 800 19px var(--f-title); }
@@ -432,6 +435,8 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .cl-hud b { font: 800 18px var(--f-title); color: var(--ink); }
 .cl-stage { position: relative; height: min(46vh, 360px); border-radius: 14px; overflow: hidden; background: #12151c; }
 .cl-stage canvas { display: block; width: 100%; height: 100%; }
+.cl-play.tiles .cl-stage { height: min(56vh, 440px); background: #fbf8f2; touch-action: none; }
+.cl-keys[hidden], .promo[hidden] { display: none; }
 .cl-pads { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .clpad { display: grid; place-items: center; gap: 0; min-height: 64px; padding: 6px 2px; border-radius: 14px; border: 0; background: var(--lc); color: #fff; font: 800 14px var(--f-body); box-shadow: 0 4px 0 color-mix(in srgb, var(--lc) 60%, #000); touch-action: none; user-select: none; -webkit-user-select: none; }
 .clpad small { font-size: 11px; opacity: 0.8; }
@@ -834,11 +839,16 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
         <p class="small-note" id="themeNote">Automatique suit le réglage de ton appareil.</p>
         <h3 class="sec">Son</h3>
         <div class="card set-card">
-          <div class="set-row"><div><b>Sons du jeu</b><p class="small-note">Petits sons quand une production se termine, un trophée tombe ou un client appelle.</p></div>
-            <button class="switch" id="soundBtn" type="button" aria-pressed="false" aria-label="Sons du jeu"><i aria-hidden="true"></i></button></div>
-          <label class="vol-row" for="volSfx"><span>Volume</span><output id="volSfxOut" for="volSfx">70 %</output>
+          <div class="set-row"><div><b>Sons du studio</b><p class="small-note">Petits sons quand une production rapporte, un trophée tombe ou un client appelle.</p></div>
+            <button class="switch" id="soundBtn" type="button" aria-pressed="false" aria-label="Sons du studio"><i aria-hidden="true"></i></button></div>
+          <label class="vol-row" for="volSfx"><span>Volume du studio</span><output id="volSfxOut" for="volSfx">70 %</output>
             <input type="range" id="volSfx" min="0" max="100" step="5" value="70"></label>
-          <p class="vol-hint" id="volSfxHint" hidden>Le son est coupé : active « Sons du jeu » pour l’entendre en jeu.</p>
+          <p class="vol-hint" id="volSfxHint" hidden>Coupé : active « Sons du studio » pour les entendre.</p>
+          <div class="set-row"><div><b>Sons des mini-jeux</b><p class="small-note">Batterie des clashs et concerts, piano, métronome.</p></div>
+            <button class="switch" id="gameSoundBtn" type="button" aria-pressed="true" aria-label="Sons des mini-jeux"><i aria-hidden="true"></i></button></div>
+          <label class="vol-row" for="volGame"><span>Volume des mini-jeux</span><output id="volGameOut" for="volGame">70 %</output>
+            <input type="range" id="volGame" min="0" max="100" step="5" value="70"></label>
+          <p class="vol-hint" id="volGameHint" hidden>Coupé : active « Sons des mini-jeux » pour les entendre.</p>
           <button class="btn sm" id="volReset" type="button">Volume par défaut</button>
         </div>
         <h3 class="sec" id="accTitle">Compte et sauvegarde</h3>
@@ -943,13 +953,14 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   <div class="sheet piano-sheet" role="dialog" aria-modal="true" aria-labelledby="piTitle">
     <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Atelier piano</p>
     <h2 id="piTitle">Au piano</h2>
-    <div class="seg pi-mode" role="group" aria-label="Mode de jeu"><button type="button" data-pm="ear" aria-pressed="true">Défi d’oreille</button><button type="button" data-pm="free" aria-pressed="false">Jeu libre</button></div>
+    <div class="seg pi-mode" role="group" aria-label="Mode de jeu"><button type="button" data-pm="tiles" aria-pressed="true">Piano tiles</button><button type="button" data-pm="free" aria-pressed="false">Jeu libre</button></div>
     <p class="ev-text" id="piText"></p>
     <div class="pi-status" aria-live="polite"><b id="piState"></b><span id="piInfo"></span></div>
-    <div class="piano" id="piKeys" role="group" aria-label="Clavier de piano"></div>
+    <div class="piano" id="piKeys" role="group" aria-label="Clavier de piano" hidden></div>
+    <div class="tiles-stage" id="piStage"><canvas id="piCanvas" tabindex="-1" aria-label="Piano tiles : touche les tuiles noires de bas en haut"></canvas></div>
     <p class="small-note" id="piTip"></p>
     <button class="btn sm" id="piSoundOn" type="button" hidden>Activer le son du jeu</button>
-    <button class="pad" id="piStart" type="button"><b id="piStartT">Écouter la mélodie</b><small id="piStartS"></small></button>
+    <button class="pad" id="piStart" type="button"><b id="piStartT">Jouer</b><small id="piStartS"></small></button>
     <button class="btn sm" id="piClose" type="button">Retour au studio</button>
   </div>
 </div>
@@ -959,8 +970,10 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <h2 id="clTitle"></h2>
     <div id="clIntro" class="cl-intro">
       <p class="ev-text" id="clIntroText">Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.</p>
-      <div class="cl-keys" aria-hidden="true"><span><kbd>D</kbd>Kick</span><span><kbd>F</kbd>Caisse claire</span><span><kbd>J</kbd>Charleston</span><span><kbd>K</kbd>Clap</span></div>
+      <div class="cl-keys" id="clKeysP" aria-hidden="true" hidden><span><kbd>D</kbd>Colonne 1</span><span><kbd>F</kbd>Colonne 2</span><span><kbd>J</kbd>Colonne 3</span><span><kbd>K</kbd>Colonne 4</span></div>
+      <div class="cl-keys" id="clKeysD" aria-hidden="true"><span><kbd>D</kbd>Kick</span><span><kbd>F</kbd>Caisse claire</span><span><kbd>J</kbd>Charleston</span><span><kbd>K</kbd>Clap</span></div>
       <p class="small-note" id="clTip"></p>
+      <label class="promo" for="clMetro" id="clMetroL"><input type="checkbox" id="clMetro" checked><span>Métronome <small>un clic et un voyant à chaque temps</small></span></label>
       <button class="btn sm" id="clSoundOn" type="button" hidden>Activer le son du jeu</button>
       <button class="pad" id="clGo" type="button"><b>C’est parti</b><small id="clGoSub"></small></button>
       <button class="btn sm" id="clLater" type="button">Plus tard</button>
