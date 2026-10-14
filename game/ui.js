@@ -2696,6 +2696,8 @@
     else if (k > 1) toast(k + ' paliers atteints : les gains de « ' + act.name + ' » sont multipliés par ' + Math.pow(2, k) + '.');
   };
 
+  // Accès en lecture pour le diagnostic (console: premierMix().money).
+  window.premierMix = function () { return S; };
   function boot(hot) {
     var raw = hot && typeof hot === 'object' && hot.acts ? hot : loadLocal();
     var now = Date.now();
