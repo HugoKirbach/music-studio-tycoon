@@ -63,7 +63,7 @@
   }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newLabel() { return { roster: [], albums: 0, concerts: 0, bestVenue: 0, kept: 0, ocd: T.offerFirst, gone: [], disco: [], ltours: 0, cities: {} }; }
-  function newWorld(tours) { return { home: 'fr', done: {}, base: null, rec: { piano: 0, proj: 0 }, souv: {}, picks: pickDates(tours || 0) }; }
+  function newWorld(tours) { return { home: 'fr', done: {}, base: null, rec: { piano: 0, proj: 0 }, souv: {}, homes: ['fr'], picks: pickDates(tours || 0) }; }
   function cleanDisc(x) { return { a: ART_BY[x && x.a] ? x.a : null, t: String((x && x.t) || 'Album').slice(0, 40), avg: Math.max(0, Math.min(10, num(x && x.avg, 0))), pos: Math.max(0, Math.floor(num(x && x.pos, 0))), g: PJ_G[x && x.g] ? x.g : null, w: Math.max(0, Math.floor(num(x && x.w, 0))) }; }
   function newBattle() { return { league: 1, pts: 0, wins: 0, losses: 0, best: 0, cd: T.battleFirst, rival: null }; }
   function newDeco() { var d = { seen: {} }; DECO.slots.forEach(function (s) { d[s.id] = s.options[0].id; }); return d; }
@@ -161,6 +161,8 @@
     if (o.world && typeof o.world === 'object') {
       var w = o.world, W = S.world;
       if (COUNTRY_BY[w.home]) W.home = w.home;
+      if (Array.isArray(w.homes)) W.homes = w.homes.filter(function (k, i, a) { return COUNTRY_BY[k] && a.indexOf(k) === i; }).slice(0, 20);
+      if (W.homes.indexOf(W.home) < 0) W.homes.push(W.home);
       if (w.done && typeof w.done === 'object') Object.keys(w.done).forEach(function (k) { if (WDATE_BY[k] && w.done[k]) W.done[k] = 1; });
       if (w.souv && typeof w.souv === 'object') Object.keys(w.souv).forEach(function (k) { if (WDATE_BY[k] && w.souv[k]) W.souv[k] = Math.max(1, Math.floor(num(w.souv[k], 1))); });
       if (w.rec && typeof w.rec === 'object') { W.rec.piano = Math.max(0, Math.floor(num(w.rec.piano, 0))); W.rec.proj = Math.max(0, Math.min(10, num(w.rec.proj, 0))); }
@@ -1491,6 +1493,17 @@
       if (hooks.worldDate) hooks.worldDate(d);
     });
   }
+  // Pays parcourus: villes jouées en tournée locale, dates de la tournée mondiale, pays où le studio a été installé.
+  function visited(S) {
+    var out = {};
+    function at(c) { return out[c] || (out[c] = { cities: [], dates: [], based: false }); }
+    if (S.label) Object.keys(S.label.cities).forEach(function (k) { var c = k.slice(0, 2); if (COUNTRY_BY[c]) at(c).cities.push(k.slice(3)); });
+    if (S.world) {
+      Object.keys(S.world.souv).forEach(function (id) { var d = WDATE_BY[id]; if (d) at(d.c).dates.push(id); });
+      (S.world.homes || []).forEach(function (c) { if (COUNTRY_BY[c]) at(c).based = true; });
+    }
+    return out;
+  }
   // Pays où installer le studio pour la prochaine carrière: l'actuel, ou un pays dont une date a été jouée.
   function homeChoices(S) {
     var out = [S.world.home];
@@ -1650,8 +1663,9 @@
     S.masters = []; S.orders.offers = []; S.orders.active = []; S.orders.cd = T.orderFirst; // la réputation et le Top 50 restent
     S.fame = (S.fame || 0) + n + extra; S.fameX = (S.fameX || 0) + extra; S.tours = (S.tours || 0) + 1;
     var nh = homeChoices(S).indexOf(home) >= 0 ? home : W.home;
-    var souv = W.souv;
-    S.world = newWorld(S.tours); S.world.home = nh; S.world.souv = souv;
+    var souv = W.souv, homes = W.homes.slice();
+    if (homes.indexOf(nh) < 0) homes.push(nh);
+    S.world = newWorld(S.tours); S.world.home = nh; S.world.souv = souv; S.world.homes = homes;
     S.savedAt = now; S.epoch = now;
     touch(S);
     S.world.base = worldSnap(S);
@@ -1940,7 +1954,7 @@
     ARTISTS: ARTISTS, ART_BY: ART_BY, labelOpen: labelOpen, labelCap: labelCap, artistOf: artistOf, labelMult: labelMult, artistAvailable: artistAvailable,
     artistCost: artistCost, signArtist: signArtist, tickLabel: tickLabel, artistParts: artistParts,
     WORLD: WORLD, COUNTRY_BY: COUNTRY_BY, WDATE_BY: WDATE_BY, LTOUR: LTOUR, LT_SIZE: LT_SIZE, LT_TR: LT_TR, LT_SET: LT_SET, LT_INC: LT_INC,
-    worldOpen: worldOpen, worldDates: worldDates, worldDone: worldDone, worldNeed: worldNeed, worldValue: worldValue, worldMult: worldMult, checkWorld: checkWorld, homeChoices: homeChoices, souvenirs: souvenirs, fameBase: fameBase, pickDates: pickDates,
+    worldOpen: worldOpen, worldDates: worldDates, worldDone: worldDone, worldNeed: worldNeed, worldValue: worldValue, worldMult: worldMult, checkWorld: checkWorld, homeChoices: homeChoices, souvenirs: souvenirs, visited: visited, fameBase: fameBase, pickDates: pickDates,
     homeCountry: homeCountry, ltourReady: ltourReady, ltourCost: ltourCost, ltourPreview: ltourPreview, startLtour: startLtour, resolveIncident: resolveIncident, tickLtours: tickLtours, legTime: legTime, ltourText: ltourText,
     RIVAL_LABELS: RIVAL_LABELS, goneOf: goneOf, keepChance: keepChance, retainCost: retainCost, transferFee: transferFee, resolveOffer: resolveOffer, discography: discography,
     VENUES: VENUES, STORIES: STORIES, STORY_BY: STORY_BY, venueIndex: venueIndex, concertReady: concertReady, startConcert: startConcert, finishConcert: finishConcert,

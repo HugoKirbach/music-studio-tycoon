@@ -9,6 +9,7 @@
   var hemi, sun, fill;
   var dark = false, reduce = false, mobile = false;
   var cur = { place: null, tier: -1, key: '', def: null };
+  var souvG = null, souvKey = '', globeNode = null;
   var artistNodes = {}, itemNodes = {}, staffNodes = {}, deskNodes = [], player = null, anims = [], blinkers = [], spinners = [];
   var view = null, pickFn = null, deco = {}, decoKey = '';
   var cam = { yaw: 0.72, pitch: 0.62, zoom: 1, fit: 12, target: null, pan: null, yawBase: 0.72 };
@@ -923,6 +924,7 @@
     itemNodes = {}; blinkers = []; fallbackUsed = 0; cur.key = ''; cur.edrums = null; cur.edrumsSeen = false; cur.shelf = null;
     Object.keys(staffNodes).forEach(removeStaff);
     Object.keys(artistNodes).forEach(function (id) { staffG.remove(artistNodes[id].g); delete artistNodes[id]; });
+    if (souvG) { world.remove(souvG); souvG = null; } globeNode = null; souvKey = '';
     deskNodes.forEach(function (d) { world.remove(d); }); deskNodes = [];
     roomG = buildRoom(cur.def, tier); world.add(roomG);
     var def = cur.def;
@@ -1002,6 +1004,146 @@
     g.traverse(function (o) { if (o.isMesh) o.userData.pick = { type: 'hot', id: 'clash' }; });
     return g;
   }
+  // ---------- Carte du monde (globe du studio et globe interactif) ----------
+  var GEO = (root.GameData && root.GameData.GEO) || { land: [], countries: {}, cities: {} };
+  // info: { visited: {pays: 1}, home: 'fr', sel: 'fr', cities: [[lat, lon]], stars: [[lat, lon]] }
+  function drawWorld(x, w, h, info) {
+    info = info || {};
+    function P(lon, lat) { return [(lon + 180) / 360 * w, (90 - lat) / 180 * h]; }
+    function poly(a) { x.beginPath(); for (var i = 0; i < a.length; i += 2) { var p = P(a[i], a[i + 1]); if (i) x.lineTo(p[0], p[1]); else x.moveTo(p[0], p[1]); } x.closePath(); }
+    var g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#173a5c'); g.addColorStop(0.5, '#23598a'); g.addColorStop(1, '#173a5c');
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    x.strokeStyle = 'rgba(255,255,255,0.08)'; x.lineWidth = Math.max(1, w / 1024);
+    for (var lo = -150; lo < 180; lo += 30) { var a = P(lo, 0)[0]; x.beginPath(); x.moveTo(a, 0); x.lineTo(a, h); x.stroke(); }
+    for (var la = -60; la <= 60; la += 30) { var b = P(0, la)[1]; x.beginPath(); x.moveTo(0, b); x.lineTo(w, b); x.stroke(); }
+    x.fillStyle = '#7da874'; x.strokeStyle = 'rgba(30,60,30,0.35)'; x.lineWidth = Math.max(1, w / 900);
+    GEO.land.forEach(function (p) { poly(p); x.fill(); x.stroke(); });
+    Object.keys(GEO.countries).forEach(function (k) {
+      var vis = info.visited && info.visited[k], home = info.home === k;
+      x.fillStyle = home ? '#ffd166' : vis ? '#ff8a3d' : '#94bd8a';
+      GEO.countries[k].forEach(function (p) { poly(p); x.fill(); });
+      if (info.sel === k) { x.strokeStyle = '#ffffff'; x.lineWidth = Math.max(2, w / 400); GEO.countries[k].forEach(function (p) { poly(p); x.stroke(); }); }
+    });
+    var r = Math.max(2, w / 520);
+    (info.cities || []).forEach(function (c) { var p = P(c[1], c[0]); x.fillStyle = 'rgba(255,255,255,0.35)'; x.beginPath(); x.arc(p[0], p[1], r * 2, 0, 6.29); x.fill(); x.fillStyle = '#ffffff'; x.beginPath(); x.arc(p[0], p[1], r, 0, 6.29); x.fill(); });
+    (info.stars || []).forEach(function (c) {
+      var p = P(c[1], c[0]), R0 = r * 3.2; x.fillStyle = '#ffd166'; x.strokeStyle = '#5b3fc4'; x.lineWidth = Math.max(1, r * 0.6); x.beginPath();
+      for (var i = 0; i < 10; i++) { var an = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? R0 * 0.45 : R0; x.lineTo(p[0] + Math.cos(an) * rr, p[1] + Math.sin(an) * rr); }
+      x.closePath(); x.fill(); x.stroke();
+    });
+  }
+  function inPoly(a, lon, lat) {
+    var inside = false;
+    for (var i = 0, j = a.length - 2; i < a.length; j = i, i += 2) {
+      var xi = a[i], yi = a[i + 1], xj = a[j], yj = a[j + 1];
+      if ((yi > lat) !== (yj > lat) && lon < (xj - xi) * (lat - yi) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  }
+  function countryAt(lat, lon) {
+    var ks = Object.keys(GEO.countries);
+    for (var i = 0; i < ks.length; i++) if (GEO.countries[ks[i]].some(function (p) { return inPoly(p, lon, lat); })) return ks[i];
+    return null;
+  }
+
+  // ---------- Souvenirs de tournée: affiches aux murs, globe sur pied ----------
+  // Cherche des emplacements libres: boîte candidate comparée aux boîtes de tout ce qui est déjà posé.
+  function obstacles() {
+    var out = [];
+    function add(o) { var b = new THREE.Box3().setFromObject(o); if (!b.isEmpty()) out.push(b); }
+    world.updateMatrixWorld(true);
+    roomG.children.forEach(function (o) {
+      if (o.isLight) return;
+      var b = new THREE.Box3().setFromObject(o); if (b.isEmpty()) return;
+      var sx = b.max.x - b.min.x, sz = b.max.z - b.min.z, sy = b.max.y - b.min.y;
+      if (sy < 0.03 || sx > cur.def.W * 0.8 || sz > cur.def.D * 0.8) return; // sol, murs, tapis
+      out.push(b);
+    });
+    Object.keys(itemNodes).forEach(function (id) { if (!itemNodes[id].userData.ghost) add(itemNodes[id]); });
+    deskNodes.forEach(add);
+    Object.keys(staffNodes).forEach(function (id) { var n = staffNodes[id]; if (n.cur) add(n.cur); });
+    Object.keys(artistNodes).forEach(function (id) { add(artistNodes[id].g); });
+    if (player) add(player);
+    var def = cur.def;
+    (def.staff || []).forEach(function (p) { out.push(new THREE.Box3(new V3(p[0] - 0.7, 0, p[1] - 0.6), new V3(p[0] + 0.7, 1.6, p[1] + 0.9))); }); // postes futurs
+    (def.artists || []).forEach(function (p) { out.push(new THREE.Box3(new V3(p[0] - 0.4, 0, p[1] - 0.4), new V3(p[0] + 0.4, 1.9, p[1] + 0.4))); });
+    if (def.board) out.push(new THREE.Box3(new V3(def.board[0] - 1.2, 0, def.board[1] - 0.6), new V3(def.board[0] + 1.2, 2, def.board[1] + 0.8)));
+    return out;
+  }
+  function freeBox(b, obs) { for (var i = 0; i < obs.length; i++) if (obs[i].intersectsBox(b)) return false; return true; }
+  function posterDraw(p) {
+    return function (c, w, h) {
+      c.fillStyle = p.bg; c.fillRect(0, 0, w, h);
+      var g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, 'rgba(255,255,255,0.18)'); g.addColorStop(1, 'rgba(0,0,0,0.35)'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+      c.fillStyle = 'rgba(255,255,255,0.9)'; c.beginPath(); c.arc(w / 2, h * 0.38, w * 0.26, 0, 6.29); c.fill();
+      c.fillStyle = p.bg; c.beginPath(); c.arc(w / 2, h * 0.38, w * 0.1, 0, 6.29); c.fill();
+      c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.font = '800 ' + Math.round(w * 0.1) + 'px system-ui, sans-serif'; c.fillText(p.kicker, w / 2, h * 0.09);
+      var t = p.title, fs = w * 0.15; c.font = '900 ' + Math.round(fs) + 'px system-ui, sans-serif';
+      while (c.measureText(t).width > w * 0.9 && fs > 8) { fs -= 1; c.font = '900 ' + Math.round(fs) + 'px system-ui, sans-serif'; }
+      c.fillText(t, w / 2, h * 0.73);
+      c.font = '700 ' + Math.round(w * 0.085) + 'px system-ui, sans-serif'; c.fillText(p.sub, w / 2, h * 0.86);
+    };
+  }
+  function buildPoster(p) {
+    var g = grp(null);
+    box(g, 0.46, 0.64, 0.025, M(0x1b1b1b), 0, -0.64, 0);
+    box(g, 0.4, 0.58, 0.01, texMat('souv-' + p.id + '-' + p.title, 128, 186, posterDraw(p), { r: 0.6 }), 0, -0.61, 0.02);
+    g.traverse(function (o) { if (o.isMesh) { o.castShadow = false; o.userData.pick = { type: 'souvenir', id: p.id }; } });
+    g.name = 'souvenir';
+    return g;
+  }
+  function buildGlobe() {
+    var g = grp(null), wood = M(C.woodD), brass = M(C.gold, { m: 0.8, r: 0.3 });
+    cyl(g, 0.2, 0.04, wood, 0, 0, 0, 20); cyl(g, 0.025, 0.62, wood, 0, 0.04, 0, 10);
+    var head = grp(g, 0, 0.92, 0); head.rotation.z = 0.41;
+    var tex = canvasTex('globe-mini', 512, 256, function (x, w, h) { drawWorld(x, w, h, {}); });
+    var ball = new THREE.Mesh(new THREE.SphereGeometry(0.22, 32, 24), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.55 }));
+    ball.castShadow = true; head.add(ball); head.userData.ball = ball;
+    mesh(head, G('ring', 0.245, 0.012, 40), brass, 0, 0, 0, 1, 1, 1).rotation.y = Math.PI / 2;
+    g.userData.ball = ball;
+    g.traverse(function (o) { if (o.isMesh) o.userData.pick = { type: 'hot', id: 'globe' }; });
+    g.name = 'globe';
+    return g;
+  }
+  // v.souvenirs: [{ id, title, sub, kicker, bg }] · v.globe: globe sur pied
+  function syncSouvenirs(v) {
+    var list = v.souvenirs || [], key = JSON.stringify(list) + '|' + !!v.globe + '|' + cur.placeKey + '|' + cur.tier + '|' + Object.keys(itemNodes).join(',') + '|' + deskNodes.length + '|' + Object.keys(artistNodes).length;
+    if (key === souvKey) return;
+    souvKey = key;
+    if (souvG) { world.remove(souvG); souvG = null; } globeNode = null;
+    if (!list.length && !v.globe) return;
+    souvG = grp(world);
+    var def = cur.def, obs = obstacles(), W = def.W, D = def.D;
+    if (v.globe) {
+      var spots = [];
+      for (var u = -D / 2 + 0.8; u <= D / 2 - 0.6; u += 0.4) spots.push([-W / 2 + 0.45, u]);
+      for (var u2 = -W / 2 + 0.8; u2 <= W / 2 - 0.6; u2 += 0.4) spots.push([u2, -D / 2 + 0.45]);
+      for (var i = 0; i < spots.length; i++) {
+        var p = spots[i], b = new THREE.Box3(new V3(p[0] - 0.32, 0.01, p[1] - 0.32), new V3(p[0] + 0.32, 1.25, p[1] + 0.32));
+        if (!freeBox(b, obs)) continue;
+        globeNode = buildGlobe(); globeNode.position.set(p[0], 0, p[1]); souvG.add(globeNode); obs.push(b);
+        break;
+      }
+    }
+    var cands = [];
+    [2.05, 1.45, 2.7].forEach(function (y) {
+      for (var u = -W / 2 + 0.45; u <= W / 2 - 0.45; u += 0.52) cands.push({ w: 'b', u: u, y: y });
+      for (var u2 = -D / 2 + 0.45; u2 <= D / 2 - 0.45; u2 += 0.52) cands.push({ w: 'l', u: u2, y: y });
+    });
+    var k = 0;
+    for (var c = 0; c < cands.length && k < list.length; c++) {
+      var q = cands[c], top = Math.min(q.y + 0.04, def.H - 0.15), bx;
+      if (q.y + 0.04 > def.H - 0.1) continue;
+      bx = q.w === 'b' ? new THREE.Box3(new V3(q.u - 0.27, q.y - 0.7, -D / 2), new V3(q.u + 0.27, top, -D / 2 + 0.16))
+        : new THREE.Box3(new V3(-W / 2, q.y - 0.7, q.u - 0.27), new V3(-W / 2 + 0.16, top, q.u + 0.27));
+      if (!freeBox(bx, obs)) continue;
+      var n = buildPoster(list[k]);
+      if (q.w === 'b') n.position.set(q.u, q.y, -D / 2 + 0.025); else { n.position.set(-W / 2 + 0.025, q.y, q.u); n.rotation.y = Math.PI / 2; }
+      souvG.add(n); obs.push(bx); k++;
+    }
+  }
+
   function syncExtras(v) {
     var want = !!v.edrums && !(v.owned && v.owned.studioA) && !!cur.def.edrums;
     if (want && !cur.edrums) { cur.edrums = buildEdrums(cur.def); roomG.add(cur.edrums); if (!reduce && cur.edrumsSeen) { cur.edrums.scale.set(0.01, 0.01, 0.01); anims.push({ n: cur.edrums, t: 0, d: 0.7 }); sparkle(cur.edrums.position); } }
@@ -1017,6 +1159,8 @@
       n = itemNodes.studioA;
       if (n && !n.userData.ghost) { var k = n.getObjectByName('kit'); if (k) { p = k.getWorldPosition(new V3()); p.y += 1.45; } }
       if (!p && cur.edrums) { p = cur.edrums.getWorldPosition(new V3()); p.y += 1.45; }
+    } else if (kind === 'globe') {
+      if (globeNode) { p = globeNode.getWorldPosition(new V3()); p.y += 1.45; }
     } else if (kind === 'shelf') {
       if (cur.shelf) { p = cur.shelf.getWorldPosition(new V3()); p.y += 0.75; p.x += 0.2; }
     } else if (kind && kind.indexOf('artist:') === 0) {
@@ -1138,6 +1282,7 @@
     var dt = Math.min(0.1, clock.getDelta()), t = clock.elapsedTime;
     if (player) animatePerson(player, t, anyLive ? 'work' : 'idle');
     Object.keys(artistNodes).forEach(function (id) { animatePerson(artistNodes[id].g, t, 'artist'); });
+    if (globeNode && !reduce) globeNode.userData.ball.rotation.y = t * 0.25;
     Object.keys(staffNodes).forEach(function (id) {
       var n = staffNodes[id]; if (!n.cur) return;
       var mode = n.cur.userData.p.mode;
@@ -1311,6 +1456,7 @@
     syncDesks(v.cap || 0);
     layoutStaff(v.staff);
     layoutArtists(v.artists);
+    syncSouvenirs(v);
     live = v.live || {}; anyLive = Object.keys(live).some(function (k) { return live[k] && !(v.staff || []).some(function (m) { return m.act === k && m.status === 'work'; }); });
   };
   S3.setTheme = function (d) { var was = dark; dark = !!d; if (!S3.ok) return; applyTheme(); if (was !== dark && cur.placeKey) { var k = cur.placeKey, t = cur.tier; cur.placeKey = null; S3.update(Object.assign({}, view || {}, { place: k, tier: t })); } };
@@ -1325,6 +1471,60 @@
     applyOffset();
     if (cur.def) { fitCamera(); applyCam(); }
   };
+  // Globe interactif dans sa propre toile: glisser pour tourner, molette ou pincement pour zoomer, toucher un pays pour le choisir.
+  S3.globe = function (cv, onPick) {
+    if (!THREE) return null;
+    var Rg;
+    try { Rg = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); } catch (e) { return null; }
+    Rg.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); Rg.outputColorSpace = THREE.SRGBColorSpace;
+    var sc = new THREE.Scene(), cm = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
+    sc.add(new THREE.HemisphereLight(0xffffff, 0x334466, 1.6)); var dl = new THREE.DirectionalLight(0xffffff, 1.4); dl.position.set(-2, 2, 4); sc.add(dl);
+    var mc = document.createElement('canvas'); mc.width = 2048; mc.height = 1024;
+    var tex = new THREE.CanvasTexture(mc); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+    var ball = new THREE.Mesh(new THREE.SphereGeometry(1, 72, 48), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.7 }));
+    var halo = new THREE.Mesh(new THREE.SphereGeometry(1.07, 48, 32), new THREE.MeshBasicMaterial({ color: 0x8cc4ff, transparent: true, opacity: 0.16, side: THREE.BackSide }));
+    sc.add(ball); sc.add(halo);
+    var st = { yaw: 0, pitch: 0.5, ty: null, tp: null, vy: 0, zoom: 3.6, drag: null, moved: 0, raf: 0, idle: 0, alive: true };
+    function lookAt(lat, lon) { st.idle = -12; st.ty = -(lon + 90) * Math.PI / 180; st.tp = lat * Math.PI / 180; while (st.ty - st.yaw > Math.PI) st.ty -= 2 * Math.PI; while (st.yaw - st.ty > Math.PI) st.ty += 2 * Math.PI; }
+    function size() { var r = cv.getBoundingClientRect(); Rg.setSize(Math.max(1, r.width), Math.max(1, r.height), false); cm.aspect = r.width / Math.max(1, r.height); cm.updateProjectionMatrix(); }
+    var last = performance.now();
+    function loop(now) {
+      if (!st.alive) return;
+      st.raf = requestAnimationFrame(loop);
+      var dt = Math.min(0.25, (now - last) / 1000); last = now;
+      if (st.ty != null) { st.yaw += (st.ty - st.yaw) * Math.min(1, dt * 5); st.pitch += (st.tp - st.pitch) * Math.min(1, dt * 5); if (Math.abs(st.ty - st.yaw) < 0.002) { st.ty = null; } }
+      else if (!st.drag) { st.yaw += st.vy * dt; st.vy *= Math.pow(0.05, dt); st.idle += dt; if (st.idle > 3 && !reduce) st.yaw += dt * 0.12; }
+      st.pitch = Math.max(-1.2, Math.min(1.2, st.pitch));
+      ball.rotation.set(st.pitch, st.yaw, 0, 'XYZ'); halo.rotation.copy(ball.rotation);
+      var fit = 1.08 / (Math.tan(cm.fov * Math.PI / 360) * Math.min(1, cm.aspect));
+      cm.position.set(0, 0, fit * st.zoom / 3.6); cm.lookAt(0, 0, 0);
+      Rg.render(sc, cm);
+    }
+    function pickAt(cx, cy) {
+      var r = cv.getBoundingClientRect(), v2 = new THREE.Vector2((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1), rc = new THREE.Raycaster();
+      rc.setFromCamera(v2, cm); var hit = rc.intersectObject(ball)[0];
+      if (!hit || !hit.uv) { if (onPick) onPick(null); return; }
+      var lon = hit.uv.x * 360 - 180, lat = (hit.uv.y - 0.5) * 180;
+      if (onPick) onPick(countryAt(lat, lon), lat, lon);
+    }
+    cv.addEventListener('pointerdown', function (e) { st.drag = { x: e.clientX, y: e.clientY, id: e.pointerId }; st.moved = 0; st.ty = null; st.idle = 0; try { cv.setPointerCapture(e.pointerId); } catch (err) { /* facultatif */ } });
+    cv.addEventListener('pointermove', function (e) {
+      if (!st.drag || e.pointerId !== st.drag.id) return;
+      var dx = e.clientX - st.drag.x, dy = e.clientY - st.drag.y; st.drag.x = e.clientX; st.drag.y = e.clientY; st.moved += Math.abs(dx) + Math.abs(dy);
+      var k = 0.006 * st.zoom / 3.6; st.yaw += dx * k; st.pitch += dy * k; st.vy = dx * k / 0.016;
+    });
+    function up(e) { if (!st.drag) return; var d = st.drag; st.drag = null; if (st.moved < 6) { st.vy = 0; pickAt(e.clientX, e.clientY); } }
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', function () { st.drag = null; });
+    cv.addEventListener('wheel', function (e) { e.preventDefault(); st.zoom = Math.max(1.9, Math.min(5, st.zoom * (e.deltaY > 0 ? 1.1 : 0.9))); st.idle = 0; }, { passive: false });
+    size(); st.raf = requestAnimationFrame(loop);
+    return {
+      set: function (info) { var x = mc.getContext('2d'); drawWorld(x, mc.width, mc.height, info); tex.needsUpdate = true; },
+      focus: lookAt, resize: size, state: function () { return st; },
+      zoom: function (f) { st.zoom = Math.max(1.9, Math.min(5, st.zoom * f)); },
+      dispose: function () { st.alive = false; cancelAnimationFrame(st.raf); tex.dispose(); ball.geometry.dispose(); halo.geometry.dispose(); Rg.dispose(); }
+    };
+  };
+  S3.countryAt = countryAt;
   S3.PLACES = PLACES;
   S3._person = person; S3._animate = animatePerson; // tests
   // Tests: boîtes englobantes des objets posés (décor, équipements, bureaux) pour repérer les collisions.
@@ -1344,6 +1544,7 @@
     Object.keys(staffNodes).forEach(function (id) { var n = staffNodes[id]; if (n.cur && n.cur.userData.p.mode === 'rest') add(n.cur, 'repos' + id); });
     Object.keys(staffNodes).forEach(function (id) { var n = staffNodes[id]; if (n.cur && n.cur.userData.p.mode === 'train') add(n.cur, 'formation' + id); });
     Object.keys(artistNodes).forEach(function (id) { add(artistNodes[id].g, 'artiste:' + id); });
+    if (souvG) souvG.children.forEach(function (o, i) { add(o, o.name + i); });
     return out;
   };
   S3.screenOf = function (kind, id) {

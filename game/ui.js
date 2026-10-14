@@ -381,6 +381,80 @@
     blip(8); saveLocal(); markCloud();
   }
 
+  // ---------- Souvenirs et globe des tournées ----------
+  var CTRY_COL = { fr: '#2f5fb3', uk: '#b3263a', us: '#1f3c88', jp: '#c4122f', br: '#1f8a4c', ng: '#0f7a3b', de: '#3a3a3a' };
+  function souvenirList() {
+    var out = [];
+    Object.keys(S.world.souv).forEach(function (id) { var d = G.WDATE_BY[id]; if (d) out.push({ id: id, title: d.city, sub: d.venue.replace(/^l[ea’] ?|^les /i, '').replace(/^./, function (c) { return c.toUpperCase(); }), kicker: 'TOURNÉE MONDIALE', bg: CTRY_COL[d.c] || '#5b3fc4' }); });
+    var v = G.visited(S);
+    Object.keys(v).forEach(function (c) { var n = v[c].cities.length; if (n) out.push({ id: 'lt-' + c, title: G.COUNTRY_BY[c].name, sub: n + ' ville' + (n > 1 ? 's' : ''), kicker: 'TOURNÉE LOCALE', bg: CTRY_COL[c] || '#7a5cd6' }); });
+    return out;
+  }
+  function globeOn() { var v = G.visited(S); return G.worldOpen(S) || Object.keys(v).some(function (c) { return v[c].cities.length || v[c].dates.length; }); }
+  var glv = { open: false, ctl: null, sel: null, opener: null };
+  function globeInfo() {
+    var v = G.visited(S), vis = {}, cities = [], stars = [];
+    Object.keys(v).forEach(function (c) {
+      if (v[c].cities.length || v[c].dates.length || v[c].based) vis[c] = 1;
+      v[c].cities.forEach(function (n) { var p = D.GEO.cities[n]; if (p) cities.push(p); });
+      v[c].dates.forEach(function (id) { var d = G.WDATE_BY[id], p = d && D.GEO.cities[d.city]; if (p) stars.push(p); });
+    });
+    return { visited: vis, home: S.world.home, sel: glv.sel, cities: cities, stars: stars };
+  }
+  function globeRender() {
+    var v = G.visited(S), info = globeInfo(), nv = Object.keys(info.visited).length, nc = Object.keys(S.label.cities).length, nd = G.souvenirs(S);
+    setText($('glSum'), nv + ' pays · ' + nc + ' ville' + (nc > 1 ? 's' : '') + ' · ' + nd + ' date' + (nd > 1 ? 's' : '') + ' mondiale' + (nd > 1 ? 's' : ''));
+    $('glChips').innerHTML = D.WORLD.countries.map(function (c) {
+      var cls = c.id === S.world.home ? 'h' : info.visited[c.id] ? 'v' : '';
+      return '<button type="button" class="' + cls + '" data-gc="' + c.id + '" aria-pressed="' + (glv.sel === c.id) + '">' + esc(c.name) + '</button>';
+    }).join('');
+    var c = glv.sel && G.COUNTRY_BY[glv.sel], x = c && v[c.id];
+    if (!c) $('glInfo').innerHTML = '<p style="margin:0">Ton studio est basé en <b>' + esc(G.homeCountry(S).name) + '</b>. Les tournées locales de tes artistes et les dates de la tournée mondiale colorent la carte, et chaque carrière peut te faire déménager.</p>';
+    else {
+      var lines = [];
+      if (c.id === S.world.home) lines.push('Ton studio est installé ici pour cette carrière.');
+      else if (x && x.based) lines.push('Ton studio a été installé ici lors d’une carrière passée.');
+      if (x && x.cities.length) lines.push('Tournées locales : ' + x.cities.length + ' ville' + (x.cities.length > 1 ? 's' : '') + ' (' + x.cities.join(', ') + ').');
+      if (x && x.dates.length) lines.push('Tournée mondiale : ' + x.dates.map(function (id) { var d = G.WDATE_BY[id]; return d.city + ', ' + d.venue; }).join(' · ') + '.');
+      if (!lines.length) lines.push(D.WORLD.dates.some(function (d) { return d.c === c.id; }) ? 'Pas encore visité. Une date de la tournée mondiale peut t’y emmener, et y installer ton studio ouvrira ses villes aux tournées locales.' : 'Pas encore visité.');
+      $('glInfo').innerHTML = '<h3>' + esc(c.name) + '</h3>' + lines.map(function (l) { return '<p>' + esc(l) + '</p>'; }).join('');
+    }
+    if (glv.ctl) glv.ctl.set(info);
+  }
+  window.__glv = glv;
+  function openGlobe() {
+    if (glv.open) return;
+    glv.open = true; glv.opener = document.activeElement; glv.sel = null;
+    $('globeScrim').hidden = false; $('app').inert = true; $('tabs').inert = true; if (S3) S3.paused = true;
+    if (!glv.ctl && S3 && S3.globe) glv.ctl = S3.globe($('glCanvas'), function (c, la, lo) { glv.sel = c; glv.last = [la, lo]; globeRender(); });
+    if (glv.ctl) { glv.ctl.resize(); var h = D.GEO.cities[G.homeCountry(S).cities[G.homeCountry(S).cities.length - 1]]; if (h) glv.ctl.focus(h[0], h[1]); }
+    globeRender();
+    $('glClose').focus();
+  }
+  function closeGlobe() {
+    if (!glv.open) return;
+    glv.open = false;
+    if (glv.ctl) { glv.ctl.dispose(); glv.ctl = null; }
+    $('globeScrim').hidden = true; $('app').inert = false; $('tabs').inert = false; if (S3) S3.paused = false;
+    var o = glv.opener; glv.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+  }
+  function bindGlobe() {
+    $('glClose').addEventListener('click', closeGlobe);
+    $('wtGlobe').addEventListener('click', openGlobe);
+    $('globeScrim').addEventListener('click', function (e) { if (e.target === $('globeScrim')) closeGlobe(); });
+    $('glIn').addEventListener('click', function () { if (glv.ctl) glv.ctl.zoom(0.85); });
+    $('glOut').addEventListener('click', function () { if (glv.ctl) glv.ctl.zoom(1.18); });
+    $('glChips').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-gc]'); if (!b) return;
+      var c = G.COUNTRY_BY[b.getAttribute('data-gc')]; glv.sel = c.id;
+      var p = D.GEO.cities[c.cities[c.cities.length - 1]]; if (p && glv.ctl) glv.ctl.focus(p[0], p[1]);
+      globeRender();
+    });
+    document.addEventListener('keydown', function (e) { if (glv.open && e.key === 'Escape') { e.preventDefault(); closeGlobe(); } });
+    window.addEventListener('resize', function () { if (glv.open && glv.ctl) glv.ctl.resize(); });
+  }
+
   // ---------- Discographie du label ----------
   function renderDisco() {
     var dg = G.discography(S), L = S.label;
@@ -788,6 +862,7 @@
         label: R ? (pk ? 'Duel au piano : ' : 'Clash de beatmakers : ') + R.name + ' te défie' : 'Clash : prochain défi dans ' + clock(S.battle.cd),
         html: (pk ? HOT_PIANO : HOT_DRUM) + '<span>' + (pk ? 'Duel' : 'Clash') + '</span>' + (R ? '<i class="bang" aria-hidden="true">!</i>' : '<small>' + clock(S.battle.cd) + '</small>') });
     }
+    if (globeOn()) list.push({ id: 'globe', anchor: 'globe', hot: false, label: 'Globe des tournées', html: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Globe</span>' });
     var dn = G.decoNew(S).length;
     list.push({ id: 'deco', anchor: 'shelf', hot: dn > 0, label: 'Décoration du studio' + (dn ? ' : ' + dn + ' nouveauté' + (dn > 1 ? 's' : '') : ''),
       html: HOT_DECO + '<span>Déco</span>' + (dn ? '<i class="bang" aria-hidden="true">' + dn + '</i>' : '') });
@@ -814,6 +889,7 @@
     if (id === 'clash') { if (S.battle.rival) openClash(); else toast('Pas de rival pour l’instant : prochain défi dans ' + clock(S.battle.cd) + '.'); }
     else if (id === 'piano') openPiano();
     else if (id === 'deco') openDeco();
+    else if (id === 'globe') openGlobe();
     else if (id.indexOf('art:') === 0) {
       var aid = id.slice(4), r = G.artistOf(S, aid);
       if (!r) return;
@@ -1931,6 +2007,7 @@
       ghosts: visibleItems().out.slice(0, 2).map(function (i) { return i.id; }),
       cap: G.teamOpen(S) ? G.teamCap(S) : 0, edrums: G.battleOpen(S), deco: decoView(),
       staff: S.team.staff.map(function (m) { return { id: m.id, look: m.look, role: m.role, morale: m.morale, act: m.act, status: memberStatus(m) }; }),
+      souvenirs: souvenirList(), globe: globeOn(),
       artists: G.labelOpen(S) ? S.label.roster.filter(function (r) { return !r.tour; }).map(function (r) { return { id: r.id, look: artistLook(r.id), mood: r.mood }; }) : []
     });
     if (S3.setHotspots) hotspots();
@@ -1962,6 +2039,9 @@
       renderTeam(true);
       var card = document.querySelector('.member[data-id="' + m.id + '"]');
       if (card) card.scrollIntoView({ block: 'center' });
+    } else if (u.type === 'souvenir') {
+      var sv = souvenirList().filter(function (x) { return x.id === u.id; })[0];
+      if (sv) showTip(sv.kicker === 'TOURNÉE MONDIALE' ? 'Souvenir : ' + sv.title : 'Tournée locale : ' + sv.title, sv.kicker === 'TOURNÉE MONDIALE' ? sv.sub + ' · +' + Math.round(D.WORLD.souvenir * 100) + ' % de gains pour toujours' : sv.sub + ' visitées par tes artistes', x, y);
     } else if (u.type === 'artist') {
       var ar = G.artistOf(S, u.id);
       if (!ar) return;
@@ -2890,7 +2970,7 @@
     if (raw) { quiet = true; off = G.offline(S, now); quiet = false; }
     S.savedAt = now;
     initTheme();
-    buildActs(); buildShop(); buildTrophies(); bind(); bindPerks(); bindLtour();
+    buildActs(); buildShop(); buildTrophies(); bind(); bindPerks(); bindLtour(); bindGlobe();
     initScene();
     initMenu();
     render(); renderScene(true);

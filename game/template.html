@@ -262,6 +262,27 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .wt { display: grid; gap: 8px; padding: 10px; border-radius: 12px; background: rgba(0, 0, 0, 0.18); }
 .wt-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .wt-head b { font: 800 16px var(--f-title); }
+.wt-globe { margin-left: auto; padding: 4px 10px; min-height: 0; background: rgba(255, 255, 255, 0.9); color: #5b3fc4; }
+.globe-sheet { width: min(860px, 100%); }
+.gl-wrap { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 12px; margin-top: 8px; }
+.gl-stage { position: relative; height: min(56vh, 440px); border-radius: 16px; overflow: hidden; background: radial-gradient(circle at 50% 45%, #22305a, #0d1224 75%); touch-action: none; }
+.gl-stage canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.gl-zoom { position: absolute; right: 8px; top: 8px; display: grid; gap: 4px; }
+.gl-zoom .btn { width: 34px; min-height: 34px; padding: 0; font-size: 18px; }
+.gl-hint { position: absolute; left: 0; right: 0; bottom: 8px; margin: 0; text-align: center; font-size: 12px; color: rgba(255, 255, 255, 0.7); pointer-events: none; }
+.gl-side { display: grid; gap: 10px; align-content: start; }
+.gl-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; color: var(--ink-soft); font-weight: 700; }
+.gl-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.gl-legend i.st { width: auto; height: auto; color: #e0a100; font-style: normal; }
+.gl-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.gl-chips button { padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink-soft); font: 700 12.5px var(--f-body); }
+.gl-chips button.v { border-color: #ff8a3d; color: var(--ink); background: color-mix(in srgb, #ff8a3d 14%, var(--card)); }
+.gl-chips button.h { border-color: #e0a100; background: color-mix(in srgb, #ffd166 30%, var(--card)); color: var(--ink); }
+.gl-chips button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--blue); }
+.gl-info { padding: 10px 12px; border-radius: 12px; background: var(--panel-2); font-size: 13.5px; }
+.gl-info h3 { margin: 0 0 4px; font-size: 17px; }
+.gl-info p { margin: 4px 0 0; color: var(--ink-soft); }
+@media (max-width: 699px) { .gl-wrap { grid-template-columns: 1fr; } .gl-stage { height: min(46vh, 360px); } }
 .wt-head span { font: 800 12px var(--f-body); background: rgba(255, 255, 255, 0.2); padding: 2px 8px; border-radius: 10px; }
 .wt-dates { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
 .wt-dates li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 2px 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.1); }
@@ -884,7 +905,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <p class="tour-text" id="tourText"></p>
           <div class="tour-prog"><span class="meter" aria-hidden="true"><i id="tourFill"></i></span><span class="tour-note" id="tourNote"></span></div>
           <div class="wt" id="wtBox" hidden>
-            <div class="wt-head"><b>Préparer la tournée</b><span id="wtSum"></span></div>
+            <div class="wt-head"><b>Préparer la tournée</b><span id="wtSum"></span><button class="btn sm wt-globe" id="wtGlobe" type="button">Voir le globe</button></div>
             <ol class="wt-dates" id="wtDates"></ol>
             <p class="wt-note" id="wtNote"></p>
           </div>
@@ -1008,6 +1029,23 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <div class="lt-prev" id="ltPrev"></div>
     <button class="pad" id="ltGo" type="button"><b>Partir en tournée</b><small id="ltGoS"></small></button>
     <button class="btn sm" id="ltClose" type="button" style="margin-top:8px">Annuler</button>
+  </div>
+</div>
+<div class="scrim" id="globeScrim" hidden>
+  <div class="sheet globe-sheet" role="dialog" aria-modal="true" aria-labelledby="glTitle">
+    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Globe des tournées · <span id="glSum"></span></p>
+    <h2 id="glTitle">Les pays de ta carrière</h2>
+    <div class="gl-wrap">
+      <div class="gl-stage"><canvas id="glCanvas" aria-label="Globe interactif : fais-le tourner et touche un pays"></canvas>
+        <div class="gl-zoom"><button class="btn sm" type="button" id="glIn" aria-label="Zoomer">+</button><button class="btn sm" type="button" id="glOut" aria-label="Dézoomer">−</button></div>
+        <p class="gl-hint">Fais tourner le globe, touche un pays</p></div>
+      <div class="gl-side">
+        <div class="gl-legend"><span><i style="background:#ffd166"></i>Base actuelle</span><span><i style="background:#ff8a3d"></i>Parcouru</span><span><i style="background:#94bd8a"></i>À découvrir</span><span><i class="st">★</i>Date mondiale</span></div>
+        <div class="gl-chips" id="glChips" role="group" aria-label="Pays"></div>
+        <div class="gl-info" id="glInfo" aria-live="polite"></div>
+      </div>
+    </div>
+    <button class="btn sm" id="glClose" type="button" style="margin-top:10px">Retour au studio</button>
   </div>
 </div>
 <div class="scrim" id="wtScrim" hidden>
