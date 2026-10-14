@@ -362,6 +362,8 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .scout > * { min-width: 0; }
 .scout p { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); }
 .pk .lk { font: 800 10.5px var(--f-body); padding: 1px 6px; border-radius: 8px; background: var(--good); color: #fff; }
+.a-story { margin: 0; font-weight: 800; color: var(--purple); font-size: 14px; }
+.artist.story { border-color: color-mix(in srgb, var(--purple) 50%, var(--line)); }
 /* Tendances */
 .trend-card { display: grid; gap: 8px; margin-bottom: 12px; border-left: 4px solid var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--card)); }
 .trend-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -899,6 +901,23 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <div class="pj-foot"><div><b id="pjCost"></b><small id="pjInfo"></small></div><button class="btn sm" id="pjClose" type="button">Fermer</button><button class="btn primary" id="pjGo" type="button">Lancer le projet</button></div>
   </div>
 </div>
+<div class="scrim" id="storyScrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="stTitle">
+    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Ton label · <span id="stWho"></span></p>
+    <h2 id="stTitle"></h2>
+    <div id="stAsk">
+      <p class="ev-text" id="stText"></p>
+      <div class="choices" id="stChoices" role="group" aria-label="Que fais-tu ?" style="margin-top:10px"></div>
+      <button class="btn sm" id="stLater" type="button" style="margin-top:8px">Plus tard</button>
+    </div>
+    <div class="ev-done" id="stDone" hidden>
+      <p class="ev-verdict" id="stVerdict" hidden></p>
+      <p class="ev-text" id="stOut"></p>
+      <div class="reveal" id="stReward" aria-live="polite"></div>
+      <button class="pad" id="stClose" type="button"><b>Retour au studio</b></button>
+    </div>
+  </div>
+</div>
 <div class="scrim" id="decoScrim" hidden>
   <div class="sheet deco-sheet" role="dialog" aria-modal="true" aria-labelledby="decoTitle">
     <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Étagère à souvenirs</p>
@@ -925,10 +944,10 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 </div>
 <div class="scrim" id="clashScrim" hidden>
   <div class="sheet clash-sheet" role="dialog" aria-modal="true" aria-labelledby="clTitle">
-    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Clash de beatmakers · <span id="clLeague"></span></p>
+    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span><span id="clKind">Clash de beatmakers</span> · <span id="clLeague"></span></p>
     <h2 id="clTitle"></h2>
     <div id="clIntro" class="cl-intro">
-      <p class="ev-text">Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.</p>
+      <p class="ev-text" id="clIntroText">Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.</p>
       <div class="cl-keys" aria-hidden="true"><span><kbd>D</kbd>Kick</span><span><kbd>F</kbd>Caisse claire</span><span><kbd>J</kbd>Charleston</span><span><kbd>K</kbd>Clap</span></div>
       <p class="small-note" id="clTip"></p>
       <button class="btn sm" id="clSoundOn" type="button" hidden>Activer le son du jeu</button>
@@ -936,7 +955,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
       <button class="btn sm" id="clLater" type="button">Plus tard</button>
     </div>
     <div id="clPlay" class="cl-play" hidden>
-      <div class="cl-hud"><span>Score <b id="clScore">0 %</b></span><span>Combo <b id="clCombo">0</b></span><span>À battre <b id="clTarget"></b></span></div>
+      <div class="cl-hud"><span>Score <b id="clScore">0 %</b></span><span>Combo <b id="clCombo">0</b></span><span><i id="clTargetL" style="font-style:normal">À battre</i> <b id="clTarget"></b></span></div>
       <div class="cl-stage"><canvas id="clCanvas" aria-label="Pistes du clash : les notes descendent vers la ligne de frappe"></canvas></div>
       <div class="cl-pads" id="clPads">
         <button type="button" class="clpad" data-l="0"><b>Kick</b><small>D</small></button>
@@ -949,7 +968,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     </div>
     <div id="clDone" class="cl-done" hidden>
       <b class="ev-verdict" id="clVerdict"></b>
-      <div class="cl-final"><div><span class="lbl">Ton score</span><b id="clMine"></b></div><div><span class="lbl">Rival</span><b id="clTheirs"></b></div><div><span class="lbl">Meilleur combo</span><b id="clBest"></b></div></div>
+      <div class="cl-final"><div><span class="lbl">Ton score</span><b id="clMine"></b></div><div><span class="lbl" id="clTheirsL">Rival</span><b id="clTheirs"></b></div><div><span class="lbl">Meilleur combo</span><b id="clBest"></b></div></div>
       <p class="ev-text" id="clRes"></p>
       <button class="pad" id="clClose" type="button"><b>Retour au studio</b></button>
     </div>
@@ -1078,6 +1097,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     // Tendances de la semaine (une par semaine du Top 50)
     // Label: artistes signés et cycle d'album
     labelLevel: 6, artistSignSec: 240, askEvery: 420, askFirst: 90, askLife: 600, labelFame: 0.0006,
+    concertEvery: 300, concertGood: 0.65, storyEvery: 540, storyFirst: 200, storyLife: 600,
     trendAct: 1.25, trendOrder: 0.4, trendOrderReward: 1.3, trendGenre: 0.6, trendMood: 0.4, trendSales: 1.3
   };
 
@@ -1677,6 +1697,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     { id: 'label', name: 'Directeur de label', m: 'signed', levels: [1, 2, 4], desc: 'Signe {n} artistes sur ton label.', descs: ['Signe ton premier artiste.'] },
     { id: 'albums', name: 'Disques d’artistes', m: 'artistAlbums', levels: [1, 10, 30], desc: 'Réalise {n} albums pour tes artistes.', descs: ['Réalise le premier album d’un de tes artistes.'] },
     { id: 'vedette', name: 'Faiseur de vedettes', m: 'artistFame', levels: [40, 75, 100], desc: 'Porte un artiste à {n} de notoriété.' },
+    { id: 'scene', name: 'Bête de scène', m: 'concerts', levels: [1, 10, 40], desc: 'Donne {n} concerts avec tes artistes.', descs: ['Donne le premier concert d’un de tes artistes.'] },
+    { id: 'salles', name: 'Grandes salles', m: 'bestVenue', levels: [3, 4, 5], descs: ['Remplis une salle de concert.', 'Remplis le Zénith.', 'Remplis un stade.'] },
     { id: 'combo', name: 'Main sûre', m: 'combo', levels: [20, 50, 100], desc: 'Enchaîne {n} frappes réussies d’affilée dans un clash.' }
   ];
 
@@ -1849,6 +1871,65 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     { id: 'lofi-sam', name: 'Sam & Lune', genre: 'lofi', likes: ['nostalgie', 'spleen'], tier: 4, bio: 'Un duo de chambre aux millions d’écoutes.' }
   ];
 
+
+  // Concerts des artistes: la salle dépend de leur notoriété.
+  var VENUES = [
+    { id: 'bar', name: 'Le bar du coin', fame: 0, mult: 1, cap: '80 places' },
+    { id: 'quartier', name: 'La salle de quartier', fame: 20, mult: 2, cap: '400 places' },
+    { id: 'salle', name: 'La salle de concert', fame: 40, mult: 4, cap: '2 000 places' },
+    { id: 'zenith', name: 'Le Zénith', fame: 65, mult: 8, cap: '6 000 places' },
+    { id: 'stade', name: 'Le stade', fame: 90, mult: 15, cap: '60 000 places' }
+  ];
+  var GENRE_BPM = { rap: 90, pop: 108, electro: 124, lofi: 80, chanson: 96, afro: 104, rnb: 92, trap: 140, rock: 128, jazz: 100, kpop: 116, bo: 88 };
+  // Histoires d'artistes. {name}: l'artiste, {other}: un autre artiste du label, {genre}: un autre genre.
+  // Effets: mood, fame, cash (multiple du revenu de référence), rep ; style: prochain album dans {genre} compte comme son genre ; duo: prochain album en duo.
+  var STORIES = [
+    { id: 'style', title: '{name} veut changer de style', text: '{name} écoute du {genre} en boucle depuis des semaines et rêve d’un album dans ce style.',
+      choices: [
+        { text: 'L’encourager : le prochain album sera du {genre}', out: '{name} est aux anges. Son prochain album pourra être du {genre} sans le trahir.', fx: { mood: 12, style: 1 } },
+        { text: 'Lui demander de rester fidèle à son public', out: '{name} comprend, mais l’envie reste là.', fx: { mood: -5, fame: 2 } }
+      ] },
+    { id: 'duo', need: 'other', title: 'Un duo {name} et {other} ?', text: '{name} et {other} se sont croisés au studio. Ils veulent enregistrer ensemble.',
+      choices: [
+        { text: 'Organiser le duo pour le prochain album de {name}', out: 'Rendez-vous est pris. Le prochain album de {name} sera un duo avec {other}.', fx: { mood: 8, duo: 1 } },
+        { text: 'Garder leurs carrières séparées', out: 'Ils restent bons amis, sans plus.', fx: { mood: -3 } }
+      ] },
+    { id: 'tele', title: 'L’interview en direct', text: 'Une émission du soir veut {name} en direct, mais l’animateur a la réputation de piéger ses invités.',
+      choices: [
+        { text: 'Préparer {name} pendant deux heures', out: 'Réponses justes, humour bien dosé : l’interview fait le tour des réseaux.', fx: { fame: 7, mood: 4 } },
+        { text: 'Laisser {name} improviser', risk: 0.5, out: '{name} est brillant d’instinct : on ne parle que de ça.', fail: 'L’animateur pique {name} au vif, la séquence tourne mal.', fx: { fame: 12 }, ffx: { fame: -2, mood: -8 } },
+        { text: 'Décliner l’invitation', out: 'Pas de risque, pas de lumière.', fx: { mood: -2 } }
+      ] },
+    { id: 'panne', title: 'La page blanche', text: '{name} n’arrive plus à écrire une seule ligne depuis des jours.',
+      choices: [
+        { text: 'Lui offrir une semaine de retraite au bord de la mer', cost: 0.8, out: '{name} revient reposé, la tête pleine d’idées.', fx: { mood: 20 } },
+        { text: 'Lui organiser une séance d’écriture avec ton équipe', out: 'À plusieurs, les idées reviennent doucement.', fx: { mood: 8 } },
+        { text: 'Lui fixer une date limite', out: '{name} s’exécute, mais sans plaisir.', fx: { mood: -10, fame: 2 } }
+      ] },
+    { id: 'clip', title: 'Le clip de {name}', text: 'Une jeune réalisatrice propose un clip ambitieux pour le dernier titre de {name}.',
+      choices: [
+        { text: 'Financer le grand clip', cost: 1.5, out: 'Le clip est magnifique et cumule les vues.', fx: { fame: 10, mood: 6 } },
+        { text: 'Tourner un clip simple au studio', out: 'Sobre et sincère : les fans adorent.', fx: { fame: 4, mood: 3 } },
+        { text: 'Pas de clip pour l’instant', out: '{name} est un peu déçu.', fx: { mood: -4 } }
+      ] },
+    { id: 'merch', title: 'Le fan club de {name}', text: 'Le fan club de {name} réclame des t-shirts et des vinyles dédicacés.',
+      choices: [
+        { text: 'Lancer une collection soignée', cost: 1, out: 'Tout part en quelques heures. Les fans sont ravis.', fx: { cash: 2.6, fame: 3, mood: 4 } },
+        { text: 'Faire une petite série en ligne', out: 'Une jolie vente sans prise de tête.', fx: { cash: 1, fame: 1 } }
+      ] },
+    { id: 'caritatif', title: 'Le concert solidaire', text: 'Une association demande à {name} de chanter gratuitement pour une collecte.',
+      choices: [
+        { text: 'Accepter avec plaisir', out: 'Une soirée émouvante. La presse salue le geste.', fx: { fame: 5, mood: 8, rep: 5 } },
+        { text: 'Envoyer un don à la place', cost: 0.5, out: 'L’association remercie le label.', fx: { rep: 3 } }
+      ] },
+    { id: 'reseaux', title: 'La polémique', text: 'Une vieille vidéo de {name} refait surface et fait jaser sur les réseaux.',
+      choices: [
+        { text: 'Publier un message sincère d’explication', out: 'Le message est bien reçu, la tempête retombe.', fx: { fame: 2, mood: 3 } },
+        { text: 'Jouer la carte de l’humour', risk: 0.55, out: 'La réponse drôle devient virale : tout le monde en rit avec {name}.', fail: 'L’humour tombe à plat et la polémique enfle.', fx: { fame: 8 }, ffx: { fame: -5, mood: -6 } },
+        { text: 'Ne rien dire', out: 'L’affaire s’éteint d’elle-même, lentement.', fx: { mood: -3 } }
+      ] }
+  ];
+
   // Commandes: clients par type de production
   var CLIENTS = {
     beat: ['Rappeur', ['Kaïs', 'Lil Néo', 'Sami B', 'Zoya']], mix: ['Groupe', ['Les Rivages', 'Fuzz Club', 'Velvet Garage']],
@@ -1878,7 +1959,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1918,6 +1999,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   var RULES = ['rapide', 'sans-clap', 'prime'];
   var ARTISTS = D.ARTISTS || [], ART_BY = {};
   ARTISTS.forEach(function (a) { ART_BY[a.id] = a; });
+  var VENUES = D.VENUES || [{ id: 'bar', name: 'Bar', fame: 0, mult: 1 }], GENRE_BPM = D.GENRE_BPM || {}, STORIES = D.STORIES || [], STORY_BY = {};
+  STORIES.forEach(function (s) { STORY_BY[s.id] = s; });
   var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
 
@@ -1934,7 +2017,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco(), label: { roster: [], albums: 0 } };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco(), label: { roster: [], albums: 0, concerts: 0, bestVenue: 0 } };
   }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newBattle() { return { league: 1, pts: 0, wins: 0, losses: 0, best: 0, cd: T.battleFirst, rival: null }; }
@@ -2005,12 +2088,16 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (o.proj && typeof o.proj === 'object') hydrateProj(S, o.proj);
     if (o.label && typeof o.label === 'object') {
       S.label.albums = Math.max(0, Math.floor(num(o.label.albums, 0)));
+      S.label.concerts = Math.max(0, Math.floor(num(o.label.concerts, 0))); S.label.bestVenue = Math.max(0, Math.min(VENUES.length, Math.floor(num(o.label.bestVenue, 0))));
       (Array.isArray(o.label.roster) ? o.label.roster : []).forEach(function (r) {
         if (!r || !ART_BY[r.id] || S.label.roster.some(function (x) { return x.id === r.id; }) || S.label.roster.length >= 8) return;
         var ask = r.ask && typeof r.ask === 'object' ? { left: Math.max(0, Math.min(T.askLife, num(r.ask.left, T.askLife))) } : null;
         S.label.roster.push({ id: r.id, fame: Math.max(0, Math.min(100, num(r.fame, 5))), mood: Math.max(0, Math.min(100, num(r.mood, 60))),
           albums: Math.max(0, Math.floor(num(r.albums, 0))), cd: Math.max(0, num(r.cd, T.askEvery)), ask: ask,
-          disco: (Array.isArray(r.disco) ? r.disco : []).slice(0, 10).map(function (x) { return { t: String((x && x.t) || 'Album').slice(0, 40), avg: Math.max(0, Math.min(10, num(x && x.avg, 0))), pos: Math.max(0, Math.floor(num(x && x.pos, 0))) }; }) });
+          disco: (Array.isArray(r.disco) ? r.disco : []).slice(0, 10).map(function (x) { return { t: String((x && x.t) || 'Album').slice(0, 40), avg: Math.max(0, Math.min(10, num(x && x.avg, 0))), pos: Math.max(0, Math.floor(num(x && x.pos, 0))) }; }),
+          ccd: Math.max(0, Math.min(T.concertEvery, num(r.ccd, 0))), scd: Math.max(0, num(r.scd, T.storyFirst)),
+          story: r.story && STORY_BY[r.story.id] ? { id: r.story.id, left: Math.max(0, Math.min(T.storyLife, num(r.story.left, T.storyLife))), other: ART_BY[r.story.other] ? r.story.other : null, genre: PJ_G[r.story.genre] ? r.story.genre : null } : null,
+          style: PJ_G[r.style] ? r.style : null, duo: ART_BY[r.duo] ? r.duo : null });
       });
     }
     if (o.deco && typeof o.deco === 'object') {
@@ -2790,7 +2877,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function cleanCfg(S, c) {
     var art = c && c.artist ? artistOf(S, c.artist) : null;
     if (c && c.artist && !art) return null;
-    if (!c || typeof c !== 'object' || !(genreOpen(S, c.genre) || (art && ART_BY[art.id].genre === c.genre)) || !PJ_M[c.mood] || !PJ_P[c.pub] || !formatOpen(S, c.fmt)) return null;
+    if (!c || typeof c !== 'object' || !(genreOpen(S, c.genre) || (art && (ART_BY[art.id].genre === c.genre || art.style === c.genre))) || !PJ_M[c.mood] || !PJ_P[c.pub] || !formatOpen(S, c.fmt)) return null;
     var sl = [0, 1, 2].map(function (i) { return Math.max(0, Math.min(100, Math.round(num(c.sl && c.sl[i], 50)))); });
     var team = [0, 1, 2].map(function (i) { var id = c.team && c.team[i]; return id && findMember(S, id) ? id : null; });
     var title = String(c.title || '').replace(/\s+/g, ' ').trim().slice(0, 40) || songTitle();
@@ -2901,7 +2988,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
         notes: l.notes.slice(0, PJ.critics.length).map(function (x) { return { name: String((x && x.name) || 'Critique').slice(0, 30), n: Math.max(0, Math.min(10, num(x && x.n, 0))) }; }),
         combo: G3.indexOf(l.combo) >= 0 ? l.combo : 'ok', pubG: G3.indexOf(l.pubG) >= 0 ? l.pubG : 'ok', acc: Math.max(0, Math.min(100, num(l.acc, 0))), fit: Math.max(0, Math.min(100, num(l.fit, 0))),
         fresh: Math.min(0, num(l.fresh, 0)), pos: Math.max(0, Math.floor(num(l.pos, 0))), sales: Math.max(0, num(l.sales, 0)), cost: Math.max(0, num(l.cost, 0)), tg: !!l.tg, tm: !!l.tm };
-      if (l.artist && typeof l.artist === 'object' && ART_BY[l.artist.id]) P.last.artist = { id: l.artist.id, fame: num(l.artist.fame, 0), dFame: num(l.artist.dFame, 0), dMood: num(l.artist.dMood, 0), mood: num(l.artist.mood, 50), ask: !!l.artist.ask, match: !!l.artist.match, likes: !!l.artist.likes };
+      if (l.artist && typeof l.artist === 'object' && ART_BY[l.artist.id]) P.last.artist = { id: l.artist.id, fame: num(l.artist.fame, 0), dFame: num(l.artist.dFame, 0), dMood: num(l.artist.dMood, 0), mood: num(l.artist.mood, 50), ask: !!l.artist.ask, match: !!l.artist.match, likes: !!l.artist.likes, duo: ART_BY[l.artist.duo] ? l.artist.duo : null, style: !!l.artist.style };
     }
     var c = o.cur;
     if (c && typeof c === 'object' && PJ_G[c.genre] && PJ_M[c.mood] && PJ_P[c.pub] && PJ_F[c.fmt]) {
@@ -2936,7 +3023,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var cost = artistCost(S);
     if (S.money < cost) return null;
     S.money -= cost;
-    var r = { id: id, fame: a.contact ? 12 : 5, mood: 65, albums: 0, cd: T.askFirst, ask: null, disco: [] };
+    var r = { id: id, fame: a.contact ? 12 : 5, mood: 65, albums: 0, cd: T.askFirst, ask: null, disco: [], ccd: 0, scd: T.storyFirst, story: null, style: null, duo: null };
     S.label.roster.push(r); touch(S);
     checkTrophies(S);
     if (hooks.artistSign) hooks.artistSign(a, r);
@@ -2946,6 +3033,9 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (!labelOpen(S)) return;
     S.label.roster.forEach(function (r) {
       var a = ART_BY[r.id];
+      if (r.ccd > 0) r.ccd = Math.max(0, r.ccd - dt);
+      if (r.story) { r.story.left -= dt; if (r.story.left <= 0) { r.story = null; r.scd = T.storyEvery; r.mood = Math.max(0, r.mood - 3); } }
+      else if (!r.ask) { r.scd -= dt; if (r.scd <= 0) { r.story = makeStory(S, r); r.scd = T.storyEvery; if (r.story && hooks.artistStory) hooks.artistStory(a, r); } }
       if (r.ask) {
         if (S.proj.cur && S.proj.cur.artist === r.id) return; // l'album est en cours: la demande attend
         r.ask.left -= dt;
@@ -2961,10 +3051,13 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var r = c.artist ? artistOf(S, c.artist) : null;
     if (!r) return 0;
     var a = ART_BY[r.id];
-    return (c.genre === a.genre ? 0.8 : -0.6) + (a.likes.indexOf(c.mood) >= 0 ? 0.4 : 0) + (r.mood - 50) / 100;
+    return (c.genre === a.genre || c.genre === r.style ? 0.8 : -0.6) + (a.likes.indexOf(c.mood) >= 0 ? 0.4 : 0) + (r.mood - 50) / 100 + (r.duo && artistOf(S, r.duo) ? 0.7 : 0);
   }
   function albumDone(S, r, c, avg, pos) {
-    var a = ART_BY[r.id], match = c.genre === a.genre, likes = a.likes.indexOf(c.mood) >= 0, asked = !!r.ask;
+    var a = ART_BY[r.id], match = c.genre === a.genre || c.genre === r.style, likes = a.likes.indexOf(c.mood) >= 0, asked = !!r.ask;
+    var duo = r.duo && artistOf(S, r.duo), style = !!r.style && c.genre === r.style;
+    if (style) r.style = null;
+    if (duo) { duo.fame = Math.min(100, duo.fame + 4); duo.mood = Math.min(100, duo.mood + 6); r.duo = null; }
     var dFame = Math.max(-5, Math.min(18, Math.round(avg * 2.2 - 8 + (pos && pos <= 10 ? 4 : 0))));
     var dMood = (avg >= 7 ? 12 : avg >= 5 ? 2 : -12) + (match ? 6 : -16) + (likes ? 5 : 0) + (asked ? 8 : 0);
     var f0 = r.fame, m0 = r.mood;
@@ -2973,7 +3066,73 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     r.disco.unshift({ t: c.title, avg: avg, pos: pos }); r.disco = r.disco.slice(0, 10);
     if (asked) { r.ask = null; r.cd = T.askEvery; }
     touch(S);
-    return { id: r.id, fame: r.fame, dFame: r.fame - f0, mood: r.mood, dMood: r.mood - m0, ask: asked, match: match, likes: likes };
+    return { id: r.id, fame: r.fame, dFame: r.fame - f0, mood: r.mood, dMood: r.mood - m0, ask: asked, match: match, likes: likes, duo: duo ? duo.id : null, style: style };
+  }
+
+
+  // ---------- Label: concerts ----------
+  function venueIndex(r) { var k = 0; VENUES.forEach(function (v, i) { if (r.fame >= v.fame) k = i; }); return k; }
+  function concertReady(S, r) { return labelOpen(S) && r && r.ccd <= 0; }
+  function startConcert(S, id) {
+    var r = artistOf(S, id);
+    if (!concertReady(S, r)) return null;
+    var a = ART_BY[id], vi = venueIndex(r), v = VENUES[vi];
+    var seed = (Math.floor(rand() * 4294967295) >>> 0);
+    return { concert: { artist: id, venue: vi }, rival: { name: v.name, target: T.concertGood }, leagueName: v.name, bpm: GENRE_BPM[a.genre] || 100,
+      bars: T.battleBars, notes: battlePattern(seed, Math.min(4, vi), T.battleBars), rule: null };
+  }
+  function finishConcert(S, id, vi, res) {
+    var r = artistOf(S, id);
+    if (!concertReady(S, r) || !res) return null;
+    vi = Math.max(0, Math.min(venueIndex(r), Math.floor(num(vi, 0))));
+    var v = VENUES[vi], score = Math.max(0, Math.min(1, num(res.score, 0))), combo = Math.max(0, Math.floor(num(res.combo, 0)));
+    var cash = eventRef(S) * v.mult * (0.3 + score) * 0.8 * rdFx(S).event;
+    var dFame = Math.max(-3, Math.min(12, Math.round((score - 0.5) * 12 + vi * 1.5)));
+    var dMood = score >= T.concertGood ? 8 : score >= 0.45 ? 2 : -5;
+    S.money += cash; S.lifetime += cash;
+    var f0 = r.fame; r.fame = Math.max(0, Math.min(100, r.fame + dFame)); r.mood = Math.max(0, Math.min(100, r.mood + dMood));
+    r.ccd = T.concertEvery; S.label.concerts++;
+    if (score >= T.concertGood) S.label.bestVenue = Math.max(S.label.bestVenue, vi + 1);
+    S.battle.best = Math.max(S.battle.best, combo);
+    touch(S); checkTrophies(S);
+    var out = { artist: id, venue: vi, score: score, cash: cash, dFame: r.fame - f0, fame: r.fame, dMood: dMood, mood: r.mood,
+      grade: score >= 0.85 ? 3 : score >= T.concertGood ? 2 : score >= 0.45 ? 1 : 0 };
+    if (hooks.concertDone) hooks.concertDone(out);
+    return out;
+  }
+
+  // ---------- Label: histoires d'artistes ----------
+  function makeStory(S, r) {
+    var others = S.label.roster.filter(function (x) { return x.id !== r.id; });
+    var pool = STORIES.filter(function (s) { return (s.need !== 'other' || others.length) && !(s.id === 'style' && r.style) && !(s.id === 'duo' && r.duo); });
+    if (!pool.length) return null;
+    var s = pool[Math.floor(rand() * pool.length)], a = ART_BY[r.id];
+    var gs = PJ.genres.filter(function (g) { return g.id !== a.genre; });
+    return { id: s.id, left: T.storyLife, other: others.length ? others[Math.floor(rand() * others.length)].id : null, genre: gs[Math.floor(rand() * gs.length)].id };
+  }
+  function storyText(S, r, str) {
+    var st = r.story || {};
+    return String(str).replace(/\{name\}/g, ART_BY[r.id].name).replace(/\{other\}/g, st.other ? ART_BY[st.other].name : '').replace(/\{genre\}/g, st.genre ? PJ_G[st.genre].name : '');
+  }
+  function storyCost(S, c) { return c.cost ? eventRef(S) * c.cost : 0; }
+  function resolveStory(S, id, i, rnd) {
+    var r = artistOf(S, id), st = r && r.story, s = st && STORY_BY[st.id], c = s && s.choices[i];
+    if (!c) return null;
+    var cost = storyCost(S, c);
+    if (S.money < cost) return null;
+    S.money -= cost;
+    var win = c.risk ? (rnd || rand)() < c.risk : null, fx = win === false ? c.ffx : c.fx, out = [];
+    var text = storyText(S, r, win === false ? c.fail : c.out);
+    if (cost) out.push({ k: 'spent', v: cost });
+    if (fx.mood) { var m0 = r.mood; r.mood = Math.max(0, Math.min(100, r.mood + fx.mood)); out.push({ k: 'amood', v: r.mood - m0 }); }
+    if (fx.fame) { var f0 = r.fame; r.fame = Math.max(0, Math.min(100, r.fame + fx.fame)); out.push({ k: 'afame', v: r.fame - f0 }); }
+    if (fx.cash) { var cc = eventRef(S) * fx.cash * rdFx(S).event; S.money += cc; S.lifetime += cc; out.push({ k: 'cash', v: cc }); }
+    if (fx.rep) { S.orders.rep = Math.min(T.repMax, S.orders.rep + fx.rep); out.push({ k: 'rep', v: fx.rep }); }
+    if (fx.style && st.genre) { r.style = st.genre; out.push({ k: 'style', g: st.genre }); }
+    if (fx.duo && st.other && artistOf(S, st.other)) { r.duo = st.other; out.push({ k: 'duo', other: st.other }); }
+    r.story = null; r.scd = T.storyEvery;
+    touch(S);
+    return { title: storyText(S, { id: r.id, story: st }, s.title), text: text, win: win, rewards: out };
   }
 
   // ---------- Tendances de la semaine ----------
@@ -3131,7 +3290,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     });
     S.ev.cd = T.eventFirst; S.ev.pending = null; S.ev.hold = false;
     if (S.proj) { S.proj.cur = null; S.proj.last = null; } // un projet en cours est abandonné, le carnet reste
-    S.label.roster.forEach(function (a) { a.ask = null; a.cd = T.askEvery; });
+    S.label.roster.forEach(function (a) { a.ask = null; a.cd = T.askEvery; a.story = null; a.scd = T.storyFirst; a.ccd = 0; });
     S.rd.spec = {}; // les recherches restent, les spécialisations se choisissent à nouveau
     // L'équipe part aussi en tournée: ses membres pourront revenir sans prime d'embauche.
     var tm = S.team || newTeam(), al = tm.staff.map(function (m) { return { id: m.id, name: m.name, role: m.role, stars: m.stars, lvl: m.lvl, xp: 0, salary: m.salary, look: m.look }; });
@@ -3194,6 +3353,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       case 'league': n = S.battle ? S.battle.league : 1; break;
       case 'combo': n = S.battle ? S.battle.best : 0; break;
       case 'signed': n = S.label ? S.label.roster.length : 0; break;
+      case 'concerts': n = S.label ? S.label.concerts : 0; break;
+      case 'bestVenue': n = S.label ? S.label.bestVenue : 0; break;
       case 'artistAlbums': n = S.label ? S.label.albums : 0; break;
       case 'artistFame': (S.label ? S.label.roster : []).forEach(function (a) { n = Math.max(n, a.fame); }); break;
       case 'pianoBest': n = S.piano ? S.piano.best : 0; break;
@@ -3404,6 +3565,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     BATTLE: BT, DECO: DECO, decoOpt: decoOpt, decoUnlocked: decoUnlocked, decoProgress: decoProgress, setDeco: setDeco, decoNew: decoNew, seeDeco: seeDeco,
     ARTISTS: ARTISTS, ART_BY: ART_BY, labelOpen: labelOpen, labelCap: labelCap, artistOf: artistOf, labelMult: labelMult, artistAvailable: artistAvailable,
     artistCost: artistCost, signArtist: signArtist, tickLabel: tickLabel, artistParts: artistParts,
+    VENUES: VENUES, STORIES: STORIES, STORY_BY: STORY_BY, venueIndex: venueIndex, concertReady: concertReady, startConcert: startConcert, finishConcert: finishConcert,
+    makeStory: makeStory, storyText: storyText, storyCost: storyCost, resolveStory: resolveStory,
     trendFor: trendFor, trendAct: trendAct, makeTrend: makeTrend, RULES: RULES, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, startBattle: startBattle, finishBattle: finishBattle
   };
 
@@ -4267,11 +4430,12 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function applyTheme() {
     if (!scene) return;
     scene.background = new THREE.Color(dark ? 0x141a24 : 0xdfe9ee);
-    hemi.intensity = dark ? 0.55 : 1.05; hemi.color.set(dark ? 0xb8c4ff : 0xfff4e6); hemi.groundColor.set(dark ? 0x2b2433 : 0x6b5a4a);
+    hemi.intensity = dark ? 1.18 : 1.05; hemi.color.set(dark ? 0xd2d9ff : 0xfff4e6); hemi.groundColor.set(dark ? 0x4a4258 : 0x6b5a4a);
     if (deco.light) { hemi.color.lerp(new THREE.Color(deco.light), dark ? 0.75 : 0.6); hemi.intensity *= 1.05; }
-    sun.intensity = dark ? 0.55 : 1.7; sun.color.set(dark ? 0x9fb4ff : 0xfff0dc);
+    sun.intensity = dark ? 1.0 : 1.7; sun.color.set(dark ? 0xc4d0ff : 0xfff0dc);
     if (deco.light) sun.color.lerp(new THREE.Color(deco.light), 0.35);
-    fill.intensity = dark ? 0.15 : 0.35;
+    fill.intensity = dark ? 0.32 : 0.35;
+    if (R) R.toneMappingExposure = dark ? 1.2 : 1.05;
   }
 
   // ---------- Construction d'un lieu ----------
@@ -4884,7 +5048,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (lbv.wasOpen === false && open && !quiet) toast('Nouveau : ton label ! Signe des artistes et produis leurs albums depuis l’onglet Top 50.', 7000);
     lbv.wasOpen = open;
     setHidden($('labelBox'), !open);
-    var asks = open && L.roster.some(function (r) { return r.ask; });
+    var asks = open && L.roster.some(function (r) { return r.ask || r.story; });
     setClass($('tabCharts'), 'warn', asks && !onCh);
     if (!open || (!onCh && !force)) return;
     var cap = G.labelCap(S), avail = G.ARTISTS.filter(function (a) { return G.artistAvailable(S, a); });
@@ -4892,19 +5056,24 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     setText($('labelNote'), L.roster.length
       ? 'Leur notoriété ajoute +' + nf1.format((G.labelMult(S) - 1) * 100) + ' % à tous tes gains. Respecte leur genre et leurs goûts : un artiste content progresse plus vite.'
       : 'Signe un artiste, puis produis ses albums avec l’outil de projet de création. Ses albums font grimper sa notoriété, qui dope les ventes et tous tes gains.');
-    var key = JSON.stringify(L.roster.map(function (r) { return [r.id, Math.round(r.fame), Math.round(r.mood), !!r.ask, r.albums]; })) + '|' + avail.map(function (a) { return a.id; }).join(',') + '|' + cap + '|' + !!S.proj.cur;
+    var key = JSON.stringify(L.roster.map(function (r) { return [r.id, Math.round(r.fame), Math.round(r.mood), !!r.ask, r.albums, !!r.story, r.style, r.duo]; })) + '|' + avail.map(function (a) { return a.id; }).join(',') + '|' + cap + '|' + !!S.proj.cur;
     if (key !== lbv.key) {
       lbv.key = key; lbv.cards = {};
       $('labelRoster').innerHTML = L.roster.map(function (r) {
         var a = G.ART_BY[r.id], mt = moodTxt(r.mood), last = r.disco[0];
-        return '<article class="card artist' + (r.ask ? ' ask' : '') + '" data-aid="' + r.id + '">' +
+        var vn = D.VENUES[G.venueIndex(r)];
+        return '<article class="card artist' + (r.ask ? ' ask' : '') + (r.story ? ' story' : '') + '" data-aid="' + r.id + '">' +
           '<div class="a-head"><span class="a-av" style="--ac:' + (GENRE_COL[a.genre] || '#777') + '" aria-hidden="true">' + esc(artInitials(a.name)) + '</span><div><b>' + esc(a.name) + '</b><small>' + esc(G.PJ_G[a.genre].name) + ' · aime ' + a.likes.map(function (m) { return esc(G.PJ_M[m].name.toLowerCase()); }).join(' et ') + '</small></div><span class="a-mood m' + mt[1] + '">' + mt[0] + '</span></div>' +
           '<div class="a-fame"><span>Notoriété</span><span class="meter" aria-hidden="true"><i style="width:' + r.fame + '%"></i></span><b>' + Math.round(r.fame) + '</b></div>' +
           '<p class="' + (r.ask ? 'a-ask' : 'a-line') + '" data-k="when"></p>' +
+          (r.story ? '<p class="a-story">' + esc(artName(r.id)) + ' a quelque chose à te dire.</p>' : '') +
+          (r.style || r.duo ? '<p class="a-line">' + (r.style ? 'Prochain album : envie de ' + esc(G.PJ_G[r.style].name) + '. ' : '') + (r.duo ? 'Duo prévu avec ' + esc(artName(r.duo)) + '.' : '') + '</p>' : '') +
           (last ? '<p class="a-line">Dernier album : « ' + esc(last.t) + ' » ' + nf1.format(last.avg) + '/10' + (last.pos ? ', entré n°' + last.pos : '') + ' · ' + r.albums + ' album' + (r.albums > 1 ? 's' : '') + '</p>' : '<p class="a-line">Pas encore d’album sur ton label.</p>') +
-          '<div class="proj-row"><button class="btn sm' + (r.ask ? ' primary' : '') + '" type="button" data-art="album" data-id="' + r.id + '"' + (S.proj.cur ? ' disabled' : '') + '>' + (S.proj.cur ? 'Un projet est déjà en cours' : 'Préparer son album') + '</button></div></article>';
+          '<div class="proj-row"><button class="btn sm' + (r.ask ? ' primary' : '') + '" type="button" data-art="album" data-id="' + r.id + '"' + (S.proj.cur ? ' disabled' : '') + '>' + (S.proj.cur ? 'Un projet est déjà en cours' : 'Préparer son album') + '</button>' +
+          (r.story ? '<button class="btn sm primary" type="button" data-art="story" data-id="' + r.id + '">L’écouter</button>' : '') +
+          '<button class="btn sm" type="button" data-art="concert" data-id="' + r.id + '"><span data-k="cc">Concert</span></button></div></article>';
       }).join('');
-      L.roster.forEach(function (r) { lbv.cards[r.id] = $('labelRoster').querySelector('[data-aid="' + r.id + '"] [data-k="when"]'); });
+      L.roster.forEach(function (r) { var cd = $('labelRoster').querySelector('[data-aid="' + r.id + '"]'); lbv.cards[r.id] = cd.querySelector('[data-k="when"]'); lbv.cc = lbv.cc || {}; lbv.cc[r.id] = cd.querySelector('[data-art="concert"]'); });
       setHidden($('labelScoutT'), !avail.length);
       var full = L.roster.length >= cap, cost = G.artistCost(S);
       $('labelScouts').innerHTML = avail.map(function (a) {
@@ -4920,13 +5089,22 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var busy = S.proj.cur && S.proj.cur.artist === r.id;
       setText(el, busy ? 'Son album est en cours de production.' : r.ask ? artName(r.id) + ' veut sortir un album · reste ' + clock(r.ask.left) : 'Prochaine envie d’album dans ' + clock(r.cd) + '.');
     });
+    L.roster.forEach(function (r) {
+      var b = lbv.cc && lbv.cc[r.id]; if (!b) return;
+      var ok = G.concertReady(S, r), vn = D.VENUES[G.venueIndex(r)];
+      setText(b.firstChild, ok ? 'Concert · ' + ({ bar: 'bar', quartier: 'quartier', salle: 'grande salle', zenith: 'Zénith', stade: 'stade' }[vn.id] || vn.name) : 'Concert dans ' + clock(r.ccd)); b.title = vn.name;
+      setDisabled(b, !ok || cl.open);
+    });
     $('labelScouts').querySelectorAll('[data-art="sign"]').forEach(function (b) { setDisabled(b, L.roster.length >= cap || S.money < G.artistCost(S)); });
   }
   function bindLabel() {
     $('labelBox').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-art]'); if (!b || b.disabled) return;
       var id = b.getAttribute('data-id');
-      if (b.getAttribute('data-art') === 'sign') { if (G.signArtist(S, id)) { saveLocal(); markCloud(); lbv.key = ''; renderLabel(true); render(); } }
+      var what = b.getAttribute('data-art');
+      if (what === 'sign') { if (G.signArtist(S, id)) { saveLocal(); markCloud(); lbv.key = ''; renderLabel(true); render(); } }
+      else if (what === 'concert') { var cc = G.startConcert(S, id); if (cc) openClash(cc); }
+      else if (what === 'story') openStory(id);
       else openProj(id);
     });
   }
@@ -5285,15 +5463,19 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     } catch (e) { cl.gain = null; return false; }
   }
   function clAudioOff() { if (cl.gain) { try { cl.gain.gain.cancelScheduledValues(0); cl.gain.disconnect(); } catch (e) { /* déjà coupé */ } cl.gain = null; } }
-  function openClash() {
-    var cfg = G.startBattle(S);
+  function openClash(given) {
+    var cfg = given && given.concert ? given : G.startBattle(S);
     if (!cfg || cl.open) return;
     cl.open = true; cl.playing = false; cl.done = false; cl.cfg = cfg; cl.opener = document.activeElement;
-    setText($('clLeague'), 'Ligue ' + cfg.leagueName);
-    $('clTitle').textContent = cfg.rival.name + ' te défie';
-    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + ' % à battre · ' + cfg.bpm + ' BPM' + (cfg.rule ? ' · ' + RULE_TXT[cfg.rule][0] : ''));
+    var conc = cfg.concert, an = conc ? artName(conc.artist) : '';
+    setText($('clKind'), conc ? 'Concert' : 'Clash de beatmakers');
+    setText($('clLeague'), conc ? cfg.leagueName + ' · ' + D.VENUES[conc.venue].cap : 'Ligue ' + cfg.leagueName);
+    $('clTitle').textContent = conc ? an + ' en concert' : cfg.rival.name + ' te défie';
+    $('clIntroText').textContent = conc ? an + ' monte sur scène et compte sur toi à la batterie. Frappe chaque note quand elle touche la ligne : plus tu es en rythme, plus le public s’enflamme. Vise ' + Math.round(cfg.rival.target * 100) + ' % pour un beau concert.' : 'Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.';
+    setText($('clTargetL'), conc ? 'Objectif' : 'À battre'); setText($('clTheirsL'), conc ? 'Objectif' : 'Rival');
+    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + (conc ? ' % visés · ' : ' % à battre · ') + cfg.bpm + ' BPM' + (cfg.rule ? ' · ' + RULE_TXT[cfg.rule][0] : ''));
     var snd = S.sound && vol.sfx > 0;
-    setText($('clTip'), snd ? 'Le son est activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.' : 'Le son est coupé : tu peux jouer quand même, mais le clash est bien plus amusant en musique.');
+    setText($('clTip'), snd ? (conc ? 'Le son est activé : ta batterie accompagne la ligne de basse du groupe.' : 'Le son est activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.') : 'Le son est coupé : tu peux jouer quand même, mais c’est bien plus amusant en musique.');
     $('clSoundOn').hidden = snd;
     $('clIntro').hidden = false; $('clPlay').hidden = true; $('clDone').hidden = true;
     $('clashScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
@@ -5414,6 +5596,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     cl.playing = false; cancelAnimationFrame(cl.raf);
     if (quit) clAudioOff(); else setTimeout(clAudioOff, 1200);
     var score = cl.notes.length ? cl.pts / cl.notes.length : 0;
+    if (cl.cfg.concert) { finishConcertUi(quit, score); return; }
     var res = G.finishBattle(S, { score: score, combo: cl.best });
     cl.done = true;
     $('clPlay').hidden = true; $('clDone').hidden = false;
@@ -5430,6 +5613,92 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     blip(res.win ? 12 : 3);
     saveLocal(); markCloud();
     $('clClose').focus();
+  }
+  var GRADES = ['Soirée difficile', 'Concert correct', 'Beau concert !', 'Triomphe !'];
+  function finishConcertUi(quit, score) {
+    var cc = cl.cfg.concert, res = G.finishConcert(S, cc.artist, cc.venue, { score: score, combo: cl.best });
+    cl.done = true;
+    $('clPlay').hidden = true; $('clDone').hidden = false;
+    if (!res) { closeClash(); return; }
+    var v = $('clVerdict'), an = artName(cc.artist);
+    v.textContent = quit ? 'Concert écourté' : GRADES[res.grade];
+    v.className = 'ev-verdict ' + (res.grade >= 2 ? 'win' : 'loss');
+    setText($('clMine'), Math.round(res.score * 100) + ' %'); setText($('clTheirs'), Math.round(D.TUNING.concertGood * 100) + ' %'); setText($('clBest'), String(cl.best));
+    $('clRes').textContent = 'Recette : ' + eur(res.cash) + '. Notoriété de ' + an + ' : ' + Math.round(res.fame) + ' (' + (res.dFame >= 0 ? '+' : '') + res.dFame + '), humeur ' + moodTxt(res.mood)[0].toLowerCase() + '. ' + an + ' se repose avant le prochain concert.';
+    setText($('clLive'), v.textContent + '. ' + $('clRes').textContent);
+    blip(res.grade >= 2 ? 12 : 3);
+    lbv.key = ''; saveLocal(); markCloud();
+    $('clClose').focus();
+  }
+
+  // ---------- Histoires d'artistes ----------
+  var stv = { open: false, id: null, opener: null };
+  var ST_LABEL = { spent: 'Dépense', amood: 'Humeur', afame: 'Notoriété', cash: 'Argent', rep: 'Réputation', style: 'Style', duo: 'Duo' };
+  function stReward(r) {
+    switch (r.k) {
+      case 'spent': return '−' + eur(r.v);
+      case 'amood': case 'afame': return (r.v >= 0 ? '+' : '') + Math.round(r.v);
+      case 'cash': return '+' + eur(r.v);
+      case 'rep': return '+' + r.v + ' de réputation';
+      case 'style': return 'Son prochain album pourra être du ' + G.PJ_G[r.g].name;
+      case 'duo': return 'Prochain album en duo avec ' + artName(r.other);
+    }
+    return '';
+  }
+  function openStory(id) {
+    var r = G.artistOf(S, id), st = r && r.story, s = st && G.STORY_BY[st.id];
+    if (!s || stv.open) return;
+    stv.open = true; stv.id = id; stv.opener = document.activeElement;
+    setText($('stWho'), artName(id));
+    $('stTitle').textContent = G.storyText(S, r, s.title);
+    $('stText').textContent = G.storyText(S, r, s.text);
+    var box = $('stChoices'); box.innerHTML = ''; var first = null;
+    s.choices.forEach(function (c, i) {
+      var cost = G.storyCost(S, c), ok = S.money >= cost, b = document.createElement('button');
+      b.type = 'button'; b.className = 'btn choice'; b.setAttribute('data-i', i); b.disabled = !ok;
+      b.innerHTML = '<span class="k"></span><span class="cw"><span class="ct"></span><span class="tags"></span></span>';
+      b.querySelector('.k').textContent = 'ABC'.charAt(i); b.querySelector('.ct').textContent = G.storyText(S, r, c.text);
+      var tg = b.querySelector('.tags'), tags = [];
+      if (cost) tags.push(['cost' + (ok ? '' : ' short'), 'Coûte ' + eur(cost)]);
+      if (c.risk) tags.push(['risk', 'Risqué · ' + Math.round(c.risk * 100) + ' % de réussite']);
+      tags.forEach(function (x) { var sp = document.createElement('span'); sp.className = 'tag ' + x[0]; sp.textContent = x[1]; tg.appendChild(sp); });
+      if (!tags.length) tg.remove();
+      if (ok && !first) first = b;
+      box.appendChild(b);
+    });
+    $('stAsk').hidden = false; $('stDone').hidden = true;
+    $('storyScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    (first || $('stLater')).focus();
+  }
+  function closeStory() {
+    if (!stv.open) return;
+    stv.open = false;
+    $('storyScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    var o = stv.opener; stv.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+    lbv.key = ''; render();
+  }
+  function bindStory() {
+    $('stChoices').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-i]'); if (!b || b.disabled) return;
+      var res = G.resolveStory(S, stv.id, +b.getAttribute('data-i'));
+      if (!res) return;
+      var vd = $('stVerdict'); vd.hidden = res.win === null;
+      if (res.win !== null) { vd.textContent = res.win ? 'Pari réussi !' : 'Pari perdu…'; vd.className = 'ev-verdict ' + (res.win ? 'win' : 'loss'); }
+      $('stOut').textContent = res.text;
+      var box = $('stReward'); box.innerHTML = '';
+      res.rewards.forEach(function (r, k) {
+        var row = document.createElement('div'); row.className = 'rw'; row.style.setProperty('--d', (0.2 + k * 0.4) + 's');
+        row.innerHTML = '<span class="rl"></span><b class="rv"></b>'; row.firstChild.textContent = ST_LABEL[r.k]; row.lastChild.textContent = stReward(r);
+        box.appendChild(row);
+      });
+      $('stAsk').hidden = true; $('stDone').hidden = false; $('stClose').focus();
+      blip(8); saveLocal(); markCloud();
+    });
+    $('stLater').addEventListener('click', closeStory);
+    $('stClose').addEventListener('click', closeStory);
+    $('storyScrim').addEventListener('click', function (e) { if (e.target === $('storyScrim')) closeStory(); });
+    document.addEventListener('keydown', function (e) { if (stv.open && e.key === 'Escape') { e.preventDefault(); closeStory(); } });
   }
   function bindClash() {
     $('clashBody').addEventListener('click', function (e) {
@@ -5496,7 +5765,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
           '<li class="' + L.pubG + '">Public ' + esc(G.PJ_P[L.pub].name.toLowerCase()) + ' : ' + (L.pubG === 'top' ? 'la cible idéale.' : L.pubG === 'bad' ? 'pas du tout sa cible.' : 'une cible correcte.') + '</li>' +
           '<li class="' + (L.acc >= 85 ? 'top' : L.acc < 50 ? 'bad' : 'ok') + '">Réglages des phases justes à ' + L.acc + ' %. Le carnet garde la zone probable.</li>' +
           '<li class="' + (L.fit >= 75 ? 'top' : L.fit < 45 ? 'bad' : 'ok') + '">Apport de l’équipe : ' + L.fit + ' %.</li>' +
-          (L.artist ? '<li class="' + (L.artist.dMood >= 0 ? 'top' : 'bad') + '">' + esc(artName(L.artist.id)) + ' : ' + (L.artist.match ? '' : 'pas son genre, ') + 'humeur ' + moodTxt(L.artist.mood)[0].toLowerCase() + ' (' + (L.artist.dMood >= 0 ? '+' : '') + Math.round(L.artist.dMood) + '), notoriété ' + Math.round(L.artist.fame) + ' (' + (L.artist.dFame >= 0 ? '+' : '') + Math.round(L.artist.dFame) + ')' + (L.artist.ask ? ', demande comblée' : '') + '.</li>' : '') +
+          (L.artist ? '<li class="' + (L.artist.dMood >= 0 ? 'top' : 'bad') + '">' + esc(artName(L.artist.id)) + ' : ' + (L.artist.match ? '' : 'pas son genre, ') + 'humeur ' + moodTxt(L.artist.mood)[0].toLowerCase() + ' (' + (L.artist.dMood >= 0 ? '+' : '') + Math.round(L.artist.dMood) + '), notoriété ' + Math.round(L.artist.fame) + ' (' + (L.artist.dFame >= 0 ? '+' : '') + Math.round(L.artist.dFame) + ')' + (L.artist.ask ? ', demande comblée' : '') + (L.artist.duo ? ', duo avec ' + esc(artName(L.artist.duo)) : '') + (L.artist.style ? ', nouveau style assumé' : '') + '.</li>' : '') +
           (L.tg || L.tm ? '<li class="top">Dans l’air du temps : ' + (L.tg && L.tm ? 'genre et ambiance à la mode' : L.tg ? 'genre à la mode, ventes boostées' : 'ambiance à la mode') + '.</li>' : '') +
           (L.fresh < 0 ? '<li class="bad">' + (L.fresh <= -1.5 ? 'Déjà entendu : le public se lasse de cette association.' : 'Encore ce genre : un peu de lassitude.') + '</li>' : '') +
           '</ul><p class="proj-meta">' + (L.pos ? 'Entré au Top 50 à la place ' + L.pos + '. Ventes attendues : ' + eur(L.sales) + ' sur ' + D.PROJECTS.sales.length + ' semaines s’il reste classé (budget ' + eur(L.cost) + ').' : 'Pas assez fort pour entrer au Top 50 : aucune vente.') + '</p>' +
@@ -5538,18 +5807,19 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var cf = pjv.cfg, PR = D.PROJECTS;
     if (cf.artist && !G.artistOf(S, cf.artist)) cf.artist = null;
     var ART = cf.artist ? G.ART_BY[cf.artist] : null;
-    function gOk(id) { return G.genreOpen(S, id) || (ART && ART.genre === id); }
+    var AR = ART ? G.artistOf(S, ART.id) : null;
+    function gOk(id) { return G.genreOpen(S, id) || (ART && (ART.genre === id || AR.style === id)); }
     if (!gOk(cf.genre)) cf.genre = 'rap';
     var ros = G.labelOpen(S) ? S.label.roster : [];
     setHidden($('pjForBox'), !ros.length);
     $('pjFor').innerHTML = ros.length ? '<button type="button" class="pk" data-artist="" aria-pressed="' + !cf.artist + '">Le studio</button>' + ros.map(function (r) {
       var a = G.ART_BY[r.id]; return '<button type="button" class="pk" data-artist="' + r.id + '" aria-pressed="' + (cf.artist === r.id) + '">' + esc(a.name) + (r.ask ? ' <small>demande</small>' : '') + '</button>';
     }).join('') : '';
-    setText($('pjForNote'), ART ? ART.name + ' fait du ' + G.PJ_G[ART.genre].name + ' et aime ' + ART.likes.map(function (m) { return G.PJ_M[m].name.toLowerCase(); }).join(' et ') + '. Son humeur (' + moodTxt(G.artistOf(S, ART.id).mood)[0].toLowerCase() + ') pèse sur la note, sa notoriété sur les ventes.' : ros.length ? 'Un projet libre pour le studio, ou l’album d’un de tes artistes.' : '');
+    setText($('pjForNote'), ART ? ART.name + ' fait du ' + G.PJ_G[ART.genre].name + ' et aime ' + ART.likes.map(function (m) { return G.PJ_M[m].name.toLowerCase(); }).join(' et ') + '. Son humeur (' + moodTxt(AR.mood)[0].toLowerCase() + ') pèse sur la note, sa notoriété sur les ventes.' + (AR.style ? ' Envie du moment : ' + G.PJ_G[AR.style].name + '.' : '') + (AR.duo ? ' Duo prévu avec ' + artName(AR.duo) + ' (bonus de note).' : '') : ros.length ? 'Un projet libre pour le studio, ou l’album d’un de tes artistes.' : '');
     if (!G.formatOpen(S, cf.fmt)) cf.fmt = 'single';
     $('pjFmt').innerHTML = PR.formats.map(function (f) { var ok = G.formatOpen(S, f.id); return pickBtn('fmt', f.id, f.name, cf.fmt === f.id, !ok, ok ? (f.cost > 1 ? '×' + nf1.format(f.cost) + ' budget' : '') : 'dès ' + D.TIERS[f.tier].name.toLowerCase()); }).join('');
     var trd = G.trendFor(S);
-    $('pjGenre').innerHTML = PR.genres.map(function (g) { var ok = gOk(g.id); return pickBtn('genre', g.id, g.name, cf.genre === g.id, !ok, ok ? (ART && ART.genre === g.id ? 'son genre' : '') : 'recherche ' + G.RD_BY[g.rd].name); }).join('');
+    $('pjGenre').innerHTML = PR.genres.map(function (g) { var ok = gOk(g.id); return pickBtn('genre', g.id, g.name, cf.genre === g.id, !ok, ok ? (ART && ART.genre === g.id ? 'son genre' : ART && AR.style === g.id ? 'son envie' : '') : 'recherche ' + G.RD_BY[g.rd].name); }).join('');
     $('pjMood').innerHTML = PR.moods.map(function (m) { return pickBtn('mood', m.id, m.name, cf.mood === m.id, false, '', pjGrade('m', cf.genre, m.id)); }).join('');
     $('pjPub').innerHTML = PR.pubs.map(function (p) { return pickBtn('pub', p.id, p.name, cf.pub === p.id, false, '', pjGrade('p', cf.genre, p.id)); }).join('');
     if (ART) ART.likes.forEach(function (m) { var b = $('pjMood').querySelector('[data-mood="' + m + '"]'); if (b) { var s = document.createElement('span'); s.className = 'lk'; s.textContent = 'aime'; b.appendChild(s); } });
@@ -5826,6 +6096,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     bindPiano();
     bindDeco();
     bindLabel();
+    bindStory();
     $('rd').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-rd]'), sp = e.target.closest('button[data-spec]');
       if (b && !b.disabled) { if (G.research(S, b.getAttribute('data-rd'))) saveLocal(); renderRd(true); render(); }
@@ -6673,7 +6944,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
-    closeMix(); closeProj(); cl.playing = false; closeClash(); closePiano(); closeDeco(); trv.key = ''; lbv.key = ''; lbv.wasOpen = null; cl.key = ''; cl.wasOpen = null; pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
+    closeMix(); closeProj(); cl.playing = false; closeClash(); closePiano(); closeDeco(); closeStory(); trv.key = ''; lbv.key = ''; lbv.wasOpen = null; cl.key = ''; cl.wasOpen = null; pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -6932,6 +7203,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
   G.hooks.artistSign = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' rejoint ton label !', 5000); blip(12); } };
   G.hooks.artistAsk = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' veut sortir un album. Rendez-vous dans le Top 50, section Ton label.', 6500); blip(9); } };
+  G.hooks.artistStory = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' a quelque chose à te dire. Rendez-vous dans le Top 50, section Ton label.', 6000); blip(8); } };
+  G.hooks.concertDone = function () { lbv.key = ''; markCloud(); };
   G.hooks.artistIgnored = function (a) { lbv.key = ''; markCloud(); if (!quiet) toast(a.name + ' attendra son album un peu plus longtemps, un peu déçu.', 5000); };
   G.hooks.trend = function (tr) {
     trv.key = ''; markCloud();

@@ -74,6 +74,7 @@
     // Tendances de la semaine (une par semaine du Top 50)
     // Label: artistes signés et cycle d'album
     labelLevel: 6, artistSignSec: 240, askEvery: 420, askFirst: 90, askLife: 600, labelFame: 0.0006,
+    concertEvery: 300, concertGood: 0.65, storyEvery: 540, storyFirst: 200, storyLife: 600,
     trendAct: 1.25, trendOrder: 0.4, trendOrderReward: 1.3, trendGenre: 0.6, trendMood: 0.4, trendSales: 1.3
   };
 
@@ -673,6 +674,8 @@
     { id: 'label', name: 'Directeur de label', m: 'signed', levels: [1, 2, 4], desc: 'Signe {n} artistes sur ton label.', descs: ['Signe ton premier artiste.'] },
     { id: 'albums', name: 'Disques d’artistes', m: 'artistAlbums', levels: [1, 10, 30], desc: 'Réalise {n} albums pour tes artistes.', descs: ['Réalise le premier album d’un de tes artistes.'] },
     { id: 'vedette', name: 'Faiseur de vedettes', m: 'artistFame', levels: [40, 75, 100], desc: 'Porte un artiste à {n} de notoriété.' },
+    { id: 'scene', name: 'Bête de scène', m: 'concerts', levels: [1, 10, 40], desc: 'Donne {n} concerts avec tes artistes.', descs: ['Donne le premier concert d’un de tes artistes.'] },
+    { id: 'salles', name: 'Grandes salles', m: 'bestVenue', levels: [3, 4, 5], descs: ['Remplis une salle de concert.', 'Remplis le Zénith.', 'Remplis un stade.'] },
     { id: 'combo', name: 'Main sûre', m: 'combo', levels: [20, 50, 100], desc: 'Enchaîne {n} frappes réussies d’affilée dans un clash.' }
   ];
 
@@ -845,6 +848,65 @@
     { id: 'lofi-sam', name: 'Sam & Lune', genre: 'lofi', likes: ['nostalgie', 'spleen'], tier: 4, bio: 'Un duo de chambre aux millions d’écoutes.' }
   ];
 
+
+  // Concerts des artistes: la salle dépend de leur notoriété.
+  var VENUES = [
+    { id: 'bar', name: 'Le bar du coin', fame: 0, mult: 1, cap: '80 places' },
+    { id: 'quartier', name: 'La salle de quartier', fame: 20, mult: 2, cap: '400 places' },
+    { id: 'salle', name: 'La salle de concert', fame: 40, mult: 4, cap: '2 000 places' },
+    { id: 'zenith', name: 'Le Zénith', fame: 65, mult: 8, cap: '6 000 places' },
+    { id: 'stade', name: 'Le stade', fame: 90, mult: 15, cap: '60 000 places' }
+  ];
+  var GENRE_BPM = { rap: 90, pop: 108, electro: 124, lofi: 80, chanson: 96, afro: 104, rnb: 92, trap: 140, rock: 128, jazz: 100, kpop: 116, bo: 88 };
+  // Histoires d'artistes. {name}: l'artiste, {other}: un autre artiste du label, {genre}: un autre genre.
+  // Effets: mood, fame, cash (multiple du revenu de référence), rep ; style: prochain album dans {genre} compte comme son genre ; duo: prochain album en duo.
+  var STORIES = [
+    { id: 'style', title: '{name} veut changer de style', text: '{name} écoute du {genre} en boucle depuis des semaines et rêve d’un album dans ce style.',
+      choices: [
+        { text: 'L’encourager : le prochain album sera du {genre}', out: '{name} est aux anges. Son prochain album pourra être du {genre} sans le trahir.', fx: { mood: 12, style: 1 } },
+        { text: 'Lui demander de rester fidèle à son public', out: '{name} comprend, mais l’envie reste là.', fx: { mood: -5, fame: 2 } }
+      ] },
+    { id: 'duo', need: 'other', title: 'Un duo {name} et {other} ?', text: '{name} et {other} se sont croisés au studio. Ils veulent enregistrer ensemble.',
+      choices: [
+        { text: 'Organiser le duo pour le prochain album de {name}', out: 'Rendez-vous est pris. Le prochain album de {name} sera un duo avec {other}.', fx: { mood: 8, duo: 1 } },
+        { text: 'Garder leurs carrières séparées', out: 'Ils restent bons amis, sans plus.', fx: { mood: -3 } }
+      ] },
+    { id: 'tele', title: 'L’interview en direct', text: 'Une émission du soir veut {name} en direct, mais l’animateur a la réputation de piéger ses invités.',
+      choices: [
+        { text: 'Préparer {name} pendant deux heures', out: 'Réponses justes, humour bien dosé : l’interview fait le tour des réseaux.', fx: { fame: 7, mood: 4 } },
+        { text: 'Laisser {name} improviser', risk: 0.5, out: '{name} est brillant d’instinct : on ne parle que de ça.', fail: 'L’animateur pique {name} au vif, la séquence tourne mal.', fx: { fame: 12 }, ffx: { fame: -2, mood: -8 } },
+        { text: 'Décliner l’invitation', out: 'Pas de risque, pas de lumière.', fx: { mood: -2 } }
+      ] },
+    { id: 'panne', title: 'La page blanche', text: '{name} n’arrive plus à écrire une seule ligne depuis des jours.',
+      choices: [
+        { text: 'Lui offrir une semaine de retraite au bord de la mer', cost: 0.8, out: '{name} revient reposé, la tête pleine d’idées.', fx: { mood: 20 } },
+        { text: 'Lui organiser une séance d’écriture avec ton équipe', out: 'À plusieurs, les idées reviennent doucement.', fx: { mood: 8 } },
+        { text: 'Lui fixer une date limite', out: '{name} s’exécute, mais sans plaisir.', fx: { mood: -10, fame: 2 } }
+      ] },
+    { id: 'clip', title: 'Le clip de {name}', text: 'Une jeune réalisatrice propose un clip ambitieux pour le dernier titre de {name}.',
+      choices: [
+        { text: 'Financer le grand clip', cost: 1.5, out: 'Le clip est magnifique et cumule les vues.', fx: { fame: 10, mood: 6 } },
+        { text: 'Tourner un clip simple au studio', out: 'Sobre et sincère : les fans adorent.', fx: { fame: 4, mood: 3 } },
+        { text: 'Pas de clip pour l’instant', out: '{name} est un peu déçu.', fx: { mood: -4 } }
+      ] },
+    { id: 'merch', title: 'Le fan club de {name}', text: 'Le fan club de {name} réclame des t-shirts et des vinyles dédicacés.',
+      choices: [
+        { text: 'Lancer une collection soignée', cost: 1, out: 'Tout part en quelques heures. Les fans sont ravis.', fx: { cash: 2.6, fame: 3, mood: 4 } },
+        { text: 'Faire une petite série en ligne', out: 'Une jolie vente sans prise de tête.', fx: { cash: 1, fame: 1 } }
+      ] },
+    { id: 'caritatif', title: 'Le concert solidaire', text: 'Une association demande à {name} de chanter gratuitement pour une collecte.',
+      choices: [
+        { text: 'Accepter avec plaisir', out: 'Une soirée émouvante. La presse salue le geste.', fx: { fame: 5, mood: 8, rep: 5 } },
+        { text: 'Envoyer un don à la place', cost: 0.5, out: 'L’association remercie le label.', fx: { rep: 3 } }
+      ] },
+    { id: 'reseaux', title: 'La polémique', text: 'Une vieille vidéo de {name} refait surface et fait jaser sur les réseaux.',
+      choices: [
+        { text: 'Publier un message sincère d’explication', out: 'Le message est bien reçu, la tempête retombe.', fx: { fame: 2, mood: 3 } },
+        { text: 'Jouer la carte de l’humour', risk: 0.55, out: 'La réponse drôle devient virale : tout le monde en rit avec {name}.', fail: 'L’humour tombe à plat et la polémique enfle.', fx: { fame: 8 }, ffx: { fame: -5, mood: -6 } },
+        { text: 'Ne rien dire', out: 'L’affaire s’éteint d’elle-même, lentement.', fx: { mood: -3 } }
+      ] }
+  ];
+
   // Commandes: clients par type de production
   var CLIENTS = {
     beat: ['Rappeur', ['Kaïs', 'Lil Néo', 'Sami B', 'Zoya']], mix: ['Groupe', ['Les Rivages', 'Fuzz Club', 'Velvet Garage']],
@@ -874,7 +936,7 @@
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);

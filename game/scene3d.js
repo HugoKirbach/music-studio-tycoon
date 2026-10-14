@@ -854,11 +854,12 @@
   function applyTheme() {
     if (!scene) return;
     scene.background = new THREE.Color(dark ? 0x141a24 : 0xdfe9ee);
-    hemi.intensity = dark ? 0.55 : 1.05; hemi.color.set(dark ? 0xb8c4ff : 0xfff4e6); hemi.groundColor.set(dark ? 0x2b2433 : 0x6b5a4a);
+    hemi.intensity = dark ? 1.18 : 1.05; hemi.color.set(dark ? 0xd2d9ff : 0xfff4e6); hemi.groundColor.set(dark ? 0x4a4258 : 0x6b5a4a);
     if (deco.light) { hemi.color.lerp(new THREE.Color(deco.light), dark ? 0.75 : 0.6); hemi.intensity *= 1.05; }
-    sun.intensity = dark ? 0.55 : 1.7; sun.color.set(dark ? 0x9fb4ff : 0xfff0dc);
+    sun.intensity = dark ? 1.0 : 1.7; sun.color.set(dark ? 0xc4d0ff : 0xfff0dc);
     if (deco.light) sun.color.lerp(new THREE.Color(deco.light), 0.35);
-    fill.intensity = dark ? 0.15 : 0.35;
+    fill.intensity = dark ? 0.32 : 0.35;
+    if (R) R.toneMappingExposure = dark ? 1.2 : 1.05;
   }
 
   // ---------- Construction d'un lieu ----------

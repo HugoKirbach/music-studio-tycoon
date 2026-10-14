@@ -58,3 +58,39 @@ const H = G.hydrate({ label: { roster: [{ id: 'kais', fame: 500, mood: -3 }, { i
 assert(H.label.roster.length === 1 && H.label.roster[0].fame === 100 && H.label.roster[0].mood === 0 && H.label.albums === 0);
 assert(S.trophies.label >= 1 && S.trophies.albums >= 1, 'trophées du label');
 console.log('OK: tournée, sauvegarde, trophées');
+// 7. Concerts
+{
+  const S2 = mid(); S2.contacts.rappeur = 'K'; S2.contacts.openmic = 'I'; S2.owned.distrib = 1; S2.owned.traitement = 1; G.touch(S2);
+  const k = G.signArtist(S2, 'kais');
+  const cfg = G.startConcert(S2, 'kais');
+  assert(cfg && cfg.concert.venue === 0 && cfg.bpm === globalThis.GameData.GENRE_BPM.rap && cfg.notes.length > 20);
+  const m0 = S2.money, res = G.finishConcert(S2, 'kais', 0, { score: 0.9, combo: 30 });
+  assert(res.grade === 3 && S2.money > m0 && res.dFame > 0 && k.ccd === T.concertEvery && S2.label.concerts === 1 && S2.label.bestVenue === 1);
+  assert.strictEqual(G.startConcert(S2, 'kais'), null, 'repos entre deux concerts');
+  G.tickLive(S2, T.concertEvery + 1); assert(G.startConcert(S2, 'kais'));
+  k.fame = 70; assert.strictEqual(G.venueIndex(k), 3, 'Zénith à 65 de notoriété');
+  const bad = G.finishConcert(S2, 'kais', 9, { score: 0.2, combo: 2 }); assert(bad.venue === 3 && bad.grade === 0 && bad.dMood < 0, 'salle bornée à la notoriété');
+  console.log('OK: concerts, bar ->', res.cash.toFixed(0), '€, notoriété +' + res.dFame);
+  // 8. Histoires
+  k.scd = 0; k.ask = null; k.story = null; G.tickLabel(S2, 1);
+  assert(k.story && G.STORY_BY[k.story.id] && k.story.id !== 'duo', 'pas de duo sans autre artiste: ' + (k.story && k.story.id));
+  k.story = { id: 'style', left: 100, genre: 'jazz', other: null };
+  const st = G.resolveStory(S2, 'kais', 0);
+  assert(st.text.includes('Jazz') && k.style === 'jazz' && !k.story);
+  assert(G.startProject(S2, { genre: 'jazz', mood: 'voyage', pub: 'fins', fmt: 'single', artist: 'kais' }), 'style ouvert pour son album');
+  while (S2.proj.cur) G.tickProject(S2, 5);
+  assert(S2.proj.last.artist.match && S2.proj.last.artist.style && k.style === null, 'le style compte comme son genre une fois');
+  S2.label.roster.push({ id: 'ines', fame: 10, mood: 60, albums: 0, cd: 999, ask: null, disco: [], ccd: 0, scd: 999, story: null, style: null, duo: null });
+  k.story = { id: 'duo', left: 100, other: 'ines', genre: 'pop' };
+  G.resolveStory(S2, 'kais', 0); assert(k.duo === 'ines');
+  const ines = S2.label.roster[1], f0 = ines.fame;
+  G.startProject(S2, { genre: 'rap', mood: 'rue', pub: 'ados', fmt: 'single', sl: [80, 75, 40], artist: 'kais' }); while (S2.proj.cur) G.tickProject(S2, 5);
+  assert(S2.proj.last.artist.duo === 'ines' && ines.fame > f0 && !k.duo, 'duo: les deux en profitent');
+  k.story = { id: 'tele', left: 100 }; const w = G.resolveStory(S2, 'kais', 1, () => 0.1), l0 = k.fame;
+  k.story = { id: 'tele', left: 100 }; const lo = G.resolveStory(S2, 'kais', 1, () => 0.9);
+  assert(w.win === true && lo.win === false && k.fame < l0);
+  k.story = { id: 'panne', left: 100 }; S2.money = 0; assert.strictEqual(G.resolveStory(S2, 'kais', 0), null, 'pas assez d’argent'); assert(k.story);
+  k.story = { id: 'tele', left: 5 }; G.tickLabel(S2, 6); assert(!k.story, 'histoire oubliée');
+  const R2 = G.hydrate(JSON.parse(JSON.stringify(S2)), 0); assert.deepStrictEqual(R2.label, S2.label);
+  console.log('OK: histoires (style, duo, pari, coût, oubli), sauvegarde');
+}

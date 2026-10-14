@@ -181,7 +181,7 @@
     if (lbv.wasOpen === false && open && !quiet) toast('Nouveau : ton label ! Signe des artistes et produis leurs albums depuis l’onglet Top 50.', 7000);
     lbv.wasOpen = open;
     setHidden($('labelBox'), !open);
-    var asks = open && L.roster.some(function (r) { return r.ask; });
+    var asks = open && L.roster.some(function (r) { return r.ask || r.story; });
     setClass($('tabCharts'), 'warn', asks && !onCh);
     if (!open || (!onCh && !force)) return;
     var cap = G.labelCap(S), avail = G.ARTISTS.filter(function (a) { return G.artistAvailable(S, a); });
@@ -189,19 +189,24 @@
     setText($('labelNote'), L.roster.length
       ? 'Leur notoriété ajoute +' + nf1.format((G.labelMult(S) - 1) * 100) + ' % à tous tes gains. Respecte leur genre et leurs goûts : un artiste content progresse plus vite.'
       : 'Signe un artiste, puis produis ses albums avec l’outil de projet de création. Ses albums font grimper sa notoriété, qui dope les ventes et tous tes gains.');
-    var key = JSON.stringify(L.roster.map(function (r) { return [r.id, Math.round(r.fame), Math.round(r.mood), !!r.ask, r.albums]; })) + '|' + avail.map(function (a) { return a.id; }).join(',') + '|' + cap + '|' + !!S.proj.cur;
+    var key = JSON.stringify(L.roster.map(function (r) { return [r.id, Math.round(r.fame), Math.round(r.mood), !!r.ask, r.albums, !!r.story, r.style, r.duo]; })) + '|' + avail.map(function (a) { return a.id; }).join(',') + '|' + cap + '|' + !!S.proj.cur;
     if (key !== lbv.key) {
       lbv.key = key; lbv.cards = {};
       $('labelRoster').innerHTML = L.roster.map(function (r) {
         var a = G.ART_BY[r.id], mt = moodTxt(r.mood), last = r.disco[0];
-        return '<article class="card artist' + (r.ask ? ' ask' : '') + '" data-aid="' + r.id + '">' +
+        var vn = D.VENUES[G.venueIndex(r)];
+        return '<article class="card artist' + (r.ask ? ' ask' : '') + (r.story ? ' story' : '') + '" data-aid="' + r.id + '">' +
           '<div class="a-head"><span class="a-av" style="--ac:' + (GENRE_COL[a.genre] || '#777') + '" aria-hidden="true">' + esc(artInitials(a.name)) + '</span><div><b>' + esc(a.name) + '</b><small>' + esc(G.PJ_G[a.genre].name) + ' · aime ' + a.likes.map(function (m) { return esc(G.PJ_M[m].name.toLowerCase()); }).join(' et ') + '</small></div><span class="a-mood m' + mt[1] + '">' + mt[0] + '</span></div>' +
           '<div class="a-fame"><span>Notoriété</span><span class="meter" aria-hidden="true"><i style="width:' + r.fame + '%"></i></span><b>' + Math.round(r.fame) + '</b></div>' +
           '<p class="' + (r.ask ? 'a-ask' : 'a-line') + '" data-k="when"></p>' +
+          (r.story ? '<p class="a-story">' + esc(artName(r.id)) + ' a quelque chose à te dire.</p>' : '') +
+          (r.style || r.duo ? '<p class="a-line">' + (r.style ? 'Prochain album : envie de ' + esc(G.PJ_G[r.style].name) + '. ' : '') + (r.duo ? 'Duo prévu avec ' + esc(artName(r.duo)) + '.' : '') + '</p>' : '') +
           (last ? '<p class="a-line">Dernier album : « ' + esc(last.t) + ' » ' + nf1.format(last.avg) + '/10' + (last.pos ? ', entré n°' + last.pos : '') + ' · ' + r.albums + ' album' + (r.albums > 1 ? 's' : '') + '</p>' : '<p class="a-line">Pas encore d’album sur ton label.</p>') +
-          '<div class="proj-row"><button class="btn sm' + (r.ask ? ' primary' : '') + '" type="button" data-art="album" data-id="' + r.id + '"' + (S.proj.cur ? ' disabled' : '') + '>' + (S.proj.cur ? 'Un projet est déjà en cours' : 'Préparer son album') + '</button></div></article>';
+          '<div class="proj-row"><button class="btn sm' + (r.ask ? ' primary' : '') + '" type="button" data-art="album" data-id="' + r.id + '"' + (S.proj.cur ? ' disabled' : '') + '>' + (S.proj.cur ? 'Un projet est déjà en cours' : 'Préparer son album') + '</button>' +
+          (r.story ? '<button class="btn sm primary" type="button" data-art="story" data-id="' + r.id + '">L’écouter</button>' : '') +
+          '<button class="btn sm" type="button" data-art="concert" data-id="' + r.id + '"><span data-k="cc">Concert</span></button></div></article>';
       }).join('');
-      L.roster.forEach(function (r) { lbv.cards[r.id] = $('labelRoster').querySelector('[data-aid="' + r.id + '"] [data-k="when"]'); });
+      L.roster.forEach(function (r) { var cd = $('labelRoster').querySelector('[data-aid="' + r.id + '"]'); lbv.cards[r.id] = cd.querySelector('[data-k="when"]'); lbv.cc = lbv.cc || {}; lbv.cc[r.id] = cd.querySelector('[data-art="concert"]'); });
       setHidden($('labelScoutT'), !avail.length);
       var full = L.roster.length >= cap, cost = G.artistCost(S);
       $('labelScouts').innerHTML = avail.map(function (a) {
@@ -217,13 +222,22 @@
       var busy = S.proj.cur && S.proj.cur.artist === r.id;
       setText(el, busy ? 'Son album est en cours de production.' : r.ask ? artName(r.id) + ' veut sortir un album · reste ' + clock(r.ask.left) : 'Prochaine envie d’album dans ' + clock(r.cd) + '.');
     });
+    L.roster.forEach(function (r) {
+      var b = lbv.cc && lbv.cc[r.id]; if (!b) return;
+      var ok = G.concertReady(S, r), vn = D.VENUES[G.venueIndex(r)];
+      setText(b.firstChild, ok ? 'Concert · ' + ({ bar: 'bar', quartier: 'quartier', salle: 'grande salle', zenith: 'Zénith', stade: 'stade' }[vn.id] || vn.name) : 'Concert dans ' + clock(r.ccd)); b.title = vn.name;
+      setDisabled(b, !ok || cl.open);
+    });
     $('labelScouts').querySelectorAll('[data-art="sign"]').forEach(function (b) { setDisabled(b, L.roster.length >= cap || S.money < G.artistCost(S)); });
   }
   function bindLabel() {
     $('labelBox').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-art]'); if (!b || b.disabled) return;
       var id = b.getAttribute('data-id');
-      if (b.getAttribute('data-art') === 'sign') { if (G.signArtist(S, id)) { saveLocal(); markCloud(); lbv.key = ''; renderLabel(true); render(); } }
+      var what = b.getAttribute('data-art');
+      if (what === 'sign') { if (G.signArtist(S, id)) { saveLocal(); markCloud(); lbv.key = ''; renderLabel(true); render(); } }
+      else if (what === 'concert') { var cc = G.startConcert(S, id); if (cc) openClash(cc); }
+      else if (what === 'story') openStory(id);
       else openProj(id);
     });
   }
@@ -582,15 +596,19 @@
     } catch (e) { cl.gain = null; return false; }
   }
   function clAudioOff() { if (cl.gain) { try { cl.gain.gain.cancelScheduledValues(0); cl.gain.disconnect(); } catch (e) { /* déjà coupé */ } cl.gain = null; } }
-  function openClash() {
-    var cfg = G.startBattle(S);
+  function openClash(given) {
+    var cfg = given && given.concert ? given : G.startBattle(S);
     if (!cfg || cl.open) return;
     cl.open = true; cl.playing = false; cl.done = false; cl.cfg = cfg; cl.opener = document.activeElement;
-    setText($('clLeague'), 'Ligue ' + cfg.leagueName);
-    $('clTitle').textContent = cfg.rival.name + ' te défie';
-    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + ' % à battre · ' + cfg.bpm + ' BPM' + (cfg.rule ? ' · ' + RULE_TXT[cfg.rule][0] : ''));
+    var conc = cfg.concert, an = conc ? artName(conc.artist) : '';
+    setText($('clKind'), conc ? 'Concert' : 'Clash de beatmakers');
+    setText($('clLeague'), conc ? cfg.leagueName + ' · ' + D.VENUES[conc.venue].cap : 'Ligue ' + cfg.leagueName);
+    $('clTitle').textContent = conc ? an + ' en concert' : cfg.rival.name + ' te défie';
+    $('clIntroText').textContent = conc ? an + ' monte sur scène et compte sur toi à la batterie. Frappe chaque note quand elle touche la ligne : plus tu es en rythme, plus le public s’enflamme. Vise ' + Math.round(cfg.rival.target * 100) + ' % pour un beau concert.' : 'Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.';
+    setText($('clTargetL'), conc ? 'Objectif' : 'À battre'); setText($('clTheirsL'), conc ? 'Objectif' : 'Rival');
+    setText($('clGoSub'), Math.round(cfg.rival.target * 100) + (conc ? ' % visés · ' : ' % à battre · ') + cfg.bpm + ' BPM' + (cfg.rule ? ' · ' + RULE_TXT[cfg.rule][0] : ''));
     var snd = S.sound && vol.sfx > 0;
-    setText($('clTip'), snd ? 'Le son est activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.' : 'Le son est coupé : tu peux jouer quand même, mais le clash est bien plus amusant en musique.');
+    setText($('clTip'), snd ? (conc ? 'Le son est activé : ta batterie accompagne la ligne de basse du groupe.' : 'Le son est activé : chaque frappe joue ton beat par-dessus la ligne de basse du rival.') : 'Le son est coupé : tu peux jouer quand même, mais c’est bien plus amusant en musique.');
     $('clSoundOn').hidden = snd;
     $('clIntro').hidden = false; $('clPlay').hidden = true; $('clDone').hidden = true;
     $('clashScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
@@ -711,6 +729,7 @@
     cl.playing = false; cancelAnimationFrame(cl.raf);
     if (quit) clAudioOff(); else setTimeout(clAudioOff, 1200);
     var score = cl.notes.length ? cl.pts / cl.notes.length : 0;
+    if (cl.cfg.concert) { finishConcertUi(quit, score); return; }
     var res = G.finishBattle(S, { score: score, combo: cl.best });
     cl.done = true;
     $('clPlay').hidden = true; $('clDone').hidden = false;
@@ -727,6 +746,92 @@
     blip(res.win ? 12 : 3);
     saveLocal(); markCloud();
     $('clClose').focus();
+  }
+  var GRADES = ['Soirée difficile', 'Concert correct', 'Beau concert !', 'Triomphe !'];
+  function finishConcertUi(quit, score) {
+    var cc = cl.cfg.concert, res = G.finishConcert(S, cc.artist, cc.venue, { score: score, combo: cl.best });
+    cl.done = true;
+    $('clPlay').hidden = true; $('clDone').hidden = false;
+    if (!res) { closeClash(); return; }
+    var v = $('clVerdict'), an = artName(cc.artist);
+    v.textContent = quit ? 'Concert écourté' : GRADES[res.grade];
+    v.className = 'ev-verdict ' + (res.grade >= 2 ? 'win' : 'loss');
+    setText($('clMine'), Math.round(res.score * 100) + ' %'); setText($('clTheirs'), Math.round(D.TUNING.concertGood * 100) + ' %'); setText($('clBest'), String(cl.best));
+    $('clRes').textContent = 'Recette : ' + eur(res.cash) + '. Notoriété de ' + an + ' : ' + Math.round(res.fame) + ' (' + (res.dFame >= 0 ? '+' : '') + res.dFame + '), humeur ' + moodTxt(res.mood)[0].toLowerCase() + '. ' + an + ' se repose avant le prochain concert.';
+    setText($('clLive'), v.textContent + '. ' + $('clRes').textContent);
+    blip(res.grade >= 2 ? 12 : 3);
+    lbv.key = ''; saveLocal(); markCloud();
+    $('clClose').focus();
+  }
+
+  // ---------- Histoires d'artistes ----------
+  var stv = { open: false, id: null, opener: null };
+  var ST_LABEL = { spent: 'Dépense', amood: 'Humeur', afame: 'Notoriété', cash: 'Argent', rep: 'Réputation', style: 'Style', duo: 'Duo' };
+  function stReward(r) {
+    switch (r.k) {
+      case 'spent': return '−' + eur(r.v);
+      case 'amood': case 'afame': return (r.v >= 0 ? '+' : '') + Math.round(r.v);
+      case 'cash': return '+' + eur(r.v);
+      case 'rep': return '+' + r.v + ' de réputation';
+      case 'style': return 'Son prochain album pourra être du ' + G.PJ_G[r.g].name;
+      case 'duo': return 'Prochain album en duo avec ' + artName(r.other);
+    }
+    return '';
+  }
+  function openStory(id) {
+    var r = G.artistOf(S, id), st = r && r.story, s = st && G.STORY_BY[st.id];
+    if (!s || stv.open) return;
+    stv.open = true; stv.id = id; stv.opener = document.activeElement;
+    setText($('stWho'), artName(id));
+    $('stTitle').textContent = G.storyText(S, r, s.title);
+    $('stText').textContent = G.storyText(S, r, s.text);
+    var box = $('stChoices'); box.innerHTML = ''; var first = null;
+    s.choices.forEach(function (c, i) {
+      var cost = G.storyCost(S, c), ok = S.money >= cost, b = document.createElement('button');
+      b.type = 'button'; b.className = 'btn choice'; b.setAttribute('data-i', i); b.disabled = !ok;
+      b.innerHTML = '<span class="k"></span><span class="cw"><span class="ct"></span><span class="tags"></span></span>';
+      b.querySelector('.k').textContent = 'ABC'.charAt(i); b.querySelector('.ct').textContent = G.storyText(S, r, c.text);
+      var tg = b.querySelector('.tags'), tags = [];
+      if (cost) tags.push(['cost' + (ok ? '' : ' short'), 'Coûte ' + eur(cost)]);
+      if (c.risk) tags.push(['risk', 'Risqué · ' + Math.round(c.risk * 100) + ' % de réussite']);
+      tags.forEach(function (x) { var sp = document.createElement('span'); sp.className = 'tag ' + x[0]; sp.textContent = x[1]; tg.appendChild(sp); });
+      if (!tags.length) tg.remove();
+      if (ok && !first) first = b;
+      box.appendChild(b);
+    });
+    $('stAsk').hidden = false; $('stDone').hidden = true;
+    $('storyScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    (first || $('stLater')).focus();
+  }
+  function closeStory() {
+    if (!stv.open) return;
+    stv.open = false;
+    $('storyScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    var o = stv.opener; stv.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+    lbv.key = ''; render();
+  }
+  function bindStory() {
+    $('stChoices').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-i]'); if (!b || b.disabled) return;
+      var res = G.resolveStory(S, stv.id, +b.getAttribute('data-i'));
+      if (!res) return;
+      var vd = $('stVerdict'); vd.hidden = res.win === null;
+      if (res.win !== null) { vd.textContent = res.win ? 'Pari réussi !' : 'Pari perdu…'; vd.className = 'ev-verdict ' + (res.win ? 'win' : 'loss'); }
+      $('stOut').textContent = res.text;
+      var box = $('stReward'); box.innerHTML = '';
+      res.rewards.forEach(function (r, k) {
+        var row = document.createElement('div'); row.className = 'rw'; row.style.setProperty('--d', (0.2 + k * 0.4) + 's');
+        row.innerHTML = '<span class="rl"></span><b class="rv"></b>'; row.firstChild.textContent = ST_LABEL[r.k]; row.lastChild.textContent = stReward(r);
+        box.appendChild(row);
+      });
+      $('stAsk').hidden = true; $('stDone').hidden = false; $('stClose').focus();
+      blip(8); saveLocal(); markCloud();
+    });
+    $('stLater').addEventListener('click', closeStory);
+    $('stClose').addEventListener('click', closeStory);
+    $('storyScrim').addEventListener('click', function (e) { if (e.target === $('storyScrim')) closeStory(); });
+    document.addEventListener('keydown', function (e) { if (stv.open && e.key === 'Escape') { e.preventDefault(); closeStory(); } });
   }
   function bindClash() {
     $('clashBody').addEventListener('click', function (e) {
@@ -793,7 +898,7 @@
           '<li class="' + L.pubG + '">Public ' + esc(G.PJ_P[L.pub].name.toLowerCase()) + ' : ' + (L.pubG === 'top' ? 'la cible idéale.' : L.pubG === 'bad' ? 'pas du tout sa cible.' : 'une cible correcte.') + '</li>' +
           '<li class="' + (L.acc >= 85 ? 'top' : L.acc < 50 ? 'bad' : 'ok') + '">Réglages des phases justes à ' + L.acc + ' %. Le carnet garde la zone probable.</li>' +
           '<li class="' + (L.fit >= 75 ? 'top' : L.fit < 45 ? 'bad' : 'ok') + '">Apport de l’équipe : ' + L.fit + ' %.</li>' +
-          (L.artist ? '<li class="' + (L.artist.dMood >= 0 ? 'top' : 'bad') + '">' + esc(artName(L.artist.id)) + ' : ' + (L.artist.match ? '' : 'pas son genre, ') + 'humeur ' + moodTxt(L.artist.mood)[0].toLowerCase() + ' (' + (L.artist.dMood >= 0 ? '+' : '') + Math.round(L.artist.dMood) + '), notoriété ' + Math.round(L.artist.fame) + ' (' + (L.artist.dFame >= 0 ? '+' : '') + Math.round(L.artist.dFame) + ')' + (L.artist.ask ? ', demande comblée' : '') + '.</li>' : '') +
+          (L.artist ? '<li class="' + (L.artist.dMood >= 0 ? 'top' : 'bad') + '">' + esc(artName(L.artist.id)) + ' : ' + (L.artist.match ? '' : 'pas son genre, ') + 'humeur ' + moodTxt(L.artist.mood)[0].toLowerCase() + ' (' + (L.artist.dMood >= 0 ? '+' : '') + Math.round(L.artist.dMood) + '), notoriété ' + Math.round(L.artist.fame) + ' (' + (L.artist.dFame >= 0 ? '+' : '') + Math.round(L.artist.dFame) + ')' + (L.artist.ask ? ', demande comblée' : '') + (L.artist.duo ? ', duo avec ' + esc(artName(L.artist.duo)) : '') + (L.artist.style ? ', nouveau style assumé' : '') + '.</li>' : '') +
           (L.tg || L.tm ? '<li class="top">Dans l’air du temps : ' + (L.tg && L.tm ? 'genre et ambiance à la mode' : L.tg ? 'genre à la mode, ventes boostées' : 'ambiance à la mode') + '.</li>' : '') +
           (L.fresh < 0 ? '<li class="bad">' + (L.fresh <= -1.5 ? 'Déjà entendu : le public se lasse de cette association.' : 'Encore ce genre : un peu de lassitude.') + '</li>' : '') +
           '</ul><p class="proj-meta">' + (L.pos ? 'Entré au Top 50 à la place ' + L.pos + '. Ventes attendues : ' + eur(L.sales) + ' sur ' + D.PROJECTS.sales.length + ' semaines s’il reste classé (budget ' + eur(L.cost) + ').' : 'Pas assez fort pour entrer au Top 50 : aucune vente.') + '</p>' +
@@ -835,18 +940,19 @@
     var cf = pjv.cfg, PR = D.PROJECTS;
     if (cf.artist && !G.artistOf(S, cf.artist)) cf.artist = null;
     var ART = cf.artist ? G.ART_BY[cf.artist] : null;
-    function gOk(id) { return G.genreOpen(S, id) || (ART && ART.genre === id); }
+    var AR = ART ? G.artistOf(S, ART.id) : null;
+    function gOk(id) { return G.genreOpen(S, id) || (ART && (ART.genre === id || AR.style === id)); }
     if (!gOk(cf.genre)) cf.genre = 'rap';
     var ros = G.labelOpen(S) ? S.label.roster : [];
     setHidden($('pjForBox'), !ros.length);
     $('pjFor').innerHTML = ros.length ? '<button type="button" class="pk" data-artist="" aria-pressed="' + !cf.artist + '">Le studio</button>' + ros.map(function (r) {
       var a = G.ART_BY[r.id]; return '<button type="button" class="pk" data-artist="' + r.id + '" aria-pressed="' + (cf.artist === r.id) + '">' + esc(a.name) + (r.ask ? ' <small>demande</small>' : '') + '</button>';
     }).join('') : '';
-    setText($('pjForNote'), ART ? ART.name + ' fait du ' + G.PJ_G[ART.genre].name + ' et aime ' + ART.likes.map(function (m) { return G.PJ_M[m].name.toLowerCase(); }).join(' et ') + '. Son humeur (' + moodTxt(G.artistOf(S, ART.id).mood)[0].toLowerCase() + ') pèse sur la note, sa notoriété sur les ventes.' : ros.length ? 'Un projet libre pour le studio, ou l’album d’un de tes artistes.' : '');
+    setText($('pjForNote'), ART ? ART.name + ' fait du ' + G.PJ_G[ART.genre].name + ' et aime ' + ART.likes.map(function (m) { return G.PJ_M[m].name.toLowerCase(); }).join(' et ') + '. Son humeur (' + moodTxt(AR.mood)[0].toLowerCase() + ') pèse sur la note, sa notoriété sur les ventes.' + (AR.style ? ' Envie du moment : ' + G.PJ_G[AR.style].name + '.' : '') + (AR.duo ? ' Duo prévu avec ' + artName(AR.duo) + ' (bonus de note).' : '') : ros.length ? 'Un projet libre pour le studio, ou l’album d’un de tes artistes.' : '');
     if (!G.formatOpen(S, cf.fmt)) cf.fmt = 'single';
     $('pjFmt').innerHTML = PR.formats.map(function (f) { var ok = G.formatOpen(S, f.id); return pickBtn('fmt', f.id, f.name, cf.fmt === f.id, !ok, ok ? (f.cost > 1 ? '×' + nf1.format(f.cost) + ' budget' : '') : 'dès ' + D.TIERS[f.tier].name.toLowerCase()); }).join('');
     var trd = G.trendFor(S);
-    $('pjGenre').innerHTML = PR.genres.map(function (g) { var ok = gOk(g.id); return pickBtn('genre', g.id, g.name, cf.genre === g.id, !ok, ok ? (ART && ART.genre === g.id ? 'son genre' : '') : 'recherche ' + G.RD_BY[g.rd].name); }).join('');
+    $('pjGenre').innerHTML = PR.genres.map(function (g) { var ok = gOk(g.id); return pickBtn('genre', g.id, g.name, cf.genre === g.id, !ok, ok ? (ART && ART.genre === g.id ? 'son genre' : ART && AR.style === g.id ? 'son envie' : '') : 'recherche ' + G.RD_BY[g.rd].name); }).join('');
     $('pjMood').innerHTML = PR.moods.map(function (m) { return pickBtn('mood', m.id, m.name, cf.mood === m.id, false, '', pjGrade('m', cf.genre, m.id)); }).join('');
     $('pjPub').innerHTML = PR.pubs.map(function (p) { return pickBtn('pub', p.id, p.name, cf.pub === p.id, false, '', pjGrade('p', cf.genre, p.id)); }).join('');
     if (ART) ART.likes.forEach(function (m) { var b = $('pjMood').querySelector('[data-mood="' + m + '"]'); if (b) { var s = document.createElement('span'); s.className = 'lk'; s.textContent = 'aime'; b.appendChild(s); } });
@@ -1123,6 +1229,7 @@
     bindPiano();
     bindDeco();
     bindLabel();
+    bindStory();
     $('rd').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-rd]'), sp = e.target.closest('button[data-spec]');
       if (b && !b.disabled) { if (G.research(S, b.getAttribute('data-rd'))) saveLocal(); renderRd(true); render(); }
@@ -1970,7 +2077,7 @@
     pendingCloud = null; $('cloudBanner').hidden = true;
     prevUnlocked = {}; firstRender = true; shopKey = ''; ev.shownId = null; ev.ckey = null; tro.fresh = {}; tour.open = false; tour.fresh = false; tour.was = null;
     team.key = ''; team.poolKey = ''; team.focus = null; team.fire = null; team.wasOpen = null;
-    closeMix(); closeProj(); cl.playing = false; closeClash(); closePiano(); closeDeco(); trv.key = ''; lbv.key = ''; lbv.wasOpen = null; cl.key = ''; cl.wasOpen = null; pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
+    closeMix(); closeProj(); cl.playing = false; closeClash(); closePiano(); closeDeco(); closeStory(); trv.key = ''; lbv.key = ''; lbv.wasOpen = null; cl.key = ''; cl.wasOpen = null; pjv.key = ''; pjv.wasOpen = null; pjv.confirm = false; ord.key = ''; ord.wasOpen = null; chs.key = ''; chs.wasOpen = null; rdv.key = '';
     buildActs(); buildShop(); renderTrophies(true); render(); renderScene(true);
     if (bind.syncSound) bind.syncSound();
     saveLocal(); markCloud();
@@ -2229,6 +2336,8 @@
   G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
   G.hooks.artistSign = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' rejoint ton label !', 5000); blip(12); } };
   G.hooks.artistAsk = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' veut sortir un album. Rendez-vous dans le Top 50, section Ton label.', 6500); blip(9); } };
+  G.hooks.artistStory = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' a quelque chose à te dire. Rendez-vous dans le Top 50, section Ton label.', 6000); blip(8); } };
+  G.hooks.concertDone = function () { lbv.key = ''; markCloud(); };
   G.hooks.artistIgnored = function (a) { lbv.key = ''; markCloud(); if (!quiet) toast(a.name + ' attendra son album un peu plus longtemps, un peu déçu.', 5000); };
   G.hooks.trend = function (tr) {
     trv.key = ''; markCloud();

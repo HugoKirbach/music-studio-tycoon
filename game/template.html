@@ -362,6 +362,8 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .scout > * { min-width: 0; }
 .scout p { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); }
 .pk .lk { font: 800 10.5px var(--f-body); padding: 1px 6px; border-radius: 8px; background: var(--good); color: #fff; }
+.a-story { margin: 0; font-weight: 800; color: var(--purple); font-size: 14px; }
+.artist.story { border-color: color-mix(in srgb, var(--purple) 50%, var(--line)); }
 /* Tendances */
 .trend-card { display: grid; gap: 8px; margin-bottom: 12px; border-left: 4px solid var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--card)); }
 .trend-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -899,6 +901,23 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <div class="pj-foot"><div><b id="pjCost"></b><small id="pjInfo"></small></div><button class="btn sm" id="pjClose" type="button">Fermer</button><button class="btn primary" id="pjGo" type="button">Lancer le projet</button></div>
   </div>
 </div>
+<div class="scrim" id="storyScrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="stTitle">
+    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Ton label · <span id="stWho"></span></p>
+    <h2 id="stTitle"></h2>
+    <div id="stAsk">
+      <p class="ev-text" id="stText"></p>
+      <div class="choices" id="stChoices" role="group" aria-label="Que fais-tu ?" style="margin-top:10px"></div>
+      <button class="btn sm" id="stLater" type="button" style="margin-top:8px">Plus tard</button>
+    </div>
+    <div class="ev-done" id="stDone" hidden>
+      <p class="ev-verdict" id="stVerdict" hidden></p>
+      <p class="ev-text" id="stOut"></p>
+      <div class="reveal" id="stReward" aria-live="polite"></div>
+      <button class="pad" id="stClose" type="button"><b>Retour au studio</b></button>
+    </div>
+  </div>
+</div>
 <div class="scrim" id="decoScrim" hidden>
   <div class="sheet deco-sheet" role="dialog" aria-modal="true" aria-labelledby="decoTitle">
     <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Étagère à souvenirs</p>
@@ -925,10 +944,10 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 </div>
 <div class="scrim" id="clashScrim" hidden>
   <div class="sheet clash-sheet" role="dialog" aria-modal="true" aria-labelledby="clTitle">
-    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span>Clash de beatmakers · <span id="clLeague"></span></p>
+    <p class="ev-kicker"><span class="led on" aria-hidden="true"></span><span id="clKind">Clash de beatmakers</span> · <span id="clLeague"></span></p>
     <h2 id="clTitle"></h2>
     <div id="clIntro" class="cl-intro">
-      <p class="ev-text">Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.</p>
+      <p class="ev-text" id="clIntroText">Ton rival a posé son beat, à toi de répondre. Les notes descendent sur quatre pistes : frappe chaque note quand elle touche la ligne. Plus tu es dans le temps, plus ton score monte.</p>
       <div class="cl-keys" aria-hidden="true"><span><kbd>D</kbd>Kick</span><span><kbd>F</kbd>Caisse claire</span><span><kbd>J</kbd>Charleston</span><span><kbd>K</kbd>Clap</span></div>
       <p class="small-note" id="clTip"></p>
       <button class="btn sm" id="clSoundOn" type="button" hidden>Activer le son du jeu</button>
@@ -936,7 +955,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
       <button class="btn sm" id="clLater" type="button">Plus tard</button>
     </div>
     <div id="clPlay" class="cl-play" hidden>
-      <div class="cl-hud"><span>Score <b id="clScore">0 %</b></span><span>Combo <b id="clCombo">0</b></span><span>À battre <b id="clTarget"></b></span></div>
+      <div class="cl-hud"><span>Score <b id="clScore">0 %</b></span><span>Combo <b id="clCombo">0</b></span><span><i id="clTargetL" style="font-style:normal">À battre</i> <b id="clTarget"></b></span></div>
       <div class="cl-stage"><canvas id="clCanvas" aria-label="Pistes du clash : les notes descendent vers la ligne de frappe"></canvas></div>
       <div class="cl-pads" id="clPads">
         <button type="button" class="clpad" data-l="0"><b>Kick</b><small>D</small></button>
@@ -949,7 +968,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     </div>
     <div id="clDone" class="cl-done" hidden>
       <b class="ev-verdict" id="clVerdict"></b>
-      <div class="cl-final"><div><span class="lbl">Ton score</span><b id="clMine"></b></div><div><span class="lbl">Rival</span><b id="clTheirs"></b></div><div><span class="lbl">Meilleur combo</span><b id="clBest"></b></div></div>
+      <div class="cl-final"><div><span class="lbl">Ton score</span><b id="clMine"></b></div><div><span class="lbl" id="clTheirsL">Rival</span><b id="clTheirs"></b></div><div><span class="lbl">Meilleur combo</span><b id="clBest"></b></div></div>
       <p class="ev-text" id="clRes"></p>
       <button class="pad" id="clClose" type="button"><b>Retour au studio</b></button>
     </div>
