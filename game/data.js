@@ -44,7 +44,8 @@
     moraleDecay: 100 / 2400, // perte de moral par seconde de travail
     moraleRest: 0.05,   // regain de moral par seconde sans affectation
     moraleUnpaid: 0.5,  // perte supplémentaire par seconde quand le salaire n'est pas payé
-    moraleOffline: 25,  // plancher du moral pendant l'absence du joueur
+    moraleOffline: 25,  // plancher du moral pendant l'absence du joueur (ancien réglage)
+    awayRest: 10800,    // absence: l'équipe se repose, son moral remonte de 0 à 100 % en awayRest secondes
     bonusSec: 300,      // prix d'une prime, en secondes de salaire
     bonusMorale: 35,
     restTime: 90,       // durée des vacances (s)

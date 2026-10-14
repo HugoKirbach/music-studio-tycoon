@@ -74,7 +74,10 @@ const mm = S.team.staff[0]; mm.morale = 60;
 S.savedAt = 0; const off = G.offline(S, 20 * 3600 * 1000);
 assert.ok(off && off.wages > 0);
 assert.strictEqual(S.team.staff.length, 1, 'pas de départ pendant l’absence');
-assert.ok(mm.morale >= T.moraleOffline - 1e-9, 'plancher hors ligne: ' + mm.morale);
+assert.ok(mm.morale === 100, 'repos pendant l’absence: ' + mm.morale);
+{ const R3 = midState(); G.advance(R3, 0.1); G.hire(R3, R3.team.pool[0].id); const r3 = R3.team.staff[0]; r3.morale = 0;
+  R3.savedAt = 0; G.offline(R3, 1.5 * 3600 * 1000); assert.ok(Math.abs(r3.morale - 50) < 1, '1 h 30 fermé: moitié du moral ' + r3.morale);
+  G.advanceAway(R3, 1.5 * 3600); assert.ok(r3.morale > 99.9, '3 h au total: moral plein ' + r3.morale); }
 console.log('OK: absence, moral', mm.morale.toFixed(0), '| salaires versés', off.wages.toExponential(2));
 
 // 7. formation, prime, vacances
@@ -125,7 +128,7 @@ console.log('OK: trophées');
   ['beat', 'mix', 'voix', 'single'].forEach(a => { B.acts[a].auto = false; B.acts[a].run = false; });
   for (let i = 0; i < 3000; i++) G.advanceAway(B, 1); // 50 minutes sans payer, sans prime
   assert.strictEqual(B.team.staff.length, 1, 'personne ne part en arrière-plan');
-  assert.ok(mb.morale >= Math.min(40, T.moraleOffline) - 1e-9, 'moral plancher: ' + mb.morale);
+  assert.ok(mb.morale > 40, 'repos en arrière-plan: ' + mb.morale);
   const C2 = midState(); G.advance(C2, 0.1); G.hire(C2, C2.team.pool[0].id); C2.team.staff[0].morale = 40; C2.money = 0;
   ['beat', 'mix', 'voix', 'single'].forEach(a => { C2.acts[a].auto = false; C2.acts[a].run = false; });
   for (let i = 0; i < 3000; i++) G.advance(C2, 1);

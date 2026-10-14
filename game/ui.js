@@ -2366,12 +2366,16 @@
     // Revenus bruts, salaires, puis le bilan: exactement ce que le budget a gagné.
     var net = off.net != null ? off.net : off.gain - (off.wages || 0), wages = Math.max(0, off.gain - net);
     var rows = [['Revenus', '+' + eur(off.gain)]];
+    if (off.charts > 0) rows.push(['dont Top 50 et ventes d’albums', '+' + eur(off.charts)]);
     if (wages > 1e-6 * off.gain) { rows.push(['Salaires versés', '−' + eur(wages)]); rows.push(['Bilan sur ton budget', (net >= 0 ? '+' : '−') + eur(Math.abs(net))]); }
     rows.push(['Ton budget', eur(Math.max(0, S.money - net)) + ' → ' + eur(S.money)]);
     if (off.tracks > 0) rows.push(['Productions réalisées', '+' + nf0.format(off.tracks)]);
     if (off.levels > 0) rows.push(['Expertise', '+' + off.levels + ' niveau' + (off.levels > 1 ? 'x' : '')]);
     if (off.trophies > 0) rows.push(['Palmarès', '+' + off.trophies + ' niveau' + (off.trophies > 1 ? 'x' : '')]);
-    if (S.team.staff.length) rows.push(['Équipe', S.team.staff.length > 1 ? 'Toute l’équipe est restée' : 'Ton équipe est restée']);
+    if (S.team.staff.length) {
+      var mo1 = G.avgMorale(S), mo0 = off.mor0 != null ? off.mor0 : mo1;
+      rows.push(['Moral de l’équipe', mo1 - mo0 >= 0.5 ? Math.round(mo0) + ' % → ' + Math.round(mo1) + ' % (repos)' : Math.round(mo1) + ' %']);
+    }
     setText($('dbGap'), 'Tu étais absent ' + away(off.gap) + '.');
     $('dbRows').innerHTML = rows.map(function (r, k) { return '<div class="rw" style="--d:' + (0.15 + k * 0.25) + 's"><span class="rl">' + esc(r[0]) + '</span><b class="rv">' + esc(r[1]) + '</b></div>'; }).join('');
     setText($('dbNote'), off.open && off.froze ? 'Le jeu est resté ouvert, mais ton appareil l’a mis en veille une partie du temps : pendant la veille, la production tourne à ' + nf0.format(G.OFFLINE_EFF * 100) + ' %.'
@@ -2719,12 +2723,12 @@
 
     var last = Date.now(), bg = null;
     // Jeu ouvert mais caché (autre onglet, appli en arrière-plan, écran verrouillé): on mémorise le point de départ du débrief.
-    function bgStart(t) { if (!bg) bg = { t: t, life: S.lifetime, money: S.money, lvl: S.level, tc: G.trophyCount(S), tracks: G.trackCount(S), froze: false }; }
+    function bgStart(t) { if (!bg) bg = { t: t, life: S.lifetime, money: S.money, lvl: S.level, tc: G.trophyCount(S), tracks: G.trackCount(S), froze: false, charts: 0, mor0: G.avgMorale(S) }; }
     function bgEnd() {
       if (!bg) return;
       var b = bg, gap = (Date.now() - b.t) / 1000; bg = null;
       if (gap < 60) return;
-      showOffline({ gap: gap, gain: S.lifetime - b.life, net: S.money - b.money, levels: S.level - b.lvl, trophies: G.trophyCount(S) - b.tc, tracks: G.trackCount(S) - b.tracks, open: true, froze: b.froze });
+      showOffline({ gap: gap, gain: S.lifetime - b.life, net: S.money - b.money, levels: S.level - b.lvl, trophies: G.trophyCount(S) - b.tc, tracks: G.trackCount(S) - b.tracks, open: true, froze: b.froze, charts: b.charts, mor0: b.mor0 });
       render();
     }
     // Au retour, on rattrape d'abord le temps écoulé (appareil en veille), puis on affiche le débrief complet.
@@ -2741,10 +2745,11 @@
       // onglet caché: le navigateur espace les tours de boucle (jusqu'à 1 par minute) sans geler le jeu
       if (dt > (document.hidden ? 180 : 60)) {
         S.savedAt = t - dt * 1000; var tc1 = G.trophyCount(S); quiet = true; var o = G.offline(S, t); quiet = false;
-        if (bg) bg.froze = true;
+        if (bg) { bg.froze = true; if (o) bg.charts += o.charts; }
         else if (o) { o.trophies = G.trophyCount(S) - tc1; showOffline(o); }
       } else if (document.hidden) {
-        quiet = true; G.advanceAway(S, dt); quiet = false;
+        quiet = true; var chg = G.advanceAway(S, dt); quiet = false;
+        if (bg) bg.charts += chg;
       } else {
         G.advance(S, dt);
         G.tickEvents(S, dt); G.tickLive(S, dt);

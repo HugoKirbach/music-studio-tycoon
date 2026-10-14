@@ -660,8 +660,11 @@
     if (S.money >= cost) S.money -= cost; else { S.money = 0; unpaid = true; }
     var gone = [];
     tm.staff.forEach(function (m) {
-      var m0 = m.morale, floor = S._off ? Math.min(T.moraleOffline, m0) : 0;
-      if (m.train > 0) {
+      var m0 = m.morale, floor = 0;
+      if (S._off && m.train <= 0 && m.rest <= 0) {
+        // joueur absent: l'équipe souffle, son moral remonte (S._off: secondes réelles par seconde simulée)
+        m.morale = Math.min(100, m.morale + dt * S._off * 100 / (T.awayRest || 10800));
+      } else if (m.train > 0) {
         m.train -= dt;
         if (m.train <= 0) { m.train = 0; levelUp(S, m, 'train'); }
       } else if (m.rest > 0) {
@@ -676,7 +679,7 @@
       } else {
         m.morale = Math.min(100, m.morale + T.moraleRest * dt);
       }
-      if (unpaid) m.morale -= T.moraleUnpaid * dt;
+      if (unpaid && !S._off) m.morale -= T.moraleUnpaid * dt;
       m.morale = Math.max(floor, Math.min(100, m.morale));
       if (m.morale < 25 && !m.low) { m.low = true; if (!S._off && hooks.staffWarn) hooks.staffWarn(m); }
       if (m.morale >= 35) m.low = false;
@@ -864,13 +867,14 @@
     return e;
   }
   function chartPay(S, pos) { return incomeRef(S) * T.chartPaySec * (T.chartSize + 1 - pos) / T.chartSize * rdFx(S).chartPay; }
-  function weekEnd(S) {
+  function weekEnd(S, k) {
+    k = k == null ? 1 : k;
     var c = S.charts, pay = 0, entries = [];
     rankCharts(S, false);
     c.mine.forEach(function (m) {
       if (m.pos > T.chartSize) return;
-      var g = chartPay(S, m.pos);
-      if (m.pj && m.pj.w < PJ.sales.length) { var sl = m.pj.sales * PJ.sales[m.pj.w]; m.pj.w++; m.pj.sold += sl; g += sl; }
+      var g = chartPay(S, m.pos) * k;
+      if (m.pj && m.pj.w < PJ.sales.length) { var sl = m.pj.sales * PJ.sales[m.pj.w] * k; m.pj.w++; m.pj.sold += sl; g += sl; }
       pay += g; m.earned += g; m.weeks++;
       entries.push({ t: m.t, pos: m.pos, gain: g });
       if (m.pos === 1) { c.num1++; S.orders.rep = Math.min(T.repMax, S.orders.rep + 3); }
@@ -898,6 +902,16 @@
     if (!c.trend || c.trend.w !== c.week) { c.trend = makeTrend(S); if (hooks.trend) hooks.trend(c.trend); }
     c.left -= dt;
     if (c.left <= 0) weekEnd(S);
+  }
+  // Absence: les semaines du Top 50 continuent de passer et tes titres classés rapportent (k: rendement). Renvoie les gains.
+  function chartsAway(S, dt, k) {
+    if (!chartsOpen(S) || dt <= 0) return 0;
+    var c = S.charts, got = 0, n = 0;
+    if (!c.rivals.length) initRivals(S);
+    c.left -= dt;
+    while (c.left <= 0 && n < 400) { got += weekEnd(S, k).pay; n++; }
+    if (c.left <= 0) c.left = T.weekLen;
+    return got;
   }
   function tickLive(S, dt) { tickOrders(S, dt); tickCharts(S, dt); tickProject(S, dt); tickBattle(S, dt); tickLabel(S, dt); if (S.piano.cd > 0) S.piano.cd = Math.max(0, S.piano.cd - dt); }
 
@@ -1665,20 +1679,27 @@
   // Temps passé avec le jeu ouvert mais en arrière-plan: le studio tourne, l'équipe garde un moral plancher et personne ne part.
   function advanceAway(S, dt) {
     if (dt <= 0) return;
-    S._off = true;
-    try { advance(S, dt); } finally { delete S._off; }
+    S._off = 1;
+    var ch = 0;
+    try { advance(S, dt); ch = chartsAway(S, dt, 1); } finally { delete S._off; }
+    return ch;
   }
   function offline(S, now) {
     var gap = Math.max(0, (now - S.savedAt) / 1000);
     if (gap < 30) return null;
     var eff = Math.min(gap, OFFLINE_CAP) * OFFLINE_EFF;
-    var m0 = S.money, l0 = S.lifetime, x0 = S.level, tr0 = trackCount(S);
-    S._off = true;
-    try { advance(S, eff); } finally { delete S._off; }
+    var m0 = S.money, l0 = S.lifetime, x0 = S.level, tr0 = trackCount(S), mo0 = avgMorale(S), ch = 0;
+    S._off = Math.min(gap, OFFLINE_CAP) / Math.max(1, eff);
+    try { advance(S, eff); ch = chartsAway(S, Math.min(gap, OFFLINE_CAP), OFFLINE_EFF); } finally { delete S._off; }
     // gain: revenus bruts; net: variation réelle du budget (salaires déduits)
     var gain = S.lifetime - l0, net = S.money - m0;
     if (gain <= 0) return null;
-    return { gap: gap, capped: gap > OFFLINE_CAP, gain: gain, net: net, wages: Math.max(0, gain - net), levels: S.level - x0, tracks: trackCount(S) - tr0 };
+    return { gap: gap, capped: gap > OFFLINE_CAP, gain: gain, net: net, wages: Math.max(0, gain - net), levels: S.level - x0, tracks: trackCount(S) - tr0, charts: ch, mor0: mo0, mor1: avgMorale(S) };
+  }
+  function avgMorale(S) {
+    var st = S.team ? S.team.staff : [];
+    if (!st.length) return null;
+    var t = 0; st.forEach(function (m) { t += m.morale; }); return t / st.length;
   }
 
   var Game = {
@@ -1688,7 +1709,7 @@
     levelMult: levelMult, duration: duration, payout: payout, xpGain: xpGain, upCost: upCost, royRate: royRate,
     activeRate: activeRate, trackCount: trackCount, isUnlocked: isUnlocked, lockReason: lockReason,
     tierIndex: tierIndex, milestoneMult: milestoneMult, nextMilestone: nextMilestone, startAct: startAct,
-    tapAct: tapAct, advanceAway: advanceAway, buy: buy, upgradeAct: upgradeAct, upgradeActN: upgradeActN, upPlan: upPlan, buyAuto: buyAuto, advance: advance, offline: offline, touch: touch,
+    tapAct: tapAct, advanceAway: advanceAway, chartsAway: chartsAway, avgMorale: avgMorale, buy: buy, upgradeAct: upgradeAct, upgradeActN: upgradeActN, upPlan: upPlan, buyAuto: buyAuto, advance: advance, offline: offline, touch: touch,
     boostMult: boostMult, contactCount: contactCount, eventRef: eventRef, tickEvents: tickEvents, dismissEvent: dismissEvent,
     resolveEvent: resolveEvent, pickEvent: pickEvent, trophyCount: trophyCount, trophyProgress: trophyProgress,
     checkTrophies: checkTrophies, nextGoals: nextGoals, fameFor: fameFor, fameAvailable: fameAvailable, canTour: canTour,
