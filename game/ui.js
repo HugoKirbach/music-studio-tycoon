@@ -173,18 +173,27 @@
 
 
   // ---------- Label ----------
-  var lbv = { key: '', cards: {}, wasOpen: null };
+  var lbv = { key: '', cards: {}, wasOpen: null, tv: 'staff' };
+  function labelAsks() { return G.labelOpen(S) && S.label.roster.some(function (r) { return r.ask || r.story; }); }
+  // L'onglet Équipe regroupe l'équipe du studio et le label (artistes signés).
+  function teamView(v) {
+    lbv.tv = v === 'label' && G.labelOpen(S) ? 'label' : 'staff';
+    $('teamSeg').querySelectorAll('[data-tv]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-tv') === lbv.tv)); });
+    team.key = ''; lbv.key = '';
+    renderTeam(true); renderLabel(true);
+  }
   var GENRE_COL = { rap: '#e0663d', pop: '#e04f8f', electro: '#3d7be0', lofi: '#7a8fa8', chanson: '#b8743a', afro: '#d99a20', rnb: '#8e4fd1', trap: '#5a5f6b', rock: '#c0392b', jazz: '#2e8b78', kpop: '#ff6fb1', bo: '#4a6fb0' };
   function moodTxt(m) { return m >= 80 ? ['Ravi', 4] : m >= 60 ? ['Content', 3] : m >= 40 ? ['Partagé', 2] : m >= 20 ? ['Frustré', 1] : ['En colère', 0]; }
   function artName(id) { return G.ART_BY[id] ? G.ART_BY[id].name : ''; }
   function artInitials(n) { return n.split(/[\s&]+/).filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join(''); }
   function renderLabel(force) {
-    var open = G.labelOpen(S), L = S.label, onCh = $('app').getAttribute('data-view') === 'charts';
-    if (lbv.wasOpen === false && open && !quiet) toast('Nouveau : ton label ! Signe des artistes et produis leurs albums depuis l’onglet Top 50.', 7000);
+    var open = G.labelOpen(S), L = S.label, onCh = $('app').getAttribute('data-view') === 'team' && lbv.tv === 'label';
+    if (lbv.wasOpen === false && open && !quiet) toast('Nouveau : ton label ! Signe des artistes et produis leurs albums depuis l’onglet Équipe.', 7000);
     lbv.wasOpen = open;
-    setHidden($('labelBox'), !open);
-    var asks = open && L.roster.some(function (r) { return r.ask || r.story; });
-    setClass($('tabCharts'), 'warn', asks && !onCh);
+    if (!open && lbv.tv === 'label') lbv.tv = 'staff';
+    setHidden($('teamSeg'), !open);
+    setHidden($('labelBox'), !open || lbv.tv !== 'label');
+    setHidden($('teamSegDot'), !labelAsks() || lbv.tv === 'label');
     if (!open || (!onCh && !force)) return;
     var cap = G.labelCap(S), avail = G.ARTISTS.filter(function (a) { return G.artistAvailable(S, a); });
     setText($('labelChip'), L.roster.length + ' / ' + cap + ' artiste' + (cap > 1 ? 's' : ''));
@@ -1024,8 +1033,8 @@
   function pjNote(n) { return nf1.format(n) + '/10'; }
   function pjWeek(m) { return m.pj && m.pj.w < D.PROJECTS.sales.length ? m.pj.sales * D.PROJECTS.sales[m.pj.w] : 0; }
   function renderProj(force) {
-    var open = G.projOpen(S), P = S.proj, c = P.cur, onProd = $('app').getAttribute('data-view') === 'prod';
-    if (pjv.wasOpen === false && open && !quiet) toast('Nouveau : les projets de création. Un bonus facultatif à lancer depuis Productions.', 6500);
+    var open = G.projOpen(S), P = S.proj, c = P.cur, onProd = $('app').getAttribute('data-view') === 'charts';
+    if (pjv.wasOpen === false && open && !quiet) toast('Nouveau : les projets de création. Un bonus facultatif à lancer depuis l’onglet Top 50.', 6500);
     pjv.wasOpen = open;
     setHidden($('projBox'), !open);
     if (!open) return;
@@ -1887,11 +1896,12 @@
     team.wasOpen = open;
     var low = tm.staff.some(function (m) { return m.morale < 25; });
     var canHire = open && tm.staff.length < cap && tm.pool.some(function (c) { return S.money >= G.signCost(S, c); });
-    var onTeam = $('app').getAttribute('data-view') === 'team';
-    setClass($('tabTeam'), 'has', !onTeam && (low || canHire));
-    setClass($('tabTeam'), 'warn', !onTeam && !low && canHire);
-    setHidden($('teamLock'), open);
-    setHidden($('teamOpenBox'), !open);
+    var onTeam = $('app').getAttribute('data-view') === 'team', asks = labelAsks(), lv = lbv.tv === 'label';
+    setClass($('tabTeam'), 'has', !onTeam && (low || canHire || asks));
+    setClass($('tabTeam'), 'warn', !onTeam && !low && (canHire || asks));
+    setHidden($('teamLock'), open || lv);
+    setHidden($('teamOpenBox'), !open || lv);
+    if (lv) { setText($('teamCount'), S.label.roster.length + ' / ' + G.labelCap(S) + ' artiste' + (G.labelCap(S) > 1 ? 's' : '')); return; }
     setText($('teamCount'), open ? tm.staff.length + ' / ' + cap + ' postes' : '');
     if (!open) { setText($('teamLockText'), 'Atteins le niveau d’expertise ' + D.TUNING.teamLevel + ' pour recruter ton premier membre. Chaque lieu offre plus de postes : 1 dans ta chambre, jusqu’à ' + D.TUNING.teamCap[D.TUNING.teamCap.length - 1] + ' dans le complexe.'); return; }
     if (!onTeam && !force) { var now0 = performance.now(); if (now0 - team.t < 1000) return; team.t = now0; }
@@ -2334,8 +2344,8 @@
       Object.keys(TABS).forEach(function (k) { $(TABS[k]).setAttribute('aria-selected', k === v ? 'true' : 'false'); });
       if (was !== v) $('panes').scrollTop = 0;
       if (v === 'trophies') seeTrophies();
-      if (v === 'team') { team.key = ''; renderTeam(true); }
-      if (v === 'charts') { chs.key = ''; chs.listT = 0; renderCharts(true); lbv.key = ''; renderLabel(true); }
+      if (v === 'team') { team.key = ''; renderTeam(true); lbv.key = ''; renderLabel(true); }
+      if (v === 'charts') { chs.key = ''; chs.listT = 0; renderCharts(true); pjv.key = ''; renderProj(true); }
       if (v === 'rd') { rdv.key = ''; renderRd(true); }
       if (v !== 'team') team.focus = null;
       render();
@@ -2356,6 +2366,7 @@
     $('tabTro').addEventListener('click', function () { tab('trophies'); });
     $('tabTeam').addEventListener('click', function () { tab('team'); });
     $('tabCharts').addEventListener('click', function () { tab('charts'); });
+    $('teamSeg').addEventListener('click', function (e) { var b = e.target.closest('[data-tv]'); if (b) teamView(b.getAttribute('data-tv')); });
     $('tabRd').addEventListener('click', function () { tab('rd'); });
     bindFeatures();
     $('tabMore').addEventListener('click', function () { tab('account'); });
@@ -2520,8 +2531,8 @@
   G.hooks.research = function (n) { markCloud(); rdv.key = ''; if (!quiet) { toast('Recherche terminée : ' + n.name + '.', 4500); blip(10); } };
   G.hooks.spec = function (o) { markCloud(); rdv.key = ''; if (!quiet) { toast('Nouvelle spécialisation : ' + o.name + '.', 5000); blip(12); } };
   G.hooks.artistSign = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' rejoint ton label !', 5000); blip(12); } };
-  G.hooks.artistAsk = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' veut sortir un album. Rendez-vous dans le Top 50, section Ton label.', 6500); blip(9); } };
-  G.hooks.artistStory = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' a quelque chose à te dire. Rendez-vous dans le Top 50, section Ton label.', 6000); blip(8); } };
+  G.hooks.artistAsk = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' veut sortir un album. Rendez-vous dans l’onglet Équipe, section Ton label.', 6500); blip(9); } };
+  G.hooks.artistStory = function (a) { lbv.key = ''; markCloud(); if (!quiet) { toast(a.name + ' a quelque chose à te dire. Rendez-vous dans l’onglet Équipe, section Ton label.', 6000); blip(8); } };
   G.hooks.concertDone = function () { lbv.key = ''; markCloud(); };
   G.hooks.artistIgnored = function (a) { lbv.key = ''; markCloud(); if (!quiet) toast(a.name + ' attendra son album un peu plus longtemps, un peu déçu.', 5000); };
   G.hooks.trend = function (tr) {

@@ -343,6 +343,11 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .buyn button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-s); }
 /* Label */
 .label-box { margin-bottom: 14px; }
+.team-seg { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0 0 14px; }
+.team-seg button { position: relative; }
+.seg-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 0 2px var(--panel-2); }
+.seg-dot[hidden] { display: none; }
+#charts .proj-box { margin: 14px 0; }
 .label-box .orders-head { margin-top: 0; }
 .artist { display: grid; gap: 8px; }
 .artist > * { min-width: 0; }
@@ -735,10 +740,6 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <div class="orders-head"><h3>Clash de beatmakers</h3><span class="rep-chip" id="clashChip"></span></div>
           <div id="clashBody"></div>
         </div>
-        <div class="proj-box" id="projBox" hidden>
-          <div class="orders-head"><h3>Projet de création</h3><span class="rep-chip" id="projChip"></span></div>
-          <div id="projBody"></div>
-        </div>
         <div class="orders-head prod-head"><h3>Tes productions</h3><div class="buyn" id="buyN" role="group" aria-label="Quantité achetée par Perfectionner"><span aria-hidden="true">Achat</span><button type="button" data-n="1" aria-pressed="true">×1</button><button type="button" data-n="10" aria-pressed="false">×10</button><button type="button" data-n="25" aria-pressed="false">×25</button><button type="button" data-n="max" aria-pressed="false">Max</button></div></div>
         <div class="list" id="acts"></div>
       </section>
@@ -757,6 +758,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 
       <section class="pane" id="team" aria-labelledby="teamTitle">
         <h2 id="teamTitle">Équipe <small id="teamCount"></small></h2>
+        <div class="seg team-seg" id="teamSeg" role="group" aria-label="Studio ou label" hidden><button type="button" data-tv="staff" aria-pressed="true">Ton équipe</button><button type="button" data-tv="label" aria-pressed="false">Ton label<i class="seg-dot" id="teamSegDot" hidden aria-hidden="true"></i></button></div>
         <div class="card team-lock" id="teamLock" hidden><b>Bientôt une équipe</b><span id="teamLockText"></span></div>
         <div id="teamOpenBox">
           <div class="team-sum">
@@ -770,6 +772,14 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <div class="list" id="poolList"></div>
           <button class="btn sm" id="poolRefresh" type="button" style="margin-top:10px;width:100%"><span>Voir d’autres candidats</span><span class="p" id="poolRefreshP"></span></button>
         </div>
+        <section class="label-box" id="labelBox" hidden>
+          <div class="orders-head"><h3>Ton label</h3><span class="rep-chip" id="labelChip"></span></div>
+          <p class="small-note" id="labelNote"></p>
+          <div class="list" id="labelRoster"></div>
+          <h3 class="sec" id="labelScoutT">Talents à signer</h3>
+          <div class="list" id="labelScouts"></div>
+          <p class="small-note" id="labelMore"></p>
+        </section>
       </section>
 
       <section class="pane" id="rd" aria-labelledby="rdTitle">
@@ -784,18 +794,14 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
         <h2 id="chartTitle">Top 50 <small id="chartWeek"></small></h2>
         <div class="card chart-lock" id="chartLock"><b>Le Top 50 t’attend</b><span id="chartLockText"></span></div>
         <div id="chartOpen">
-          <section class="label-box" id="labelBox" hidden>
-            <div class="orders-head"><h3>Ton label</h3><span class="rep-chip" id="labelChip"></span></div>
-            <p class="small-note" id="labelNote"></p>
-            <div class="list" id="labelRoster"></div>
-            <h3 class="sec" id="labelScoutT">Talents à signer</h3>
-            <div class="list" id="labelScouts"></div>
-            <p class="small-note" id="labelMore"></p>
-          </section>
           <article class="card trend-card" id="trendCard" hidden>
             <div class="trend-head"><h3>Tendances de la semaine</h3><span class="rep-chip" id="trendLeft"></span></div>
             <ul class="trend-list" id="trendList"></ul>
           </article>
+          <div class="proj-box" id="projBox" hidden>
+            <div class="orders-head"><h3>Projet de création</h3><span class="rep-chip" id="projChip"></span></div>
+            <div id="projBody"></div>
+          </div>
           <p class="hint">Chaque semaine de jeu (3 minutes), tes titres classés rapportent selon leur place. La qualité compte : mixe toi-même tes productions pour viser le haut du classement.</p>
           <h3 class="sec">Sortir un titre</h3>
           <div class="list" id="releaseList"></div>
