@@ -38,7 +38,7 @@ const R0 = G.hydrate(JSON.parse(JSON.stringify(S)), 0); assert.deepStrictEqual(R
 console.log('OK: projet tendance', S.proj.last.avg + '/10');
 // 5. règle du clash
 S.battle.rival = null; S.battle.cd = 0; S.charts.trend.rule = 'sans-clap'; G.tickBattle(S, 1);
-S.battle.rival.kind = 'drums'; const b = G.startBattle(S); assert(b.rule === 'sans-clap' && b.notes.every(n => n.l !== 3));
+S.battle.rival.kind = 'drums'; S.battle.rival.rule = 'sans-clap'; const b = G.startBattle(S); assert(b.rule === 'sans-clap' && b.notes.every(n => n.l !== 3));
 S.battle.rival.rule = 'rapide'; assert.strictEqual(G.startBattle(S).bpm, Math.round(G.BATTLE.leagues[0].bpm * 1.1));
 S.battle.rival.rule = 'prime'; const m0 = S.money; const w1 = G.finishBattle(S, { score: 1, combo: 1 });
 S.battle.rival = { name: 'x', league: 1, target: 0.5, seed: 1, rule: null }; const w2 = G.finishBattle(S, { score: 1, combo: 1 });
