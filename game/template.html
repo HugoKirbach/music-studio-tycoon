@@ -181,6 +181,16 @@ select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .actions > .pad { grid-column: 1 / -1; }
 .foot-line { margin: 8px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+.perks { display: flex; gap: 4px; margin-top: 8px; overflow-x: auto; scrollbar-width: none; }
+.perks::-webkit-scrollbar { display: none; }
+.perk { flex: 1 0 auto; display: inline-flex; align-items: baseline; gap: 4px; padding: 3px 7px; border: 1px dashed var(--line); border-radius: 999px; background: transparent; color: var(--ink-soft); font: 700 11px var(--f-body); white-space: nowrap; opacity: 0.6; cursor: help; }
+.perk b { font-weight: 800; }
+.perk.on { border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, var(--card)); color: var(--ink); opacity: 1; }
+.perk.on b { color: var(--accent); }
+.perk.next { opacity: 0.95; border-style: solid; }
+.perk:not(.on):not(.next) span { display: none; }
+@media (max-width: 599px) { .perk span { display: none; } .perk { flex: 1 1 0; justify-content: center; } }
+.pop3d.tube { background: rgba(214, 150, 0, 0.95); }
 .float { position: absolute; right: 16px; top: 40px; font: 800 18px var(--f-title); color: var(--good); pointer-events: none; animation: floatUp 0.95s ease-out forwards; }
 @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-30px); } }
 .goal { display: grid; gap: 4px; width: 100%; margin-bottom: 10px; padding: 12px; border-radius: var(--r); border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); background: color-mix(in srgb, var(--gold) 10%, var(--card)); text-align: left; }

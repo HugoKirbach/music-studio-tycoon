@@ -1551,6 +1551,7 @@
             '<button class="btn" type="button" id="up-' + act.id + '" data-do="up" data-act="' + act.id + '"><span class="t"><b data-k="upT">Perfectionner</b><small data-k="upS"></small></span><span class="p" data-k="upP"></span></button>' +
             '<button class="btn" type="button" id="auto-' + act.id + '" data-do="auto" data-act="' + act.id + '"><span class="t"><b>Automatiser</b><small>' + act.autoRole + '</small></span><span class="p" data-k="autoP"></span></button>' +
           '</div>' +
+          '<div class="perks" data-k="perks" role="list" aria-label="Paliers de maîtrise">' + G.PERKS.map(function (p) { return '<button type="button" class="perk" role="listitem" data-perk="' + p.id + '" title="Rang ' + p.lvl + ' · ' + p.name + ' : ' + p.desc + '"><b>' + p.lvl + '</b><span>' + p.name + '</span></button>'; }).join('') + '</div>' +
           '<p class="foot-line" data-k="foot"></p>' +
         '</div>';
       host.appendChild(el);
@@ -1561,6 +1562,13 @@
     });
   }
 
+  function bindPerks() {
+    $('acts').addEventListener('click', function (e) {
+      var b = e.target.closest('.perk'); if (!b) return;
+      var p = G.PERKS.filter(function (x) { return x.id === b.getAttribute('data-perk'); })[0]; if (!p) return;
+      toast('Palier du rang ' + p.lvl + ' · ' + p.name + ' : ' + p.desc + (b.classList.contains('on') ? ' (atteint).' : '.'), 4500);
+    });
+  }
   function floater(id, text) {
     var r = rows[id];
     if (!r || r.live.hidden) return;
@@ -1683,16 +1691,17 @@
       setClass(r.go, 'run', a.run);
       setText(r.goT, a.run ? 'Accélérer' : 'Lancer');
       setText(r.goS, a.run ? (a.auto ? 'Automatique · ' : '') + 'chaque clic gagne ' + nf1.format(G.TAP) + ' s' : 'Un clic pour démarrer');
-      var nm = G.nextMilestone(a.lvl), to = a.lvl + plan.n, pal = 0;
-      for (var lv = a.lvl + 1; lv <= to; lv++) if (G.milestoneMult(lv) !== G.milestoneMult(lv - 1)) pal++;
+      var np = G.nextPerk(a.lvl), to = a.lvl + plan.n, crossed = G.perksBetween(a.lvl, to);
       setText(r.upT, buyN === 1 ? 'Perfectionner' : buyN === 'max' ? (plan.ok ? 'Perfectionner ×' + plan.n : 'Perfectionner · max') : 'Perfectionner ×' + buyN);
-      setText(r.upS, (plan.n > 1 ? 'Rang ' + a.lvl + ' → ' + to : 'Rang ' + to) + (pal ? ' · ' + (pal > 1 ? pal + ' paliers ×2 franchis' : 'palier ×2 franchi') : nm ? ' · palier ×2 au rang ' + nm : ''));
+      setText(r.upS, (plan.n > 1 ? 'Rang ' + a.lvl + ' → ' + to : 'Rang ' + to) + (crossed.length ? ' · palier ' + crossed.map(function (p) { return '« ' + p.name + ' »'; }).join(', ') + ' !' : np ? ' · « ' + np.name + ' » au rang ' + np.lvl : ''));
+      var pk = G.perkFx(a.lvl).n;
+      if (r.pk !== pk) { r.pk = pk; [].forEach.call(r.perks.children, function (b, i) { b.classList.toggle('on', i < pk); b.classList.toggle('next', i === pk); }); }
       setText(r.upP, eur(cost));
       setDisabled(r.up, !plan.ok);
       setHidden(r.auto, a.auto);
       setText(r.autoP, eur(act.autoCost));
       setDisabled(r.auto, S.money < act.autoCost);
-      setText(r.foot, nf0.format(a.done) + (a.done > 1 ? ' réalisés' : ' réalisé') + ' · qualité ' + starsTxt(G.baseQuality(S, act.id)) + (a.auto ? ' · ' + act.autoRole + ' s’en occupe' : ''));
+      setText(r.foot, nf0.format(a.done) + (a.done > 1 ? ' réalisés' : ' réalisé') + (a.tubes ? ' dont ' + nf0.format(a.tubes) + ' tube' + (a.tubes > 1 ? 's' : '') : '') + ' · qualité ' + starsTxt(G.baseQuality(S, act.id)) + (a.auto ? ' · ' + act.autoRole + ' s’en occupe' : ''));
       setDisabled(r.mix, !G.canMix(S, act.id));
       setText(r.mixT, a.mix ? 'Mixé ' + a.mix.q + '★' : a.hold ? 'Mixage…' : 'Mixer');
     });
@@ -2612,9 +2621,10 @@
   }
 
   // ---------- Démarrage ----------
-  G.hooks.complete = function (act, n, p) {
+  G.hooks.complete = function (act, n, p, mixed, hits) {
     if (quiet) return;
     var now = performance.now();
+    if (hits) { lastFloat[act.id] = now; floater(act.id, 'Tube ! +' + eur(p)); if (scene3d) S3.pop('Tube ! +' + eur(p), act.id, 'tube'); blip(11); return; }
     if (now - (lastFloat[act.id] || 0) > 800) { lastFloat[act.id] = now; floater(act.id, '+' + eur(p)); if (scene3d) S3.pop('+' + eur(p), act.id); }
     blip(G.ACTS.indexOf(act));
   };
@@ -2695,9 +2705,10 @@
   G.hooks.eventExpire = function () { if (!ev.open) toast('L’occasion est passée.'); };
   G.hooks.upgrade = function (act, lvl, from) {
     if (from == null) from = lvl - 1;
-    var k = Math.round(Math.log2(G.milestoneMult(lvl) / G.milestoneMult(from)));
-    if (k === 1) toast('Palier atteint : les gains de « ' + act.name + ' » sont doublés.');
-    else if (k > 1) toast(k + ' paliers atteints : les gains de « ' + act.name + ' » sont multipliés par ' + Math.pow(2, k) + '.');
+    var ps = G.perksBetween(from, lvl);
+    if (ps.length === 1) toast('Palier « ' + ps[0].name + ' » pour « ' + act.name + ' » : ' + ps[0].desc.charAt(0).toLowerCase() + ps[0].desc.slice(1) + '.', 5500);
+    else if (ps.length > 1) toast(ps.length + ' paliers pour « ' + act.name + ' » : ' + ps.map(function (p) { return p.name; }).join(', ') + '.', 5500);
+    if (ps.length) blip(9);
   };
 
   // Accès en lecture pour le diagnostic (console: premierMix().money).
@@ -2711,7 +2722,7 @@
     if (raw) { quiet = true; off = G.offline(S, now); quiet = false; }
     S.savedAt = now;
     initTheme();
-    buildActs(); buildShop(); buildTrophies(); bind();
+    buildActs(); buildShop(); buildTrophies(); bind(); bindPerks();
     initScene();
     initMenu();
     render(); renderScene(true);

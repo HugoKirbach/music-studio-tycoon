@@ -7,6 +7,7 @@
   var OFFLINE_EFF = 0.5;      // rendement hors ligne
   var TAP = 0.4;              // secondes gagnées par clic sur une production en cours
   var MILESTONES = [10, 25, 50, 100, 200];
+  var PERKS = null, TUBE = 10;
 
   // ---------- Données (voir data.js) ----------
   var D = root.GameData;
@@ -37,6 +38,7 @@
   STORIES.forEach(function (s) { STORY_BY[s.id] = s; });
   var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
+  PERKS = D.PERKS || MILESTONES.map(function (l) { return { lvl: l, id: 'p' + l, name: 'Palier', gain: 2, desc: 'Gains ×2' }; }); TUBE = D.TUBE || 10;
   var PIANO = D.PIANO || { songs: [{ id: 'gamme', name: 'Gamme', notes: [60, 62, 64, 65, 67, 69, 71, 72] }], min: 10 };
 
   var hooks = {};
@@ -89,7 +91,7 @@
       if (!s) return;
       var mx = s.mix && typeof s.mix === 'object' ? { m: Math.max(1, Math.min(1 + T.mixMax, num(s.mix.m, 1))), q: Math.max(1, Math.min(5, Math.floor(num(s.mix.q, 1)))), x: Math.max(0, Math.min(T.mixXp, num(s.mix.x, 0))) } : null;
       S.acts[a.id] = { lvl: Math.max(0, Math.floor(num(s.lvl, 0))), auto: !!s.auto, prog: Math.max(0, num(s.prog, 0)),
-        run: !!s.run, done: Math.max(0, num(s.done, 0)), hold: false, mix: mx };
+        run: !!s.run, done: Math.max(0, num(s.done, 0)), hold: false, mix: mx, tubes: Math.max(0, Math.floor(num(s.tubes, 0))) };
     });
     if (o.tracks && typeof o.tracks === 'object') {
       ACTS.forEach(function (a) { S.tracks[a.id] = Math.max(0, num(o.tracks[a.id], 0)); });
@@ -329,20 +331,27 @@
   function studioValue(S) { return stats(S).v; }
   function valueMult(S) { return stats(S).vm; }
 
-  function milestoneMult(lvl) {
-    var m = 1;
-    for (var i = 0; i < MILESTONES.length; i++) if (lvl >= MILESTONES[i]) m *= 2;
-    return m;
+  // Effets cumulés des paliers de maîtrise atteints à ce rang.
+  var PFX = {};
+  function perkFx(lvl) {
+    var k = 0; while (k < PERKS.length && lvl >= PERKS[k].lvl) k++;
+    if (PFX[k]) return PFX[k];
+    var f = { gain: 1, speed: 1, tube: 0, roy: 1, syn: 0, n: k };
+    for (var i = 0; i < k; i++) { var p = PERKS[i]; if (p.gain) f.gain *= p.gain; if (p.speed) f.speed *= p.speed; if (p.tube) f.tube = Math.max(f.tube, p.tube); if (p.roy) f.roy *= p.roy; if (p.syn) f.syn += p.syn; }
+    return (PFX[k] = f);
   }
-  function nextMilestone(lvl) {
-    for (var i = 0; i < MILESTONES.length; i++) if (lvl < MILESTONES[i]) return MILESTONES[i];
-    return null;
-  }
+  function milestoneMult(lvl) { return perkFx(lvl).gain; }
+  function nextPerk(lvl) { for (var i = 0; i < PERKS.length; i++) if (lvl < PERKS[i].lvl) return PERKS[i]; return null; }
+  function perksBetween(from, to) { return PERKS.filter(function (p) { return p.lvl > from && p.lvl <= to; }); }
+  function nextMilestone(lvl) { var p = nextPerk(lvl); return p ? p.lvl : null; }
+  // Synergie: chaque production au palier Locomotive donne un bonus de gains à toutes les autres.
+  function synergy(S) { var s = 0; ACTS.forEach(function (a) { var x = S.acts[a.id]; if (x) s += perkFx(x.lvl).syn; }); return 1 + s; }
+  function tubeChance(S, act) { return perkFx(S.acts[act.id].lvl).tube; }
 
-  function duration(S, act) { return act.dur / stats(S).g.speed / staffFx(S, act.id).sp; }
+  function duration(S, act) { return act.dur / stats(S).g.speed / staffFx(S, act.id).sp / perkFx(S.acts[act.id].lvl).speed; }
   function payout(S, act) {
     var a = S.acts[act.id], st = stats(S);
-    return act.pay * (1 + T.upGain * a.lvl) * milestoneMult(a.lvl) * st.g.gain * (st.g.act[act.id] || 1) * st.vm * levelMult(S) * boostMult(S) * staffFx(S, act.id).gn * trendAct(S, act.id);
+    return act.pay * (1 + T.upGain * a.lvl) * milestoneMult(a.lvl) * synergy(S) * st.g.gain * (st.g.act[act.id] || 1) * st.vm * levelMult(S) * boostMult(S) * staffFx(S, act.id).gn * trendAct(S, act.id);
   }
   function xpGain(S, act) { return act.xp * stats(S).g.xp; }
   function upCost(S, act) { return Math.ceil(act.upCost * Math.pow(T.upGrowth, S.acts[act.id].lvl)); }
@@ -356,7 +365,7 @@
     var st = stats(S), r = 0;
     ACTS.forEach(function (a) {
       var t = S.tracks[a.id] || 0;
-      if (t > 0) r += Math.pow(t, T.trackExp) * a.pay * ROY;
+      if (t > 0) r += Math.pow(t, T.trackExp) * a.pay * ROY * perkFx(S.acts[a.id].lvl).roy;
     });
     return r * st.g.roy * st.vm * levelMult(S) * boostMult(S);
   }
@@ -364,7 +373,7 @@
     var r = 0;
     ACTS.forEach(function (a) {
       var s = S.acts[a.id];
-      if (s.auto && isUnlocked(S, a)) r += payout(S, a) / duration(S, a);
+      if (s.auto && isUnlocked(S, a)) r += payout(S, a) * (1 + tubeChance(S, a) * (TUBE - 1)) / duration(S, a);
     });
     return r;
   }
@@ -394,8 +403,14 @@
   }
 
   function complete(S, act, n) {
-    var a = S.acts[act.id], unit = payout(S, act), p = unit * n, x = xpGain(S, act) * n, mixed = a.mix;
+    var a = S.acts[act.id], unit = payout(S, act), p = unit * n, x = xpGain(S, act) * n, mixed = a.mix, tc = tubeChance(S, act), hits = 0;
     if (mixed) { a.mix = null; p += unit * (mixed.m - 1); x += xpGain(S, act) * mixed.x; }
+    // tubes: une production sur quelques-unes rapporte ×TUBE (tirage individuel, ou moyenne sur un grand lot)
+    if (tc > 0) {
+      if (n <= 40) { for (var k = 0; k < n; k++) if (rand() < tc) hits++; }
+      else hits = Math.round(n * tc * (0.9 + rand() * 0.2));
+      p += unit * (TUBE - 1) * hits;
+    }
     S.money += p; S.lifetime += p;
     S.tracks[act.id] = (S.tracks[act.id] || 0) + n;
     a.done += n;
@@ -404,7 +419,8 @@
     if (rf.autoQ4 && a.auto && rand() < rf.autoQ4) qb = Math.max(qb, 4);
     orderProgress(S, act.id, n, qb, mixed ? mixed.q : null);
     addRp(S, n * (ACTS.indexOf(act) + 1) * T.rpPer);
-    if (hooks.complete) hooks.complete(act, n, p, mixed);
+    if (hits) a.tubes = (a.tubes || 0) + hits;
+    if (hooks.complete) hooks.complete(act, n, p, mixed, hits);
   }
 
   function startAct(S, id) {
@@ -1436,7 +1452,7 @@
     S.money = 0; S.xp = 0; S.level = 1; S.owned = f.owned; S.tracks = {}; S.boost = f.boost;
     ACTS.forEach(function (a) {
       var s = S.acts[a.id];
-      S.acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: s ? s.done : 0 };
+      S.acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: s ? s.done : 0, tubes: s ? s.tubes || 0 : 0 };
     });
     S.ev.cd = T.eventFirst; S.ev.pending = null; S.ev.hold = false;
     if (S.proj) { S.proj.cur = null; S.proj.last = null; } // un projet en cours est abandonné, le carnet reste
@@ -1503,6 +1519,7 @@
       case 'battles': n = S.battle ? S.battle.wins : 0; break;
       case 'league': n = S.battle ? S.battle.league : 1; break;
       case 'combo': n = S.battle ? S.battle.best : 0; break;
+      case 'tubes': ACTS.forEach(function (a) { n += (S.acts[a.id] && S.acts[a.id].tubes) || 0; }); break;
       case 'signed': n = S.label ? S.label.roster.length : 0; break;
       case 'concerts': n = S.label ? S.label.concerts : 0; break;
       case 'kept': n = S.label ? S.label.kept : 0; break;
@@ -1708,7 +1725,7 @@
     newState: newState, hydrate: hydrate, xpNeeded: xpNeeded, studioValue: studioValue, valueMult: valueMult,
     levelMult: levelMult, duration: duration, payout: payout, xpGain: xpGain, upCost: upCost, royRate: royRate,
     activeRate: activeRate, trackCount: trackCount, isUnlocked: isUnlocked, lockReason: lockReason,
-    tierIndex: tierIndex, milestoneMult: milestoneMult, nextMilestone: nextMilestone, startAct: startAct,
+    tierIndex: tierIndex, milestoneMult: milestoneMult, nextMilestone: nextMilestone, PERKS: PERKS, perkFx: perkFx, nextPerk: nextPerk, perksBetween: perksBetween, synergy: synergy, tubeChance: tubeChance, startAct: startAct,
     tapAct: tapAct, advanceAway: advanceAway, chartsAway: chartsAway, avgMorale: avgMorale, buy: buy, upgradeAct: upgradeAct, upgradeActN: upgradeActN, upPlan: upPlan, buyAuto: buyAuto, advance: advance, offline: offline, touch: touch,
     boostMult: boostMult, contactCount: contactCount, eventRef: eventRef, tickEvents: tickEvents, dismissEvent: dismissEvent,
     resolveEvent: resolveEvent, pickEvent: pickEvent, trophyCount: trophyCount, trophyProgress: trophyProgress,

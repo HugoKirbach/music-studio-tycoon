@@ -181,6 +181,16 @@ select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .actions > .pad { grid-column: 1 / -1; }
 .foot-line { margin: 8px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+.perks { display: flex; gap: 4px; margin-top: 8px; overflow-x: auto; scrollbar-width: none; }
+.perks::-webkit-scrollbar { display: none; }
+.perk { flex: 1 0 auto; display: inline-flex; align-items: baseline; gap: 4px; padding: 3px 7px; border: 1px dashed var(--line); border-radius: 999px; background: transparent; color: var(--ink-soft); font: 700 11px var(--f-body); white-space: nowrap; opacity: 0.6; cursor: help; }
+.perk b { font-weight: 800; }
+.perk.on { border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, var(--card)); color: var(--ink); opacity: 1; }
+.perk.on b { color: var(--accent); }
+.perk.next { opacity: 0.95; border-style: solid; }
+.perk:not(.on):not(.next) span { display: none; }
+@media (max-width: 599px) { .perk span { display: none; } .perk { flex: 1 1 0; justify-content: center; } }
+.pop3d.tube { background: rgba(214, 150, 0, 0.95); }
 .float { position: absolute; right: 16px; top: 40px; font: 800 18px var(--f-title); color: var(--good); pointer-events: none; animation: floatUp 0.95s ease-out forwards; }
 @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-30px); } }
 .goal { display: grid; gap: 4px; width: 100%; margin-bottom: 10px; padding: 12px; border-radius: var(--r); border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); background: color-mix(in srgb, var(--gold) 10%, var(--card)); text-align: left; }
@@ -1757,6 +1767,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     { id: 'scene', name: 'Bête de scène', m: 'concerts', levels: [1, 10, 40], desc: 'Donne {n} concerts avec tes artistes.', descs: ['Donne le premier concert d’un de tes artistes.'] },
     { id: 'salles', name: 'Grandes salles', m: 'bestVenue', levels: [3, 4, 5], descs: ['Remplis une salle de concert.', 'Remplis le Zénith.', 'Remplis un stade.'] },
     { id: 'fidele', name: 'Fidélité', m: 'kept', levels: [1, 5, 15], desc: 'Garde {n} artistes courtisés par un label rival.', descs: ['Garde un artiste courtisé par un label rival.'] },
+    { id: 'tubes', name: 'Faiseur de tubes', m: 'tubes', levels: [10, 250, 5000], desc: 'Sors {n} tubes grâce aux paliers de maîtrise.', descs: ['Sors 10 tubes grâce au palier Hit-maker.'] },
     { id: 'combo', name: 'Main sûre', m: 'combo', levels: [20, 50, 100], desc: 'Enchaîne {n} frappes réussies d’affilée dans un clash.' }
   ];
 
@@ -1845,6 +1856,19 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     sales: [0.34, 0.24, 0.16, 0.11, 0.08, 0.07]
   };
 
+
+  // Paliers de maîtrise des productions: chaque palier apporte un effet différent.
+  // gain/speed: multiplicateurs cumulés; tube: chance qu'une production devienne un tube (gains ×TUBE); roy: royalties de cette production; syn: bonus de gains pour toutes les productions.
+  var PERKS = [
+    { lvl: 10, id: 'rode', name: 'Rodé', speed: 1.5, desc: 'Production 50 % plus rapide' },
+    { lvl: 25, id: 'signature', name: 'Signature', gain: 2, desc: 'Gains ×2' },
+    { lvl: 50, id: 'hit', name: 'Hit-maker', tube: 0.12, desc: '12 % de chances de sortir un tube qui rapporte ×10' },
+    { lvl: 75, id: 'culte', name: 'Catalogue culte', roy: 3, gain: 1.3, desc: 'Royalties de cette production ×3, gains ×1,3' },
+    { lvl: 100, id: 'loco', name: 'Locomotive', gain: 2, syn: 0.05, desc: 'Gains ×2 et +5 % de gains pour toutes tes productions' },
+    { lvl: 150, id: 'virtuose', name: 'Virtuose', speed: 1.25, desc: 'Production 25 % plus rapide' },
+    { lvl: 200, id: 'legende', name: 'Légende', gain: 1.5, tube: 0.15, desc: 'Gains ×1,5 et 15 % de tubes' }
+  ];
+  var TUBE = 10;
 
   // Clash de beatmakers: ligues, rivaux et pistes du mini-jeu de rythme.
   var BATTLE = {
@@ -2035,7 +2059,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, PIANO: PIANO, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES, RIVAL_LABELS: RIVAL_LABELS };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, PIANO: PIANO, PERKS: PERKS, TUBE: TUBE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES, RIVAL_LABELS: RIVAL_LABELS };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -2049,6 +2073,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   var OFFLINE_EFF = 0.5;      // rendement hors ligne
   var TAP = 0.4;              // secondes gagnées par clic sur une production en cours
   var MILESTONES = [10, 25, 50, 100, 200];
+  var PERKS = null, TUBE = 10;
 
   // ---------- Données (voir data.js) ----------
   var D = root.GameData;
@@ -2079,6 +2104,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   STORIES.forEach(function (s) { STORY_BY[s.id] = s; });
   var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
+  PERKS = D.PERKS || MILESTONES.map(function (l) { return { lvl: l, id: 'p' + l, name: 'Palier', gain: 2, desc: 'Gains ×2' }; }); TUBE = D.TUBE || 10;
   var PIANO = D.PIANO || { songs: [{ id: 'gamme', name: 'Gamme', notes: [60, 62, 64, 65, 67, 69, 71, 72] }], min: 10 };
 
   var hooks = {};
@@ -2131,7 +2157,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       if (!s) return;
       var mx = s.mix && typeof s.mix === 'object' ? { m: Math.max(1, Math.min(1 + T.mixMax, num(s.mix.m, 1))), q: Math.max(1, Math.min(5, Math.floor(num(s.mix.q, 1)))), x: Math.max(0, Math.min(T.mixXp, num(s.mix.x, 0))) } : null;
       S.acts[a.id] = { lvl: Math.max(0, Math.floor(num(s.lvl, 0))), auto: !!s.auto, prog: Math.max(0, num(s.prog, 0)),
-        run: !!s.run, done: Math.max(0, num(s.done, 0)), hold: false, mix: mx };
+        run: !!s.run, done: Math.max(0, num(s.done, 0)), hold: false, mix: mx, tubes: Math.max(0, Math.floor(num(s.tubes, 0))) };
     });
     if (o.tracks && typeof o.tracks === 'object') {
       ACTS.forEach(function (a) { S.tracks[a.id] = Math.max(0, num(o.tracks[a.id], 0)); });
@@ -2371,20 +2397,27 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function studioValue(S) { return stats(S).v; }
   function valueMult(S) { return stats(S).vm; }
 
-  function milestoneMult(lvl) {
-    var m = 1;
-    for (var i = 0; i < MILESTONES.length; i++) if (lvl >= MILESTONES[i]) m *= 2;
-    return m;
+  // Effets cumulés des paliers de maîtrise atteints à ce rang.
+  var PFX = {};
+  function perkFx(lvl) {
+    var k = 0; while (k < PERKS.length && lvl >= PERKS[k].lvl) k++;
+    if (PFX[k]) return PFX[k];
+    var f = { gain: 1, speed: 1, tube: 0, roy: 1, syn: 0, n: k };
+    for (var i = 0; i < k; i++) { var p = PERKS[i]; if (p.gain) f.gain *= p.gain; if (p.speed) f.speed *= p.speed; if (p.tube) f.tube = Math.max(f.tube, p.tube); if (p.roy) f.roy *= p.roy; if (p.syn) f.syn += p.syn; }
+    return (PFX[k] = f);
   }
-  function nextMilestone(lvl) {
-    for (var i = 0; i < MILESTONES.length; i++) if (lvl < MILESTONES[i]) return MILESTONES[i];
-    return null;
-  }
+  function milestoneMult(lvl) { return perkFx(lvl).gain; }
+  function nextPerk(lvl) { for (var i = 0; i < PERKS.length; i++) if (lvl < PERKS[i].lvl) return PERKS[i]; return null; }
+  function perksBetween(from, to) { return PERKS.filter(function (p) { return p.lvl > from && p.lvl <= to; }); }
+  function nextMilestone(lvl) { var p = nextPerk(lvl); return p ? p.lvl : null; }
+  // Synergie: chaque production au palier Locomotive donne un bonus de gains à toutes les autres.
+  function synergy(S) { var s = 0; ACTS.forEach(function (a) { var x = S.acts[a.id]; if (x) s += perkFx(x.lvl).syn; }); return 1 + s; }
+  function tubeChance(S, act) { return perkFx(S.acts[act.id].lvl).tube; }
 
-  function duration(S, act) { return act.dur / stats(S).g.speed / staffFx(S, act.id).sp; }
+  function duration(S, act) { return act.dur / stats(S).g.speed / staffFx(S, act.id).sp / perkFx(S.acts[act.id].lvl).speed; }
   function payout(S, act) {
     var a = S.acts[act.id], st = stats(S);
-    return act.pay * (1 + T.upGain * a.lvl) * milestoneMult(a.lvl) * st.g.gain * (st.g.act[act.id] || 1) * st.vm * levelMult(S) * boostMult(S) * staffFx(S, act.id).gn * trendAct(S, act.id);
+    return act.pay * (1 + T.upGain * a.lvl) * milestoneMult(a.lvl) * synergy(S) * st.g.gain * (st.g.act[act.id] || 1) * st.vm * levelMult(S) * boostMult(S) * staffFx(S, act.id).gn * trendAct(S, act.id);
   }
   function xpGain(S, act) { return act.xp * stats(S).g.xp; }
   function upCost(S, act) { return Math.ceil(act.upCost * Math.pow(T.upGrowth, S.acts[act.id].lvl)); }
@@ -2398,7 +2431,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var st = stats(S), r = 0;
     ACTS.forEach(function (a) {
       var t = S.tracks[a.id] || 0;
-      if (t > 0) r += Math.pow(t, T.trackExp) * a.pay * ROY;
+      if (t > 0) r += Math.pow(t, T.trackExp) * a.pay * ROY * perkFx(S.acts[a.id].lvl).roy;
     });
     return r * st.g.roy * st.vm * levelMult(S) * boostMult(S);
   }
@@ -2406,7 +2439,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var r = 0;
     ACTS.forEach(function (a) {
       var s = S.acts[a.id];
-      if (s.auto && isUnlocked(S, a)) r += payout(S, a) / duration(S, a);
+      if (s.auto && isUnlocked(S, a)) r += payout(S, a) * (1 + tubeChance(S, a) * (TUBE - 1)) / duration(S, a);
     });
     return r;
   }
@@ -2436,8 +2469,14 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
 
   function complete(S, act, n) {
-    var a = S.acts[act.id], unit = payout(S, act), p = unit * n, x = xpGain(S, act) * n, mixed = a.mix;
+    var a = S.acts[act.id], unit = payout(S, act), p = unit * n, x = xpGain(S, act) * n, mixed = a.mix, tc = tubeChance(S, act), hits = 0;
     if (mixed) { a.mix = null; p += unit * (mixed.m - 1); x += xpGain(S, act) * mixed.x; }
+    // tubes: une production sur quelques-unes rapporte ×TUBE (tirage individuel, ou moyenne sur un grand lot)
+    if (tc > 0) {
+      if (n <= 40) { for (var k = 0; k < n; k++) if (rand() < tc) hits++; }
+      else hits = Math.round(n * tc * (0.9 + rand() * 0.2));
+      p += unit * (TUBE - 1) * hits;
+    }
     S.money += p; S.lifetime += p;
     S.tracks[act.id] = (S.tracks[act.id] || 0) + n;
     a.done += n;
@@ -2446,7 +2485,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (rf.autoQ4 && a.auto && rand() < rf.autoQ4) qb = Math.max(qb, 4);
     orderProgress(S, act.id, n, qb, mixed ? mixed.q : null);
     addRp(S, n * (ACTS.indexOf(act) + 1) * T.rpPer);
-    if (hooks.complete) hooks.complete(act, n, p, mixed);
+    if (hits) a.tubes = (a.tubes || 0) + hits;
+    if (hooks.complete) hooks.complete(act, n, p, mixed, hits);
   }
 
   function startAct(S, id) {
@@ -2721,7 +2761,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       } else {
         m.morale = Math.min(100, m.morale + T.moraleRest * dt);
       }
-      if (unpaid) m.morale -= T.moraleUnpaid * dt;
+      if (unpaid && !S._off) m.morale -= T.moraleUnpaid * dt;
       m.morale = Math.max(floor, Math.min(100, m.morale));
       if (m.morale < 25 && !m.low) { m.low = true; if (!S._off && hooks.staffWarn) hooks.staffWarn(m); }
       if (m.morale >= 35) m.low = false;
@@ -3478,7 +3518,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     S.money = 0; S.xp = 0; S.level = 1; S.owned = f.owned; S.tracks = {}; S.boost = f.boost;
     ACTS.forEach(function (a) {
       var s = S.acts[a.id];
-      S.acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: s ? s.done : 0 };
+      S.acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: s ? s.done : 0, tubes: s ? s.tubes || 0 : 0 };
     });
     S.ev.cd = T.eventFirst; S.ev.pending = null; S.ev.hold = false;
     if (S.proj) { S.proj.cur = null; S.proj.last = null; } // un projet en cours est abandonné, le carnet reste
@@ -3545,6 +3585,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       case 'battles': n = S.battle ? S.battle.wins : 0; break;
       case 'league': n = S.battle ? S.battle.league : 1; break;
       case 'combo': n = S.battle ? S.battle.best : 0; break;
+      case 'tubes': ACTS.forEach(function (a) { n += (S.acts[a.id] && S.acts[a.id].tubes) || 0; }); break;
       case 'signed': n = S.label ? S.label.roster.length : 0; break;
       case 'concerts': n = S.label ? S.label.concerts : 0; break;
       case 'kept': n = S.label ? S.label.kept : 0; break;
@@ -3750,7 +3791,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     newState: newState, hydrate: hydrate, xpNeeded: xpNeeded, studioValue: studioValue, valueMult: valueMult,
     levelMult: levelMult, duration: duration, payout: payout, xpGain: xpGain, upCost: upCost, royRate: royRate,
     activeRate: activeRate, trackCount: trackCount, isUnlocked: isUnlocked, lockReason: lockReason,
-    tierIndex: tierIndex, milestoneMult: milestoneMult, nextMilestone: nextMilestone, startAct: startAct,
+    tierIndex: tierIndex, milestoneMult: milestoneMult, nextMilestone: nextMilestone, PERKS: PERKS, perkFx: perkFx, nextPerk: nextPerk, perksBetween: perksBetween, synergy: synergy, tubeChance: tubeChance, startAct: startAct,
     tapAct: tapAct, advanceAway: advanceAway, chartsAway: chartsAway, avgMorale: avgMorale, buy: buy, upgradeAct: upgradeAct, upgradeActN: upgradeActN, upPlan: upPlan, buyAuto: buyAuto, advance: advance, offline: offline, touch: touch,
     boostMult: boostMult, contactCount: contactCount, eventRef: eventRef, tickEvents: tickEvents, dismissEvent: dismissEvent,
     resolveEvent: resolveEvent, pickEvent: pickEvent, trophyCount: trophyCount, trophyProgress: trophyProgress,
@@ -6699,6 +6740,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
             '<button class="btn" type="button" id="up-' + act.id + '" data-do="up" data-act="' + act.id + '"><span class="t"><b data-k="upT">Perfectionner</b><small data-k="upS"></small></span><span class="p" data-k="upP"></span></button>' +
             '<button class="btn" type="button" id="auto-' + act.id + '" data-do="auto" data-act="' + act.id + '"><span class="t"><b>Automatiser</b><small>' + act.autoRole + '</small></span><span class="p" data-k="autoP"></span></button>' +
           '</div>' +
+          '<div class="perks" data-k="perks" role="list" aria-label="Paliers de maîtrise">' + G.PERKS.map(function (p) { return '<button type="button" class="perk" role="listitem" data-perk="' + p.id + '" title="Rang ' + p.lvl + ' · ' + p.name + ' : ' + p.desc + '"><b>' + p.lvl + '</b><span>' + p.name + '</span></button>'; }).join('') + '</div>' +
           '<p class="foot-line" data-k="foot"></p>' +
         '</div>';
       host.appendChild(el);
@@ -6709,6 +6751,13 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     });
   }
 
+  function bindPerks() {
+    $('acts').addEventListener('click', function (e) {
+      var b = e.target.closest('.perk'); if (!b) return;
+      var p = G.PERKS.filter(function (x) { return x.id === b.getAttribute('data-perk'); })[0]; if (!p) return;
+      toast('Palier du rang ' + p.lvl + ' · ' + p.name + ' : ' + p.desc + (b.classList.contains('on') ? ' (atteint).' : '.'), 4500);
+    });
+  }
   function floater(id, text) {
     var r = rows[id];
     if (!r || r.live.hidden) return;
@@ -6831,16 +6880,17 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       setClass(r.go, 'run', a.run);
       setText(r.goT, a.run ? 'Accélérer' : 'Lancer');
       setText(r.goS, a.run ? (a.auto ? 'Automatique · ' : '') + 'chaque clic gagne ' + nf1.format(G.TAP) + ' s' : 'Un clic pour démarrer');
-      var nm = G.nextMilestone(a.lvl), to = a.lvl + plan.n, pal = 0;
-      for (var lv = a.lvl + 1; lv <= to; lv++) if (G.milestoneMult(lv) !== G.milestoneMult(lv - 1)) pal++;
+      var np = G.nextPerk(a.lvl), to = a.lvl + plan.n, crossed = G.perksBetween(a.lvl, to);
       setText(r.upT, buyN === 1 ? 'Perfectionner' : buyN === 'max' ? (plan.ok ? 'Perfectionner ×' + plan.n : 'Perfectionner · max') : 'Perfectionner ×' + buyN);
-      setText(r.upS, (plan.n > 1 ? 'Rang ' + a.lvl + ' → ' + to : 'Rang ' + to) + (pal ? ' · ' + (pal > 1 ? pal + ' paliers ×2 franchis' : 'palier ×2 franchi') : nm ? ' · palier ×2 au rang ' + nm : ''));
+      setText(r.upS, (plan.n > 1 ? 'Rang ' + a.lvl + ' → ' + to : 'Rang ' + to) + (crossed.length ? ' · palier ' + crossed.map(function (p) { return '« ' + p.name + ' »'; }).join(', ') + ' !' : np ? ' · « ' + np.name + ' » au rang ' + np.lvl : ''));
+      var pk = G.perkFx(a.lvl).n;
+      if (r.pk !== pk) { r.pk = pk; [].forEach.call(r.perks.children, function (b, i) { b.classList.toggle('on', i < pk); b.classList.toggle('next', i === pk); }); }
       setText(r.upP, eur(cost));
       setDisabled(r.up, !plan.ok);
       setHidden(r.auto, a.auto);
       setText(r.autoP, eur(act.autoCost));
       setDisabled(r.auto, S.money < act.autoCost);
-      setText(r.foot, nf0.format(a.done) + (a.done > 1 ? ' réalisés' : ' réalisé') + ' · qualité ' + starsTxt(G.baseQuality(S, act.id)) + (a.auto ? ' · ' + act.autoRole + ' s’en occupe' : ''));
+      setText(r.foot, nf0.format(a.done) + (a.done > 1 ? ' réalisés' : ' réalisé') + (a.tubes ? ' dont ' + nf0.format(a.tubes) + ' tube' + (a.tubes > 1 ? 's' : '') : '') + ' · qualité ' + starsTxt(G.baseQuality(S, act.id)) + (a.auto ? ' · ' + act.autoRole + ' s’en occupe' : ''));
       setDisabled(r.mix, !G.canMix(S, act.id));
       setText(r.mixT, a.mix ? 'Mixé ' + a.mix.q + '★' : a.hold ? 'Mixage…' : 'Mixer');
     });
@@ -7760,9 +7810,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   }
 
   // ---------- Démarrage ----------
-  G.hooks.complete = function (act, n, p) {
+  G.hooks.complete = function (act, n, p, mixed, hits) {
     if (quiet) return;
     var now = performance.now();
+    if (hits) { lastFloat[act.id] = now; floater(act.id, 'Tube ! +' + eur(p)); if (scene3d) S3.pop('Tube ! +' + eur(p), act.id, 'tube'); blip(11); return; }
     if (now - (lastFloat[act.id] || 0) > 800) { lastFloat[act.id] = now; floater(act.id, '+' + eur(p)); if (scene3d) S3.pop('+' + eur(p), act.id); }
     blip(G.ACTS.indexOf(act));
   };
@@ -7843,9 +7894,10 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   G.hooks.eventExpire = function () { if (!ev.open) toast('L’occasion est passée.'); };
   G.hooks.upgrade = function (act, lvl, from) {
     if (from == null) from = lvl - 1;
-    var k = Math.round(Math.log2(G.milestoneMult(lvl) / G.milestoneMult(from)));
-    if (k === 1) toast('Palier atteint : les gains de « ' + act.name + ' » sont doublés.');
-    else if (k > 1) toast(k + ' paliers atteints : les gains de « ' + act.name + ' » sont multipliés par ' + Math.pow(2, k) + '.');
+    var ps = G.perksBetween(from, lvl);
+    if (ps.length === 1) toast('Palier « ' + ps[0].name + ' » pour « ' + act.name + ' » : ' + ps[0].desc.charAt(0).toLowerCase() + ps[0].desc.slice(1) + '.', 5500);
+    else if (ps.length > 1) toast(ps.length + ' paliers pour « ' + act.name + ' » : ' + ps.map(function (p) { return p.name; }).join(', ') + '.', 5500);
+    if (ps.length) blip(9);
   };
 
   // Accès en lecture pour le diagnostic (console: premierMix().money).
@@ -7859,7 +7911,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     if (raw) { quiet = true; off = G.offline(S, now); quiet = false; }
     S.savedAt = now;
     initTheme();
-    buildActs(); buildShop(); buildTrophies(); bind();
+    buildActs(); buildShop(); buildTrophies(); bind(); bindPerks();
     initScene();
     initMenu();
     render(); renderScene(true);

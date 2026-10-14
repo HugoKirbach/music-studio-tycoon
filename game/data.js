@@ -680,6 +680,7 @@
     { id: 'scene', name: 'Bête de scène', m: 'concerts', levels: [1, 10, 40], desc: 'Donne {n} concerts avec tes artistes.', descs: ['Donne le premier concert d’un de tes artistes.'] },
     { id: 'salles', name: 'Grandes salles', m: 'bestVenue', levels: [3, 4, 5], descs: ['Remplis une salle de concert.', 'Remplis le Zénith.', 'Remplis un stade.'] },
     { id: 'fidele', name: 'Fidélité', m: 'kept', levels: [1, 5, 15], desc: 'Garde {n} artistes courtisés par un label rival.', descs: ['Garde un artiste courtisé par un label rival.'] },
+    { id: 'tubes', name: 'Faiseur de tubes', m: 'tubes', levels: [10, 250, 5000], desc: 'Sors {n} tubes grâce aux paliers de maîtrise.', descs: ['Sors 10 tubes grâce au palier Hit-maker.'] },
     { id: 'combo', name: 'Main sûre', m: 'combo', levels: [20, 50, 100], desc: 'Enchaîne {n} frappes réussies d’affilée dans un clash.' }
   ];
 
@@ -768,6 +769,19 @@
     sales: [0.34, 0.24, 0.16, 0.11, 0.08, 0.07]
   };
 
+
+  // Paliers de maîtrise des productions: chaque palier apporte un effet différent.
+  // gain/speed: multiplicateurs cumulés; tube: chance qu'une production devienne un tube (gains ×TUBE); roy: royalties de cette production; syn: bonus de gains pour toutes les productions.
+  var PERKS = [
+    { lvl: 10, id: 'rode', name: 'Rodé', speed: 1.5, desc: 'Production 50 % plus rapide' },
+    { lvl: 25, id: 'signature', name: 'Signature', gain: 2, desc: 'Gains ×2' },
+    { lvl: 50, id: 'hit', name: 'Hit-maker', tube: 0.12, desc: '12 % de chances de sortir un tube qui rapporte ×10' },
+    { lvl: 75, id: 'culte', name: 'Catalogue culte', roy: 3, gain: 1.3, desc: 'Royalties de cette production ×3, gains ×1,3' },
+    { lvl: 100, id: 'loco', name: 'Locomotive', gain: 2, syn: 0.05, desc: 'Gains ×2 et +5 % de gains pour toutes tes productions' },
+    { lvl: 150, id: 'virtuose', name: 'Virtuose', speed: 1.25, desc: 'Production 25 % plus rapide' },
+    { lvl: 200, id: 'legende', name: 'Légende', gain: 1.5, tube: 0.15, desc: 'Gains ×1,5 et 15 % de tubes' }
+  ];
+  var TUBE = 10;
 
   // Clash de beatmakers: ligues, rivaux et pistes du mini-jeu de rythme.
   var BATTLE = {
@@ -958,7 +972,7 @@
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, PIANO: PIANO, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES, RIVAL_LABELS: RIVAL_LABELS };
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, PIANO: PIANO, PERKS: PERKS, TUBE: TUBE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES, RIVAL_LABELS: RIVAL_LABELS };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);
