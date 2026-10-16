@@ -2014,9 +2014,9 @@
       fenceRun(g, st.fence, fx1, fz0, fx1, fz1);
       fenceRun(g, st.fence === 'piquets' ? 'piquets' : 'haie', fx0, fz1, fx0, fz0);
       fenceRun(g, st.fence === 'piquets' ? 'piquets' : 'haie', fx0, fz0, fx1, fz0);
-      var mb = mailbox(g, pathX + 0.9, gateZ - 0.25, Math.PI, st.mail, st.k); OUT.inter.mail = mb; reserve(pathX + 0.9, gateZ, 0.5);
+      var mb = mailbox(g, pathX + 0.85, Dd + 2.2, 0.35, st.mail, st.k); OUT.inter.mail = mb; reserve(pathX + 0.85, Dd + 2.2, 0.5);
       // arbre à secouer, au coin avant gauche
-      var bigSp = tropical ? trees[1] : trees[0], ti = tree(g, bigSp, -W - 2.4, Dd + 1.9, 1.35, r); ti.userData.keep = true; ti.traverse(function (o) { if (o.isMesh) o.userData.pick = { type: 'out', id: 'tree' }; }); OUT.inter.tree = ti; reserve(-W - 2.4, Dd + 1.9, 1.8);
+      var bigSp = tropical ? trees[1] : trees[0], ti = tree(g, bigSp, -W - 1.5, Dd + 1.1, 1.3, r); ti.userData.keep = true; ti.traverse(function (o) { if (o.isMesh) o.userData.pick = { type: 'out', id: 'tree' }; }); OUT.inter.tree = ti; reserve(-W - 1.5, Dd + 1.1, 1.8);
       // massifs fleuris le long de la terrasse
       flowerBed(g, -W * 0.45, Dd + 1.75, Math.min(3.2, W * 0.9), 0.55, flowers, r);
       flowerBed(g, W + 1.75, -Dd * 0.35, 0.55, Math.min(3, Dd * 1.1), flowers, r);
@@ -2040,7 +2040,7 @@
       scatter(g, def, cfgC, r, { n: q ? 12 : 6, r0: 1.6, R: Math.max(W, Dd) + 6.5, m: 0.6, s0: 0.7, s1: 1.2, h: 0.75, rad: 0.6, used: used,
         zone: function (x, z) { return x > fx0 + 0.5 && x < fx1 - 0.5 && z > fz0 + 0.5 && z < fz1 - 0.5; },
         make: function (x, z, s2) { bush(g, x, z, s2, bushCol + Math.floor(r() * 3) * 0x050805, r); } });
-      OUT.catZone = { x0: W + 0.9, x1: W + 4.6, z0: -Dd + 0.5, z1: Dd + 4.5 };
+      OUT.catZone = { x0: W + 0.4, x1: W + 2.8, z0: -Dd + 0.6, z1: Dd + 1.6 };
       OUT.snowSpot = [W + 3.0, Dd + 3.1];
       OUT.tuftZone = function (x, z) { return (Math.abs(x) > W + 1.4 || Math.abs(z) > Dd + 1.5) && x > fx0 && x < fx1 && z > fz0 && z < fz1 && freeAt(used, x, z, 0.1); };
     } else if (lay === 'rue') {
@@ -2063,7 +2063,8 @@
       });
       // trottoir: arbres en grille, réverbères, banc, vélos, mobilier du pays
       [[-W + 1.2, Dd + sw - 0.7], [-W * 0.1, Dd + sw - 0.7], [W + sw - 0.7, -Dd * 0.2], [W + sw - 0.7, -Dd - 3]].forEach(function (tq, i) {
-        flat(g, 1.1, 1.1, OM(0x5a4a3a), tq[0], tq[1], -0.095); tree(g, trees[i % trees.length], tq[0], tq[1], 0.95, r);
+        flat(g, 1.1, 1.1, OM(0x5a4a3a), tq[0], tq[1], -0.095); var tg3 = tree(g, trees[i % trees.length], tq[0], tq[1], 0.95, r);
+        if (i === 1) { tg3.userData.keep = true; tg3.traverse(function (o) { if (o.isMesh) o.userData.pick = { type: 'out', id: 'tree' }; }); OUT.inter.tree = tg3; }
       });
       lampPost(g, W * 0.45, Dd + sw - 0.35, 'classique'); lampPost(g, -W - 3, Dd + sw - 0.35, 'classique'); lampPost(g, W + sw - 0.35, Dd * 0.55, 'classique'); lampPost(g, W + sw - 0.35, -Dd - 6, 'classique');
       bench(g, W + 1.4, Dd * 0.15, -Math.PI / 2); bikeRack(g, -W + 3.0, Dd + 1.0, 0);
@@ -2076,7 +2077,7 @@
       // de l'autre côté de la rue: square avec haies basses
       var px0 = W + sw * 2 + rd, pz0 = Dd + sw * 2 + rd;
       hedge(g, -W, pz0 + 0.6, def.W + 8, 0.6, 0.7); hedge(g, px0 + 0.6, -Dd, 0.6, def.D + 8, 0.7);
-      var ti2 = tree(g, trees[0], W + sw + rd + sw + 2.6, Dd + sw + rd + sw + 2.6, 1.4, r); ti2.userData.keep = true; ti2.traverse(function (o) { if (o.isMesh) o.userData.pick = { type: 'out', id: 'tree' }; }); OUT.inter.tree = ti2;
+      tree(g, trees[0], W + sw + rd + sw + 2.6, Dd + sw + rd + sw + 2.6, 1.4, r);
       OUT.catZone = { x0: W + 0.5, x1: W + sw - 0.4, z0: -Dd + 1, z1: Dd + 1.6 };
       OUT.snowSpot = [W + 1.4, Dd + 1.6];
       OUT.tuftZone = function (x, z) { return x > px0 + 1.2 || z > pz0 + 1.2; };
@@ -2100,7 +2101,7 @@
       [[-W - 6, -Dd - 2, 9, 9, 7], [0, -Dd - 7, 12, 9, 9], [W + 8, -Dd - 9, 10, 10, 6], [-W - 8, Dd + 6, 8, 8, 5]].forEach(function (bq, i) { building(g, bq[0], bq[1], bq[2], bq[3], bq[4], glass, i, 'plat'); });
       if (tier >= 5) { fountain(g, -W - 3.6, Dd + 3.4, 0.8); }
       var ti3 = tree(g, trees[0], -W - 3.2, -Dd + 1.2, 1.5, r); ti3.userData.keep = true; ti3.traverse(function (o) { if (o.isMesh) o.userData.pick = { type: 'out', id: 'tree' }; }); OUT.inter.tree = ti3;
-      var mb3 = mailbox(g, W + 1.2, Dd + 4.6, Math.PI, st.mail, st.k); OUT.inter.mail = mb3;
+      var mb3 = mailbox(g, W + 0.7, Dd + 3.0, 0.4, st.mail, st.k); OUT.inter.mail = mb3;
       // pelouse au-delà du parvis
       scatter(g, def, cfgC, r, { n: q ? 10 : 5, r0: 9, R: Math.max(W, Dd) + 16, m: 7, s0: 1, s1: 1.4, h: 4.2, rad: 1.4, used: used,
         zone: function (x, z) { return !(x > W && x < W + 17 && z < Dd + 4 && z > -Dd - 6); }, make: function (x, z, s2) { tree(g, trees[Math.floor(r() * trees.length)], x, z, s2, r); } });
@@ -2122,11 +2123,11 @@
       for (var la = 0; la < 8; la++) lampPost(g, W * 0.35 + (la % 2 ? 1.8 : -1.8), Dd + 4.8 + Math.floor(la / 2) * 2.4, 'jardin');
       // allée d'arbres derrière et sur la gauche
       for (var al = 0; al < 7; al++) tree(g, trees[al % 2], -W - 1 + al * (def.W + 6) / 6, -Dd - 3.2, 1.3, r);
-      for (var al2 = 0; al2 < 5; al2++) tree(g, trees[(al2 + 1) % 3], -W - 3.4, -Dd + 1 + al2 * (def.D + 4) / 5, 1.25, r);
-      var ti4 = tree(g, trees[0], -W - 2.2, Dd + 8.4, 1.6, r); ti4.userData.keep = true; ti4.traverse(function (o) { if (o.isMesh) o.userData.pick = { type: 'out', id: 'tree' }; }); OUT.inter.tree = ti4;
+      for (var al2 = 0; al2 < 4; al2++) tree(g, trees[(al2 + 1) % 3], -W - 3.4, -Dd + 1 + al2 * (def.D + 4) / 5, 1.25, r);
+      var ti4 = tree(g, trees[0], -W - 1.9, Dd + 1.0, 1.5, r); ti4.userData.keep = true; ti4.traverse(function (o) { if (o.isMesh) o.userData.pick = { type: 'out', id: 'tree' }; }); OUT.inter.tree = ti4;
       flowerBed(g, -W * 0.5, Dd + 2.25, def.W * 0.4, 0.5, flowers, r, 30); flowerBed(g, W * 0.8, Dd + 2.25, def.W * 0.3, 0.5, flowers, r, 24);
       flowerBed(g, W + 2.25, -Dd * 0.55, 0.5, def.D * 0.35, flowers, r, 24);
-      var mb4 = mailbox(g, W * 0.35 + 1.9, Dd + 17.5, Math.PI, st.mail, st.k); OUT.inter.mail = mb4;
+      var mb4 = mailbox(g, W + 2.5, Dd + 1.0, 0.3, st.mail, st.k); OUT.inter.mail = mb4;
       // grille d'honneur et murs du domaine au loin
       fenceRun(g, 'muret', W + 18, Dd + 18.5, -W - 18, Dd + 18.5, W + 18 - W * 0.35);
       if (st.k === 'jp') { lantern(g, -W - 1.2, Dd + 6.2); lantern(g, W + 2.4, Dd + 6.0); }
@@ -2307,7 +2308,7 @@
     OUT.wet += ((tg.precip && tg.precip.t === 'rain' ? 1 : 0) - OUT.wet) * Math.min(1, dt * 0.25);
     // la nuit, le jardin s'assombrit et la neige prend des reflets bleutés
     var nightK = dark ? 0.58 : 1;
-    grassCol(c, OUT.groundM.color).multiplyScalar(nightK * (1 - OUT.wet * 0.15)); if (OUT.tuftM) OUT.tuftM.color.copy(OUT.groundM.color).multiplyScalar(0.92);
+    grassCol(c, OUT.groundM.color).lerp(TMP.c.setHex(0xe9eef3), Math.min(0.75, c.snow * 0.7)).multiplyScalar(nightK * (1 - OUT.wet * 0.15)); if (OUT.tuftM) OUT.tuftM.color.copy(OUT.groundM.color).multiplyScalar(0.92);
     OUT.snowM.color.setHex(dark ? 0xb9c4dc : 0xf4f8ff);
     setDens(OUT.snowM, c.snow * 1.08);
     if (OUT.tufts) OUT.tufts.visible = c.snow < 0.75;
@@ -2876,6 +2877,7 @@
     if (kind === 'staff' && staffNodes[id]) p = staffNodes[id].anchor.clone();
     if (kind === 'artist' && artistNodes[id]) p = artistNodes[id].anchor.clone();
     if (kind === 'player' && player) p = new V3(player.position.x, 1.5, player.position.z);
+    if (kind === 'out' && OUT.inter[id]) { p = OUT.inter[id].getWorldPosition(new V3()); p.y += id === 'tree' ? 2.2 : id === 'cat' ? 0.25 : 0.6; }
     if (!p) return null;
     p.project(camera);
     var r = canvas.getBoundingClientRect();
