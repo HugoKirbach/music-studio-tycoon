@@ -421,6 +421,8 @@ Le pays où ton studio est installé (choisi à chaque tournée mondiale) change
 - **Hiver** : arbres nus ; la neige s'installe au cœur de la saison, sur la pelouse, les toits, les haies et les sapins ; les bassins gèlent.
 - **Météo du jour** : soleil, éclaircies, nuages, pluie (la pelouse s'assombrit), neige, orages avec éclairs, brume. Le vent fait onduler les feuillages et des oiseaux tournent au-dessus du jardin les beaux jours.
 - Tout évolue en douceur, d'un instant à l'autre : pas de changement brutal.
+- La nuit, les réverbères dessinent des halos au sol et les fenêtres des voisins s'allument ; les fontaines gèlent en plein hiver.
+- À l'intérieur aussi, l'étagère à souvenirs suit le calendrier : bouquet de fleurs à la belle saison, citrouille à Halloween, petit sapin pour les fêtes.
 
 ### Les fêtes de l'année
 
