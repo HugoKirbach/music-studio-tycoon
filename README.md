@@ -394,9 +394,9 @@ L'onglet **Palmarès** compte **42 familles de trophées** (production, fortune,
 | Lieu | Ce qui entoure le studio |
 | --- | --- |
 | Ta chambre, Chambre-studio | Jardin : terrasse, massifs fleuris, potager, banc, allée vers le portail, clôture, maisons voisines |
-| Le garage | Le même jardin, plus l'allée goudronnée et la voiture devant la porte du garage |
-| Local en ville | Coin de rue : trottoirs, chaussées et passages piétons, réverbères, arbres en grille, voitures garées, immeubles mitoyens |
-| Studio professionnel, Studio de référence | Parvis pavé, jardinières, bornes lumineuses, parking, drapeaux et tours de bureaux (fontaine au studio de référence) |
+| Le garage | Le même jardin, plus l'allée goudronnée qui sort du terrain par une ouverture de la clôture, et la voiture devant la porte du garage |
+| Local en ville | Coin de rue au carrefour de deux rues : trottoirs bordés de granit, chaussées, passages piétons, réverbères, arbres en grille, voitures garées le long des trottoirs, ruelle pavée vers l'immeuble voisin, immeubles du même pâté de maisons, abribus et squares de l'autre côté |
+| Studio professionnel, Studio de référence | Parvis pavé, jardinières, bornes lumineuses, parking, drapeaux et tours de bureaux tout autour (fontaine au studio de référence) |
 | Complexe légendaire | Domaine : allée de gravier bordée de topiaires, fontaine, piscine, haies taillées, statue, grille d'honneur |
 
 ### Un décor selon le pays
@@ -422,6 +422,7 @@ Le pays où ton studio est installé (choisi à chaque tournée mondiale) change
 - **Météo du jour** : soleil, éclaircies, nuages, pluie (la pelouse s'assombrit), neige, orages avec éclairs, brume. Le vent fait onduler les feuillages et balance la balançoire du jardin, des oiseaux tournent au-dessus des arbres les beaux jours.
 - **Passants** : en ville et sur le parvis, des passants se promènent sur les trottoirs, parapluie ouvert quand il pleut.
 - Tout évolue en douceur, d'un instant à l'autre : pas de changement brutal.
+- **Un décor cohérent** : chaque objet a sa place. Les immeubles restent dans leur pâté de maisons, les chaussées et les trottoirs ne se chevauchent jamais, les passants gardent leur file et ne traversent qu'aux passages piétons, les arbres poussent loin des murs et des toits. Les sols (pelouse, neige, chaussée, marquages, trottoirs, bordures) sont étagés au centimètre près et leurs pavés gardent la même taille partout : plus de surfaces qui scintillent. Le sapin de Noël, la scène de la Fête de la musique, les citrouilles et le bonhomme de neige ont chacun leur emplacement réservé.
 - La nuit, les réverbères dessinent des halos au sol et les fenêtres des voisins s'allument ; les fontaines gèlent en plein hiver.
 - À l'intérieur aussi, l'étagère à souvenirs suit le calendrier : bouquet de fleurs à la belle saison, citrouille à Halloween, petit sapin pour les fêtes.
 
@@ -511,6 +512,7 @@ Le jeu continue sans toi :
 
 | Date | Nouveautés |
 | --- | --- |
+| 16/10/2026 | Décors extérieurs revus et vérifiés objet par objet : le coin de rue devient un vrai carrefour (plus de route à travers les maisons), sols étagés sans scintillement, pavés à taille constante, objets posés sur leur sol, passants sur leurs trottoirs et aux passages piétons, sapin, scène et citrouilles à des emplacements réservés, arbres loin des murs et des immeubles, angles de clôture propres, allée du garage qui sort du terrain. Intérieur : plus de scintillement sur les enceintes ni sur la boîte aux lettres, précision de profondeur accrue. |
 | 16/10/2026 | Courrier des fans : enveloppe qui s'ouvre, lettre manuscrite qui s'écrit, cadeau encaissé avec « Marquer comme lu ». Clashs : le métronome, la musique et les notes suivent désormais l'horloge du son (fini les décalages au démarrage ou avec un casque sans fil). |
 | 16/10/2026 | Absence : tout se cumule comme avant, mais le calendrier n'avance plus que de 3 jours au plus (les parties en cours sont ramenées à une date proche du réel). |
 | 16/10/2026 | Refonte graphique : modèles 3D arrondis et détaillés (bureaux, fauteuils, canapés, lit, enceintes, micros, piano à queue, consoles…), reflets d'ambiance, vraies fenêtres ouvertes sur l'extérieur, murs enduits. Extérieur interactif selon le lieu (jardin, rue, parvis, domaine) et le pays. Calendrier de carrière : jours, saisons, météo, neige, vent, orages et fêtes datées (gains ×1,5 à la Fête de la musique). Courrier des fans, arbre à secouer, chat, bonhomme de neige. Réglage de qualité 3D. |
