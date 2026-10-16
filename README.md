@@ -419,7 +419,8 @@ Le pays où ton studio est installé (choisi à chaque tournée mondiale) change
 - **Été** : feuillage dense ; l'herbe jaunit un peu par temps sec.
 - **Automne** : les feuilles prennent leurs couleurs (jaune, orange, rouge selon l'essence) puis tombent en tourbillonnant.
 - **Hiver** : arbres nus ; la neige s'installe au cœur de la saison, sur la pelouse, les toits, les haies et les sapins ; les bassins gèlent.
-- **Météo du jour** : soleil, éclaircies, nuages, pluie (la pelouse s'assombrit), neige, orages avec éclairs, brume. Le vent fait onduler les feuillages et des oiseaux tournent au-dessus du jardin les beaux jours.
+- **Météo du jour** : soleil, éclaircies, nuages, pluie (la pelouse s'assombrit), neige, orages avec éclairs, brume. Le vent fait onduler les feuillages et balance la balançoire du jardin, des oiseaux tournent au-dessus des arbres les beaux jours.
+- **Passants** : en ville et sur le parvis, des passants se promènent sur les trottoirs, parapluie ouvert quand il pleut.
 - Tout évolue en douceur, d'un instant à l'autre : pas de changement brutal.
 - La nuit, les réverbères dessinent des halos au sol et les fenêtres des voisins s'allument ; les fontaines gèlent en plein hiver.
 - À l'intérieur aussi, l'étagère à souvenirs suit le calendrier : bouquet de fleurs à la belle saison, citrouille à Halloween, petit sapin pour les fêtes.

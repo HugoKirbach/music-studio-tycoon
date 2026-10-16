@@ -6603,7 +6603,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
   function buildOutdoor(def, key, tier, country) {
     var oldG = OUT.g, oldM = OUT.allM;
     OUT.allM = [];
-    OUT.fountains = []; OUT.mc = {}; OUT.tint = []; OUT.night = []; OUT.leafM = {}; OUT.bloomM = {}; OUT.flowerM = []; OUT.trees = []; OUT.lamps = []; OUT.spots = {}; OUT.inter = {}; OUT.fests = {}; OUT.capM = null; OUT.cropM = null; OUT.fruitM = null;
+    OUT.fountains = []; OUT.walkPaths = null; OUT.swing = null; OUT.mc = {}; OUT.tint = []; OUT.night = []; OUT.leafM = {}; OUT.bloomM = {}; OUT.flowerM = []; OUT.trees = []; OUT.lamps = []; OUT.spots = {}; OUT.inter = {}; OUT.fests = {}; OUT.capM = null; OUT.cropM = null; OUT.fruitM = null;
     var cfgC = (root.GameData && GameData.CAL && GameData.CAL.climate[country]) || { trees: ['chene', 'tilleul', 'platane'], conifer: 'sapin', flowers: [0xe85a7a, 0xf2c14e, 0x9b7fd6], style: 'fr' };
     var st = STYLE[cfgC.style] || STYLE.fr; st.k = cfgC.style || 'fr';
     var lay = outLayout(key, tier), W = def.W / 2, Dd = def.D / 2, r = rnd(17 + tier * 31 + country.charCodeAt(0)), q = QUAL.lvl;
@@ -6689,8 +6689,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
         if (i === 1) { tg3.userData.keep = true; tg3.traverse(function (o) { if (o.isMesh) o.userData.pick = { type: 'out', id: 'tree' }; }); OUT.inter.tree = tg3; }
       });
       lampPost(g, W * 0.45, Dd + sw - 0.35, 'classique'); lampPost(g, -W - 3, Dd + sw - 0.35, 'classique'); lampPost(g, W + sw - 0.35, Dd * 0.55, 'classique'); lampPost(g, W + sw - 0.35, -Dd - 6, 'classique');
-      bench(g, W + 1.4, Dd * 0.15, -Math.PI / 2); bikeRack(g, -W + 3.0, Dd + 1.0, 0);
-      busStop(g, W + sw - 0.55, -Dd - 2.6, st);
+      bench(g, W + 0.65, Dd * 0.15, -Math.PI / 2);
+      busStop(g, W + sw + rd + 0.75, -Dd - 2.6, st).rotation.y = -Math.PI / 2;
       [[W + 0.5, Dd * 0.6], [-W + 4.6, Dd + 0.45]].forEach(function (bq) { var bin = grp(g, bq[0], -0.12, bq[1]); cyl(bin, 0.22, 0.85, OM(0x3d6b4a, { snow: 0.4 }), 0, 0, 0, 14, 0.2); cyl(bin, 0.24, 0.06, OM(0x2c4c36), 0, 0.85, 0, 14); });
       if (st.k === 'uk') pillarBox(g, W * 0.2, Dd + sw - 0.45); else if (st.k === 'us') hydrant(g, W + 1.0, Dd + 1.1); else if (st.k === 'jp') vending(g, W + 0.75, -Dd + 1.2, -Math.PI / 2);
       var mb2 = mailbox(g, W + 0.6, Dd + 0.6, Math.PI / 4, st.mail, st.k); OUT.inter.mail = mb2;
@@ -6702,6 +6702,8 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var px0 = W + sw * 2 + rd, pz0 = Dd + sw * 2 + rd;
       hedge(g, -W, pz0 + 0.6, def.W + 8, 0.6, 0.7); hedge(g, px0 + 0.6, -Dd, 0.6, def.D + 8, 0.7);
       tree(g, trees[0], W + sw + rd + sw + 2.6, Dd + sw + rd + sw + 2.6, 1.4, r);
+      var fz = Dd + sw + rd + sw * 0.5, fx = W + sw + rd + sw * 0.5;
+      OUT.walkPaths = [[[-W - 22, Dd + 1.3], [W + 1.6, Dd + 1.3], [W + 1.6, -Dd - 22]], [[-W - 22, fz], [fx, fz], [fx, -Dd - 22]], [[-W - 18, fz + 0.5], [fx + 0.5, fz + 0.5], [fx + 0.5, -Dd - 18]], [[W + 1.15, -Dd - 20], [W + 1.15, Dd + 0.95], [-W - 20, Dd + 0.95]]];
       OUT.catZone = { x0: W + 0.5, x1: W + sw - 0.4, z0: -Dd + 1, z1: Dd + 1.6 };
       OUT.snowSpot = [W + 1.4, Dd + 1.6];
       OUT.tuftZone = function (x, z) { return x > px0 + 1.2 || z > pz0 + 1.2; };
@@ -6729,6 +6731,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       // pelouse au-delà du parvis
       scatter(g, def, cfgC, r, { n: q ? 10 : 5, r0: 9, R: Math.max(W, Dd) + 16, m: 7, s0: 1, s1: 1.4, h: 4.2, rad: 1.4, used: used,
         zone: function (x, z) { return !(x > W && x < W + 17 && z < Dd + 4 && z > -Dd - 6); }, make: function (x, z, s2) { tree(g, trees[Math.floor(r() * trees.length)], x, z, s2, r); } });
+      OUT.walkPaths = [[[-W - 9, Dd + 4.6], [W + 4.3, Dd + 4.6], [W + 4.3, -Dd - 3]], [[W + 6.2, -Dd - 6], [W + 6.2, Dd + 6.4], [-W - 6, Dd + 6.4]], [[-W, Dd + 2.6], [W - 1, Dd + 2.6]]];
       OUT.catZone = { x0: W + 1.0, x1: W + 6.0, z0: Dd + 0.8, z1: Dd + 6.0 };
       OUT.snowSpot = [W + 4.2, Dd + 4.4];
       OUT.tuftZone = function (x, z) { return (z > Dd + 7 || x < -W - 6 || x > W + 17) && freeAt(used, x, z, 0.1); };
@@ -6762,6 +6765,26 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       OUT.tuftZone = function (x, z) { return (Math.abs(x) > W + 2.4 || Math.abs(z) > Dd + 2.4) && Math.abs(x - W * 0.35) > 1.8 && freeAt(used, x, z, 0.1); };
     }
     if (q >= 1 && OUT.tuftZone) OUT.tufts = grassTufts(g, q >= 2 ? 650 : 260, OUT.tuftZone, r);
+    // passants sur les trottoirs et le parvis (avec un parapluie quand il pleut)
+    OUT.walkers = [];
+    if (OUT.walkPaths && q >= 1) OUT.walkPaths.forEach(function (path, i) {
+      var look = { s: Math.floor(r() * 8), h: Math.floor(r() * 8), c: Math.floor(r() * 16), y: Math.floor(r() * 4) }, w2 = person(look, 'stand', { pants: [0x3b4a63, 0x2d2d2d, 0x6b5a48, 0x4a5a3a][i % 4] });
+      w2.traverse(function (o) { if (o.isMesh) o.castShadow = false; });
+      var um = grp(w2, 0.17, 1.24, -0.12); um.visible = false; um.name = 'parapluie';
+      cyl(um, 0.01, 0.75, OM(0x2a2a2a), 0, 0, 0, 5); var can = cone(um, 0.55, 0.26, OM([0xe2364a, 0x2f6fd3, 0x2bb3a3, 0x1d1e21][i % 4], { r: 0.6 }), 0, 0.62, 0, 10);
+      w2.userData.keep = true; w2.userData.umb = um; g.add(w2);
+      var L = 0; for (var k = 1; k < path.length; k++) L += Math.hypot(path[k][0] - path[k - 1][0], path[k][1] - path[k - 1][1]);
+      OUT.walkers.push({ g: w2, path: path, L: L, s: r() * L, dir: r() < 0.5 ? 1 : -1, sp: 0.9 + r() * 0.35 });
+    });
+    if (lay === 'jardin') { // balançoire au fond du jardin
+      var sw2 = grp(g, W + 4.5, -0.12, -Dd - 3.2, -0.3), wood2 = OM(0x8a6040, { snow: 0.5 });
+      [-1.05, 1.05].forEach(function (x) { var a1 = cyl(sw2, 0.05, 2.2, wood2, x, 0, 0.45, 8); a1.rotation.x = -0.35; a1.position.set(x, 1.05, 0.38); var a2 = cyl(sw2, 0.05, 2.2, wood2, x, 0, -0.45, 8); a2.rotation.x = 0.35; a2.position.set(x, 1.05, -0.38); });
+      var beam = cyl(sw2, 0.06, 2.3, wood2, 0, 0, 0, 8); beam.rotation.z = Math.PI / 2; beam.position.set(0, 2.07, 0);
+      var seat = grp(sw2, 0, 2.05, 0); seat.userData.keep = true; OUT.swing = seat;
+      [-0.25, 0.25].forEach(function (x) { cyl(seat, 0.008, 1.45, OM(0x6b6f75), x, -1.45, 0, 4); });
+      box(seat, 0.62, 0.05, 0.25, OM(0xe2574c, { snow: 0.6 }), 0, -1.5, 0);
+      reserve(W + 4.5, -Dd - 3.2, 1.5);
+    }
     // interactions: chat et bonhomme de neige
     var cat = catModel(g); OUT.inter.cat = cat; var cz = OUT.catZone; cat.position.set((cz.x0 + cz.x1) / 2, -0.12, (cz.z0 + cz.z1) / 2);
     OUT.catSt = { tx: cat.position.x, tz: cat.position.z, wait: 2, mode: 'sit', hop: 0, purr: 0 };
@@ -7041,6 +7064,20 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var fl = Math.sin(t * 13 + u.ph) * 0.7 * (0.5 + 0.5 * Math.max(0, Math.sin(t * 0.7 + u.ph)));
       u.wl.rotation.z = fl; u.wr.rotation.z = -fl;
     });
+    var rainy = !!(pr && pr.t === 'rain' && pr.k > 0.15);
+    (OUT.walkers || []).forEach(function (wk) {
+      wk.s += wk.dir * wk.sp * dt;
+      if (wk.s > wk.L) { wk.s = wk.L; wk.dir = -1; } else if (wk.s < 0) { wk.s = 0; wk.dir = 1; }
+      var d = wk.s, pth = wk.path;
+      for (var k = 1; k < pth.length; k++) {
+        var sx = pth[k][0] - pth[k - 1][0], sz = pth[k][1] - pth[k - 1][1], sl = Math.hypot(sx, sz);
+        if (d <= sl || k === pth.length - 1) { var f = Math.min(1, d / sl); wk.g.position.set(pth[k - 1][0] + sx * f, -0.12, pth[k - 1][1] + sz * f); var fx2 = sx * wk.dir, fz2 = sz * wk.dir; wk.g.rotation.y = Math.atan2(-fx2, -fz2); break; }
+        d -= sl;
+      }
+      wk.g.userData.umb.visible = rainy;
+      animatePerson(wk.g, t * wk.sp, rainy ? 'walkU' : 'walk');
+    });
+    if (OUT.swing) OUT.swing.rotation.x = Math.sin(t * 1.3) * 0.08 * (ev ? ev.wind : 0.4) * (reduce ? 0.3 : 1);
     var tr = OUT.inter.tree;
     if (tr && OUT.shake > 0) { OUT.shake = Math.max(0, OUT.shake - dt); var k = OUT.shake; tr.rotation.z = Math.sin(t * 38) * 0.035 * k; tr.rotation.x = Math.cos(t * 31) * 0.025 * k; }
     if (OUT.poolM && OUT.poolM.map) { OUT.poolM.map.offset.x = Math.sin(t * 0.3) * 0.05; OUT.poolM.map.offset.y = t * 0.02; }
@@ -7217,6 +7254,13 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       p.head.rotation.x = -0.08 * sing + beat * 0.05 * k; p.head.rotation.y = (1 - sing) * Math.sin(ph * 0.6) * 0.3 * k;
       p.body.rotation.z = Math.sin(ph * 2.1) * 0.03 * k; p.body.rotation.y = Math.sin(ph * 1.05) * 0.1 * k;
       p.body.position.y = p.hip + Math.abs(Math.sin(ph * 2.1)) * 0.012 * k;
+    } else if (mode === 'walk' || mode === 'walkU') { // marche: jambes et bras en balancier (parapluie tenu à droite sous la pluie)
+      var st = Math.sin(ph * 7.5), kn = Math.max(0, Math.sin(ph * 7.5 + 1.2));
+      p.legL.th.rotation.x = st * 0.45; p.legR.th.rotation.x = -st * 0.45;
+      p.legL.sh.rotation.x = -Math.max(0, -Math.sin(ph * 7.5 + 1.2)) * 0.7; p.legR.sh.rotation.x = -kn * 0.7;
+      if (mode === 'walkU') pose3(p, -st * 0.35, 0.2, 0.75, 1.55, 0.06, -0.25, 0, -0.5);
+      else pose3(p, -st * 0.4, 0.25, st * 0.4, 0.25, 0.06, -0.06);
+      p.body.position.y = p.hip + Math.abs(Math.cos(ph * 7.5)) * 0.025; p.body.rotation.y = st * 0.06;
     } else if (mode === 'train') { // devant le tableau: bras croisés, tête qui acquiesce
       pose3(p, 0.18, 1.5, 0.22, 1.45, 0.12, -0.12, 1.15, -1.1);
       p.head.rotation.x = 0.1 + Math.sin(ph * 0.7) * 0.05 * k;
