@@ -995,7 +995,7 @@
       '<p class="cal-note">Jour ' + nf0.format(c.day) + ' de ta carrière, commencée le ' + esc(start.text) + '.</p>' +
       '<div class="cal-rows">' + rows.map(function (r) { return '<div><span>' + esc(r[0]) + '</span><b>' + esc(r[1]) + '</b></div>'; }).join('') + '</div>' +
       '<p class="cal-sec">Au jardin</p><ul class="cal-list">' + garden.map(function (g) { return '<li>' + esc(g.charAt(0).toUpperCase() + g.slice(1)) + '</li>'; }).join('') + '</ul>' +
-      '<p class="cal-note">Une semaine du Top 50 dure 7 jours : un jour passe toutes les ' + Math.round(D.CAL.day) + ' secondes, même pendant ton absence. Les saisons, la neige et les fêtes suivent le pays de ton studio.</p>';
+      '<p class="cal-note">Une semaine du Top 50 dure 7 jours : un jour passe toutes les ' + Math.round(D.CAL.day) + ' secondes de jeu. Pendant ton absence, tout continue de rapporter mais le calendrier n’avance que de ' + D.CAL.awayDays + ' jours au plus. Les saisons, la neige et les fêtes suivent le pays de ton studio.</p>';
     var box = $('calBody');
     if (box._h !== html) { box._h = html; box.innerHTML = html; }
   }

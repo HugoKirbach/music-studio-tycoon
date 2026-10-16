@@ -385,8 +385,8 @@ L'onglet **Palmarès** compte **42 familles de trophées** (production, fortune,
 ### Le calendrier de carrière
 
 - Le **jour 1** est la date réelle de ton tout premier lancement. Ensuite, les jours suivent le temps du jeu : **une semaine du Top 50 (3 minutes) = 7 jours**, donc un jour passe toutes les **26 secondes environ**.
-- Le calendrier continue pendant ton absence, comme le Top 50 (jusqu'au plafond de 6 h quand le jeu est fermé). Le débrief indique combien de jours ont passé.
-- Les anciennes parties reprennent avec un calendrier déduit des semaines du Top 50 déjà jouées.
+- **Pendant une absence**, tout continue de se cumuler comme avant (argent, Top 50, ventes, tournées locales…), mais le calendrier n'avance que de **3 jours au plus**, pour ne pas sauter de saison ni rater les fêtes. Le débrief indique combien de jours ont passé.
+- Les parties commencées avant le calendrier reprennent à une date qui ne dépasse pas le nombre de jours réels écoulés depuis leur premier lancement.
 - **La fiche du jour** (touche la pastille) donne la date complète, la saison, la météo et la température, l'état du jardin, la fête en cours, la prochaine fête et ce qui t'attend dehors.
 
 ### Un extérieur selon ton lieu
@@ -464,6 +464,7 @@ Le jeu continue sans toi :
 - **Jeu fermé** : la production tourne à **50 %**, jusqu'à **6 h** d'absence. Le Top 50 et les tournées locales avancent aussi.
 - **Jeu ouvert en arrière-plan** (autre onglet, écran verrouillé) : le studio tourne à **plein régime**.
 - Personne ne démissionne pendant ton absence, et l'équipe se repose.
+- Le calendrier, lui, n'avance que de 3 jours au plus par absence.
 
 À ton retour, un **débrief** affiche :
 
@@ -510,6 +511,7 @@ Le jeu continue sans toi :
 
 | Date | Nouveautés |
 | --- | --- |
+| 16/10/2026 | Absence : tout se cumule comme avant, mais le calendrier n'avance plus que de 3 jours au plus (les parties en cours sont ramenées à une date proche du réel). |
 | 16/10/2026 | Refonte graphique : modèles 3D arrondis et détaillés (bureaux, fauteuils, canapés, lit, enceintes, micros, piano à queue, consoles…), reflets d'ambiance, vraies fenêtres ouvertes sur l'extérieur, murs enduits. Extérieur interactif selon le lieu (jardin, rue, parvis, domaine) et le pays. Calendrier de carrière : jours, saisons, météo, neige, vent, orages et fêtes datées (gains ×1,5 à la Fête de la musique). Courrier des fans, arbre à secouer, chat, bonhomme de neige. Réglage de qualité 3D. |
 | 15/10/2026 | Documentation complète du jeu (ce document). |
 | 14/10/2026 | Version mobile compacte, détails derrière un « i ». Souvenirs de tournée en 3D et globe interactif. Tournée mondiale à préparer (8 dates, choix du pays). Tournées locales des artistes avec imprévus. Paliers de maîtrise à effets variés et tubes. Débrief d'absence exact (salaires, bilan, Top 50). Top 50 actif pendant l'absence, équipe au repos. Personnages 3D articulés. Clash simplifié avec métronome, duels et atelier « piano tiles », sons séparés, menus réorganisés. Labels rivaux, discographie, artistes visibles en 3D. |

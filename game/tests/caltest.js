@@ -11,9 +11,18 @@ G.advance(S, DAY * 3.5);
 ok('les jours suivent le temps du jeu', G.calendar(S).day === 4 && G.calendar(S).text === '18 janvier 2027', G.calendar(S).text);
 ok('une semaine du Top 50 = 7 jours', Math.abs(DAY * 7 - D.TUNING.weekLen) < 1e-9);
 // absence: le calendrier suit le temps réel écoulé
-var S2 = G.newState(t0); S2.savedAt = t0; S2.owned = { laptop: 1 };
+var S2 = G.newState(t0); S2.savedAt = t0; S2.owned = { laptop: 1 }; S2.acts.beat.auto = true; S2.acts.beat.run = true;
 var r = G.offline(S2, t0 + 3600 * 1000);
-ok('absence d’1 h ≈ 140 jours', Math.abs(S2.cal.d - 3600 / DAY) < 0.5, S2.cal.d.toFixed(1));
+ok('absence d’1 h: le calendrier n’avance que de 3 jours', Math.abs(S2.cal.d - D.CAL.awayDays) < 1e-9, S2.cal.d.toFixed(2));
+ok('absence: les gains se cumulent toujours', r && r.gain > 0 && r.days <= D.CAL.awayDays, r && r.days);
+var S2b = G.newState(t0); S2b.cal.d = 10; S2b._off = 1; for (var q = 0; q < 50; q++) G.advance(S2b, 60); delete S2b._off;
+ok('jeu en arrière-plan: plafond sur toute l’absence', Math.abs(S2b.cal.d - 13) < 1e-9, S2b.cal.d);
+G.advance(S2b, DAY * 2);
+ok('retour au jeu: les jours reprennent leur rythme', Math.abs(S2b.cal.d - 15) < 1e-9 && S2b.cal.ad === 0, S2b.cal.d);
+var short = G.newState(t0); short._off = 1; G.advance(short, DAY * 1.5); delete short._off;
+ok('courte absence: le temps réel compte', Math.abs(short.cal.d - 1.5) < 1e-9, short.cal.d);
+var legacy = JSON.parse(JSON.stringify(G.newState(Date.now() - 5 * 864e5))); legacy.cal.d = 900; delete legacy.cal.v;
+ok('anciennes parties: date ramenée aux jours réels depuis le premier lancement', Math.abs(G.hydrate(legacy, Date.now()).cal.d - 5) < 0.01);
 // saisons en France
 function at(k, y, m, d, hour) { var s = G.newState(new Date(y, 0, 1, 12).getTime()); s.world.home = k; var c = new Date(y, m - 1, d, 12); s.cal.d = Math.round((c - new Date(y, 0, 1, 12)) / 864e5) + (hour || 0.5); return G.env(s); }
 var jan = at('fr', 2027, 1, 18), jul = at('fr', 2027, 7, 15), oct = at('fr', 2027, 10, 25), apr = at('fr', 2027, 4, 20);
@@ -73,7 +82,7 @@ var S8 = G.hydrate(JSON.parse(JSON.stringify(S7)), Date.now());
 ok('calendrier sauvegardé', Math.abs(S8.cal.d - S7.cal.d) < 1e-9 && S8.cal.sm === 3);
 var old = JSON.parse(JSON.stringify(S7)); delete old.cal; old.charts.week = 11; old.charts.left = D.TUNING.weekLen / 2;
 var S9 = G.hydrate(old, Date.now());
-ok('anciennes sauvegardes: jours déduits des semaines du Top 50', Math.abs(S9.cal.d - (70 + 3.5)) < 1e-6, S9.cal.d);
+ok('anciennes sauvegardes: jours déduits des semaines du Top 50 (sans dépasser le temps réel)', Math.abs(S9.cal.d - Math.min(73.5, Math.max(0, (Date.now() - S9.created) / 864e5))) < 0.01, S9.cal.d);
 // tournée mondiale: le temps passe
 var S10 = G.newState(t0); S10.lifetime = 1e15; S10.cal.d = 10;
 var tr = G.tour(S10, Date.now(), 'fr');

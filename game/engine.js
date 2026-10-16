@@ -44,7 +44,7 @@
   var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
   PERKS = D.PERKS || MILESTONES.map(function (l) { return { lvl: l, id: 'p' + l, name: 'Palier', gain: 2, desc: 'Gains ×2' }; }); TUBE = D.TUBE || 10;
-  var CAL = D.CAL || { day: 180 / 7, tourDays: 14, tourPerDate: 7, months: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'], weekdays: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
+  var CAL = D.CAL || { day: 180 / 7, tourDays: 14, tourPerDate: 7, awayDays: 3, months: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'], weekdays: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
     climate: { fr: { t: [12.5, 8, 200], vary: 4, snow: 0.6, sw: 0.84, ph: 0, hemi: 1, zone: 'tempere', rain: [0.3, 0.3, 0.3, 0.3, 0.3, 0.25, 0.2, 0.2, 0.25, 0.3, 0.35, 0.35], trees: ['platane'], flowers: [0xe85a7a], style: 'fr' } },
     fests: [], out: { mail: { every: 300, x: 0.6, lvl: 2 }, tree: { cd: 150, xp: 0.03 }, cat: { cd: 240, morale: 4, x: 0.15 }, snowman: { snow: 0.45, steps: 3, boost: 1.5, s: 90 } }, mail: ['« Merci ! »'] };
   var PIANO = D.PIANO || { songs: [{ id: 'gamme', name: 'Gamme', notes: [60, 62, 64, 65, 67, 69, 71, 72] }], min: 10 };
@@ -64,7 +64,7 @@
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, fameX: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
       team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco(), label: newLabel(), world: newWorld(0), cal: newCal() };
   }
-  function newCal() { return { d: 0, mail: 0, cd: { tree: 0, cat: 0 }, sm: 0, smW: -1, fest: '', hint: 0 }; }
+  function newCal() { return { v: 2, d: 0, ad: 0, mail: 0, cd: { tree: 0, cat: 0 }, sm: 0, smW: -1, fest: '', hint: 0 }; }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newLabel() { return { roster: [], albums: 0, concerts: 0, bestVenue: 0, kept: 0, ocd: T.offerFirst, gone: [], disco: [], ltours: 0, cities: {} }; }
   function newWorld(tours) { return { home: 'fr', done: {}, base: null, rec: { piano: 0, proj: 0 }, souv: {}, homes: ['fr'], picks: pickDates(tours || 0) }; }
@@ -194,10 +194,12 @@
       var cl = o.cal, K = S.cal;
       K.d = Math.max(0, Math.min(3650000, num(cl.d, 0))); K.mail = Math.max(0, Math.min(1, num(cl.mail, 0)));
       K.cd = { tree: Math.max(0, num(cl.cd && cl.cd.tree, 0)), cat: Math.max(0, num(cl.cd && cl.cd.cat, 0)) };
-      K.sm = Math.max(0, Math.min(CAL.out.snowman.steps, Math.floor(num(cl.sm, 0)))); K.smW = Math.floor(num(cl.smW, -1)); K.fest = String(cl.fest || '').slice(0, 60); K.hint = cl.hint ? 1 : 0;
+      K.sm = Math.max(0, Math.min(CAL.out.snowman.steps, Math.floor(num(cl.sm, 0)))); K.smW = Math.floor(num(cl.smW, -1)); K.fest = String(cl.fest || '').slice(0, 60); K.hint = cl.hint ? 1 : 0; K.ad = Math.max(0, Math.min(CAL.awayDays || 3, num(cl.ad, 0)));
+      // parties créées avant le plafond d'absence: la date ne dépasse pas le nombre de jours réels depuis le premier lancement
+      if (!(cl.v >= 2)) K.d = Math.min(K.d, Math.max(0, ((now || Date.now()) - S.created) / 864e5));
     } else if (o.charts && typeof o.charts === 'object') {
       // anciennes sauvegardes: le temps écoulé se déduit des semaines du Top 50 déjà passées
-      S.cal.d = Math.max(0, (S.charts.week - 1) * 7 + (T.weekLen - S.charts.left) / CAL.day);
+      S.cal.d = Math.min(Math.max(0, (S.charts.week - 1) * 7 + (T.weekLen - S.charts.left) / CAL.day), Math.max(0, ((now || Date.now()) - S.created) / 864e5));
     }
     return S;
   }
@@ -1543,7 +1545,11 @@
   // Jour 1 = date du premier lancement (S.created). Les jours avancent avec le temps du jeu, même pendant l'absence.
   function tickCal(S, rdt) {
     var K = S.cal; if (!K || rdt <= 0) return;
-    K.d += rdt / CAL.day;
+    // absence (S._off): le calendrier avance de quelques jours au plus, pour ne pas sauter les saisons et les fêtes
+    var add = rdt / CAL.day;
+    if (S._off) { add = Math.min(add, Math.max(0, (CAL.awayDays || 3) - (K.ad || 0))); K.ad = (K.ad || 0) + add; }
+    else K.ad = 0;
+    K.d += add;
     if (S.level >= CAL.out.mail.lvl) K.mail = Math.min(1, K.mail + rdt / CAL.out.mail.every);
     K.cd.tree = Math.max(0, K.cd.tree - rdt); K.cd.cat = Math.max(0, K.cd.cat - rdt);
   }

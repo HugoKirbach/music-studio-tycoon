@@ -1103,7 +1103,8 @@
   // Climat par pays: t = [moyenne °C, amplitude, jour le plus chaud], snow = neige au cœur de l'hiver (0 à 1), sw = seuil de froid
   // (0 à 1) à partir duquel la neige tient, rain = probabilité de pluie par mois, ph = décalage du feuillage (jours), hemi = hémisphère.
   var CAL = {
-    day: 180 / 7, tourDays: 14, tourPerDate: 7,
+    // awayDays: pendant une absence, tout se cumule (argent, Top 50…) mais le calendrier n'avance que de quelques jours
+    day: 180 / 7, tourDays: 14, tourPerDate: 7, awayDays: 3,
     months: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
     monthsShort: ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'],
     weekdays: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
