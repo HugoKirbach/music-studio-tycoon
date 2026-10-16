@@ -1017,7 +1017,9 @@
   }
   // Interactions avec le décor extérieur.
   function onOutdoor(id, x, y) {
-    var e = calEnv(), st = G.outdoorState(S, e), r = G.outdoor(S, id);
+    var e = calEnv(), st = G.outdoorState(S, e);
+    if (id === 'mail' && st.mail) { openMailUi(); return; }
+    var r = id === 'mail' ? null : G.outdoor(S, id);
     if (!r) {
       var msg = id === 'mail' ? (S.level < D.CAL.out.mail.lvl ? 'Ta boîte aux lettres est encore vide : les fans écrivent dès le niveau ' + D.CAL.out.mail.lvl + '.' : 'Pas de courrier pour l’instant : prochain dans ' + clock((1 - st.mailP) * D.CAL.out.mail.every) + '.')
         : id === 'tree' ? 'L’arbre s’est assez fait secouer : réessaie dans ' + clock(st.treeCd) + '.'
@@ -1035,6 +1037,65 @@
     blip(r.done || id === 'mail' ? 9 : 3);
     render(); renderScene(true); saveLocal();
   }
+  // Lettre de fan: l'enveloppe s'ouvre, la lettre sort et s'écrit à la main; « Marquer comme lu » encaisse le cadeau.
+  var mv = { open: false, timers: [], typing: 0, full: '', opener: null };
+  function mailReduce() { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  function openMailUi() {
+    if (mv.open) return true;
+    var L = G.openMail(S);
+    if (!L) return false;
+    saveLocal();
+    mv.open = true; mv.opener = document.activeElement;
+    var c = G.calendar(S, L.d), body = String(L.t).replace(/^«\s*/, '').replace(/\s*»$/, '');
+    mv.full = body;
+    $('mailDate').textContent = 'le ' + c.text;
+    $('mailText').textContent = '';
+    $('mailFrom').textContent = '— ' + L.f;
+    $('mailFull').textContent = 'Lettre de ' + L.f + ' : ' + body + ' Cadeau : +' + eur(L.v) + '.';
+    setText($('mailGain'), '+' + eur(L.v));
+    var st = $('mailStage'); st.className = 'mail-stage'; $('mailFoot').classList.remove('show');
+    $('mailScrim').hidden = false; $('app').inert = true; $('tabs').inert = true;
+    $('mailDlg').focus();
+    blip(3);
+    if (mailReduce()) { st.classList.add('open', 'out', 'read'); mailDone(); return true; }
+    void st.offsetWidth; // relance l'animation d'arrivée de l'enveloppe
+    mv.timers = [setTimeout(function () { st.classList.add('open'); }, 500), setTimeout(function () { st.classList.add('out'); }, 1050),
+      setTimeout(function () { st.classList.add('read'); }, 1750), setTimeout(mailType, 2350)];
+    return true;
+  }
+  function mailType() {
+    var i = 0, el = $('mailText');
+    clearInterval(mv.typing);
+    mv.typing = setInterval(function () {
+      i += 1 + (Math.random() < 0.2 ? 1 : 0);
+      el.textContent = mv.full.slice(0, i);
+      if (i >= mv.full.length) mailDone();
+    }, 34);
+  }
+  function mailDone() {
+    clearInterval(mv.typing); mv.typing = 0;
+    mv.timers.forEach(clearTimeout); mv.timers = [];
+    var st = $('mailStage'); st.classList.add('open', 'out', 'read', 'done');
+    $('mailText').textContent = mv.full;
+    $('mailFoot').classList.add('show');
+    $('mailRead').focus();
+  }
+  function readMailUi() {
+    if (!mv.open) return;
+    if (!$('mailStage').classList.contains('done')) { mailDone(); return; } // premier appui: finir d'écrire la lettre
+    var r = G.readMail(S);
+    mv.open = false; mv.timers.forEach(clearTimeout); mv.timers = []; clearInterval(mv.typing);
+    $('mailScrim').hidden = true; $('app').inert = false; $('tabs').inert = false;
+    if (r) { if (S3 && S3.outFx) S3.outFx('mail'); if (S3 && S3.pop) S3.pop('+' + eur(r.letter.v), null); toast('Lettre lue : +' + eur(r.letter.v) + '. Merci à ' + r.letter.f.split(',')[0] + ' !', 3500); blip(9); }
+    var o = mv.opener; mv.opener = null;
+    if (o && document.body.contains(o) && !o.closest('[hidden]') && o.focus) { try { o.focus(); } catch (e) { /* facultatif */ } }
+    render(); renderScene(true); saveLocal();
+  }
+  function bindMail() {
+    $('mailRead').addEventListener('click', readMailUi);
+    $('mailLetter').addEventListener('click', function () { if (mv.open && !$('mailStage').classList.contains('done') && $('mailStage').classList.contains('read')) mailDone(); });
+    document.addEventListener('keydown', function (e) { if (mv.open && e.key === 'Escape') { e.preventDefault(); readMailUi(); } });
+  }
   function showArtist(aid) {
     if (!menuOpen) setMenu(true);
     if (bind.view) bind.view('team');
@@ -1048,7 +1109,18 @@
   var METKEY = 'premier-mix:metro';
   function metroPref() { try { return localStorage.getItem(METKEY) !== '0'; } catch (e) { return true; } }
   var cl = { metro: true, open: false, playing: false, done: false, cfg: null, notes: [], t0: 0, raf: 0, score: 0, combo: 0, best: 0, opener: null, gain: null, flash: [0, 0, 0, 0], judge: [null, null, null, null], end: 0, lead: 0, step: 0, key: '', wasOpen: null, ctx: null, W: 0, H: 0, dpr: 1 };
-  function clNow() { return performance.now() / 1000; }
+  // Horloge des clashs. Avec le son, elle suit ce que l'on entend vraiment (horloge audio, latence de sortie comprise):
+  // le métronome, la musique et les notes qui défilent restent calés même si le son démarre en retard ou passe par un casque sans fil.
+  function clNow() {
+    if (cl.aClock && ac) {
+      if (ac.getOutputTimestamp) {
+        var ts = ac.getOutputTimestamp();
+        if (ts && ts.contextTime > 0 && ts.performanceTime > 0) return ts.contextTime + Math.max(0, performance.now() - ts.performanceTime) / 1000;
+      }
+      return ac.currentTime - (ac.outputLatency || ac.baseLatency || 0);
+    }
+    return performance.now() / 1000;
+  }
   function renderClash(force) {
     var open = G.battleOpen(S), B = S.battle, onProd = $('app').getAttribute('data-view') === 'prod';
     if (cl.wasOpen === false && open && !quiet) toast('Nouveau : les clashs de beatmakers. Des rivaux vont te défier depuis Productions.', 6500);
@@ -1158,9 +1230,10 @@
     cl.end = cl.lead + cfg.bars * 16 * cl.step + 0.8;
     cl.score = 0; cl.combo = 0; cl.best = 0; cl.pts = 0; cl.flash = [0, 0, 0, 0]; cl.judge = [null, null, null, null];
     setText($('clTarget'), Math.round(cfg.rival.target * 100) + ' %'); setText($('clScore'), '0 %'); setText($('clCombo'), '0');
-    cl.t0 = clNow() + 0.1;
-    if (clAudioOn()) {
-      var a0 = ac.currentTime + 0.1, BASS = [55, 43.65, 65.41, 49];
+    cl.aClock = clAudioOn();
+    cl.t0 = cl.aClock ? ac.currentTime + 0.15 : clNow() + 0.1;
+    if (cl.aClock) {
+      var a0 = cl.t0, BASS = [55, 43.65, 65.41, 49];
       for (var k = 0; k < 4; k++) tone(k === 0 ? 1320 : 880, a0 + 0.4 + k * beat, 0.08, 0.12, 'square');
       for (var b = 0; b < cfg.bars; b++) for (var q = 0; q < 4; q++) {
         var at = a0 + cl.lead + (b * 4 + q) * beat, f = BASS[Math.floor(b / 2) % 4];
@@ -3137,6 +3210,7 @@
 
   // Accès en lecture pour le diagnostic (console: premierMix().money).
   window.premierMix = function () { return S; };
+  window.__clash = function () { return { t0: cl.t0, lead: cl.lead, step: cl.step, now: clNow(), aClock: !!cl.aClock, playing: cl.playing }; };
   function boot(hot) {
     var raw = hot && typeof hot === 'object' && hot.acts ? hot : loadLocal();
     var now = Date.now();
@@ -3146,7 +3220,7 @@
     if (raw) { quiet = true; off = G.offline(S, now); quiet = false; }
     S.savedAt = now;
     initTheme();
-    buildActs(); buildShop(); buildTrophies(); bind(); bindPerks(); bindLtour(); bindGlobe(); bindCal(); initQuality();
+    buildActs(); buildShop(); buildTrophies(); bind(); bindPerks(); bindLtour(); bindGlobe(); bindCal(); bindMail(); initQuality();
     initScene();
     initMenu();
     render(); renderScene(true);

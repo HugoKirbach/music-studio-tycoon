@@ -195,6 +195,7 @@
       K.d = Math.max(0, Math.min(3650000, num(cl.d, 0))); K.mail = Math.max(0, Math.min(1, num(cl.mail, 0)));
       K.cd = { tree: Math.max(0, num(cl.cd && cl.cd.tree, 0)), cat: Math.max(0, num(cl.cd && cl.cd.cat, 0)) };
       K.sm = Math.max(0, Math.min(CAL.out.snowman.steps, Math.floor(num(cl.sm, 0)))); K.smW = Math.floor(num(cl.smW, -1)); K.fest = String(cl.fest || '').slice(0, 60); K.hint = cl.hint ? 1 : 0; K.ad = Math.max(0, Math.min(CAL.awayDays || 3, num(cl.ad, 0)));
+      if (cl.letter && typeof cl.letter === 'object' && typeof cl.letter.t === 'string') K.letter = { t: cl.letter.t.slice(0, 300), f: String(cl.letter.f || '').slice(0, 80), v: Math.max(0, num(cl.letter.v, 0)), d: Math.max(0, Math.floor(num(cl.letter.d, 0))) };
       // parties créées avant le plafond d'absence: la date ne dépasse pas le nombre de jours réels depuis le premier lancement
       if (!(cl.v >= 2)) K.d = Math.min(K.d, Math.max(0, ((now || Date.now()) - S.created) / 864e5));
     } else if (o.charts && typeof o.charts === 'object') {
@@ -1646,21 +1647,35 @@
     return fmCache.v;
   }
   // Ce qui attend dans le jardin: courrier des fans, arbre à secouer, chat à caresser, bonhomme de neige à finir.
+  // Courrier des fans: ouvrir la lettre la garde de côté (texte, signature, gain), « Marquer comme lu » encaisse le gain.
+  function openMail(S, rnd) {
+    var K = S.cal, O = CAL.out, r = rnd || rand;
+    if (K.letter) return K.letter;
+    if (!(K.mail >= 1 && S.level >= O.mail.lvl)) return null;
+    var city = homeCountry(S).cities;
+    K.mail = 0;
+    K.letter = { t: CAL.mail[Math.floor(r() * CAL.mail.length)], f: NAMES[Math.floor(r() * NAMES.length)] + ', ' + city[Math.floor(r() * city.length)], v: eventRef(S) * O.mail.x, d: Math.floor(K.d) };
+    return K.letter;
+  }
+  function readMail(S) {
+    var K = S.cal, L = K.letter;
+    if (!L) return null;
+    S.money += L.v; S.lifetime += L.v; K.letter = null; touch(S);
+    return { letter: L, rewards: [{ k: 'cash', v: L.v }] };
+  }
   function winterOf(S) { var c = calendar(S); return c.y - (c.m < 7 ? 1 : 0); }
   function outdoorState(S, e) {
     var K = S.cal, O = CAL.out, sn = e ? e.snow : env(S).snow, win = winterOf(S), sm = K.smW === win ? K.sm : 0;
     // un bonhomme de neige par hiver; il fond quand la neige disparaît
-    return { mail: K.mail >= 1 && S.level >= O.mail.lvl, mailP: K.mail, tree: K.cd.tree <= 0, treeCd: K.cd.tree, cat: K.cd.cat <= 0, catCd: K.cd.cat,
+    return { mail: !!K.letter || K.mail >= 1 && S.level >= O.mail.lvl, mailP: K.mail, letter: K.letter || null, tree: K.cd.tree <= 0, treeCd: K.cd.tree, cat: K.cd.cat <= 0, catCd: K.cd.cat,
       snowman: sn >= O.snowman.snow ? (sm >= O.snowman.steps ? 'done' : 'build') : null, sm: sn >= 0.12 ? sm : 0, snow: sn };
   }
   function outdoor(S, id, rnd) {
     var K = S.cal, O = CAL.out, st = outdoorState(S), ref = eventRef(S), r = rnd || rand, out = null;
     if (id === 'mail') {
-      if (!st.mail) return null;
-      K.mail = 0;
-      var m = ref * O.mail.x; S.money += m; S.lifetime += m;
-      var city = homeCountry(S).cities, who = NAMES[Math.floor(r() * NAMES.length)] + ', ' + city[Math.floor(r() * city.length)];
-      out = { id: id, text: CAL.mail[Math.floor(r() * CAL.mail.length)], from: who, rewards: [{ k: 'cash', v: m }] };
+      var L0 = openMail(S, r); if (!L0) return null;
+      var rd = readMail(S);
+      out = { id: id, text: L0.t, from: L0.f, rewards: rd.rewards };
     } else if (id === 'tree') {
       if (!st.tree) return null;
       K.cd.tree = O.tree.cd;
@@ -2118,7 +2133,7 @@
     RIVAL_LABELS: RIVAL_LABELS, goneOf: goneOf, keepChance: keepChance, retainCost: retainCost, transferFee: transferFee, resolveOffer: resolveOffer, discography: discography,
     VENUES: VENUES, STORIES: STORIES, STORY_BY: STORY_BY, venueIndex: venueIndex, concertReady: concertReady, startConcert: startConcert, finishConcert: finishConcert,
     makeStory: makeStory, storyText: storyText, storyCost: storyCost, resolveStory: resolveStory,
-    CAL: CAL, FEST_BY: FEST_BY, calendar: calendar, env: env, weatherDay: weatherDay, festsAt: festsAt, festMult: festMult, outdoorState: outdoorState, outdoor: outdoor, tickCal: tickCal,
+    CAL: CAL, FEST_BY: FEST_BY, calendar: calendar, env: env, weatherDay: weatherDay, festsAt: festsAt, festMult: festMult, outdoorState: outdoorState, outdoor: outdoor, openMail: openMail, readMail: readMail, tickCal: tickCal,
     trendFor: trendFor, trendAct: trendAct, makeTrend: makeTrend, RULES: RULES, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, tilesPattern: tilesPattern, startBattle: startBattle, finishBattle: finishBattle
   };
 

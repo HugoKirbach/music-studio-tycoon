@@ -449,7 +449,7 @@ Chaque fête et chaque changement de saison sont annoncés par un message.
 
 | Élément | Ce qu'il fait | Fréquence |
 | --- | --- | --- |
-| **Boîte aux lettres** | Le drapeau se lève quand une lettre de fan arrive (bulle « Courrier »). La lire rapporte un peu plus d'une demi-minute de revenus. | Toutes les 5 minutes, dès le niveau 2 |
+| **Boîte aux lettres** | Le drapeau se lève quand une lettre de fan arrive (bulle « Courrier »). L'enveloppe s'ouvre, la lettre en sort et s'écrit à la main sous tes yeux ; en dessous, le cadeau des fans (un peu plus d'une demi-minute de revenus) s'encaisse avec **Marquer comme lu**. Une lettre ouverte mais pas encore lue t'attend dans la boîte. | Toutes les 5 minutes, dès le niveau 2 |
 | **Arbre** | Le secouer fait voler feuilles, pétales ou neige et donne 3 % d'un niveau d'expertise. | Toutes les 2 min 30 |
 | **Chat du studio** | Il se promène, s'abrite quand il pleut et ronronne quand on le caresse : moral de l'équipe +4 (ou un petit pourboire sans équipe). | Toutes les 4 minutes |
 | **Bonhomme de neige** | Quand la neige tient, trois clics le construisent (boule, buste, tête avec chapeau et écharpe) : **gains ×1,5 pendant 1 min 30**. | Un par hiver |
@@ -511,6 +511,7 @@ Le jeu continue sans toi :
 
 | Date | Nouveautés |
 | --- | --- |
+| 16/10/2026 | Courrier des fans : enveloppe qui s'ouvre, lettre manuscrite qui s'écrit, cadeau encaissé avec « Marquer comme lu ». Clashs : le métronome, la musique et les notes suivent désormais l'horloge du son (fini les décalages au démarrage ou avec un casque sans fil). |
 | 16/10/2026 | Absence : tout se cumule comme avant, mais le calendrier n'avance plus que de 3 jours au plus (les parties en cours sont ramenées à une date proche du réel). |
 | 16/10/2026 | Refonte graphique : modèles 3D arrondis et détaillés (bureaux, fauteuils, canapés, lit, enceintes, micros, piano à queue, consoles…), reflets d'ambiance, vraies fenêtres ouvertes sur l'extérieur, murs enduits. Extérieur interactif selon le lieu (jardin, rue, parvis, domaine) et le pays. Calendrier de carrière : jours, saisons, météo, neige, vent, orages et fêtes datées (gains ×1,5 à la Fête de la musique). Courrier des fans, arbre à secouer, chat, bonhomme de neige. Réglage de qualité 3D. |
 | 15/10/2026 | Documentation complète du jeu (ce document). |

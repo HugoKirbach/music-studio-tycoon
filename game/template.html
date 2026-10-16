@@ -6,7 +6,7 @@
 <title>Premier Mix</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Caveat:wght@500;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #e6edf1; --stage: #dfe9ee; --panel: #fbfaf7; --panel-2: #f1efea; --card: #ffffff; --ink: #1d2433; --ink-soft: #5d6677; --line: #dcdfe4;
@@ -621,6 +621,39 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .spec { --bc: var(--gold); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 10px 12px; border-left: 4px solid var(--gold); }
 .spec.chosen { background: color-mix(in srgb, var(--gold) 12%, var(--card)); border-color: var(--gold); }
 .spec.off { opacity: 0.45; }
+/* Courrier des fans: enveloppe qui s'ouvre, lettre manuscrite */
+.mail-wrap { width: min(400px, 100%); display: grid; justify-items: center; gap: 12px; outline: none; }
+.mail-kicker { color: #fff; font: 800 13px var(--f-body); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; }
+.mail-stage { --ew: min(330px, 86vw, 44dvh); position: relative; width: var(--ew); height: calc(var(--ew) * 1.34); }
+.env { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--ew) * 0.62); perspective: 900px; transition: transform 0.6s cubic-bezier(.2,.8,.2,1), opacity 0.6s; animation: envIn 0.45s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes envIn { from { transform: translateY(40px) scale(0.9) rotate(-4deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.env-back { position: absolute; inset: 0; border-radius: 10px; background: linear-gradient(#cfae78, #b99358); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35); }
+.env-front { position: absolute; inset: 0; z-index: 3; border-radius: 0 0 10px 10px; background: linear-gradient(160deg, #f3dfb6, #e6c993); clip-path: polygon(0 30%, 50% 66%, 100% 30%, 100% 100%, 0 100%); }
+.env-front::after { content: ''; position: absolute; inset: 0; background: linear-gradient(200deg, rgba(0,0,0,0.08), transparent 40%); clip-path: polygon(0 30%, 50% 66%, 50% 100%, 0 100%); }
+.env-flap { position: absolute; left: 0; right: 0; top: 0; height: 62%; z-index: 4; transform-origin: 50% 0; background: linear-gradient(#ead1a2, #dcbd84); clip-path: polygon(0 0, 100% 0, 50% 100%); border-radius: 10px 10px 0 0; transition: transform 0.55s ease-in-out, z-index 0s 0.27s; }
+.env-flap .seal { position: absolute; left: 50%; top: 78%; width: 38px; height: 38px; margin: -19px 0 0 -19px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ff7a6b, #c0392b 70%); color: #ffe3dc; display: grid; place-items: center; font: 800 18px var(--f-title); box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: opacity 0.25s; }
+.letter { position: absolute; left: 6%; right: 6%; bottom: 6%; height: calc(var(--ew) * 0.8); z-index: 2; padding: 14px 16px 12px 26px; border-radius: 4px; background: #fffdf5 repeating-linear-gradient(transparent 0 25px, #dfe6f1 25px 26px) 0 50px / 100% 100% no-repeat; box-shadow: 0 4px 14px rgba(0,0,0,0.18); color: #2b3a67; transform-origin: 50% 100%; transform: translateY(0) scale(0.72); overflow: hidden; transition: transform 0.75s cubic-bezier(.3,.8,.25,1); cursor: pointer; }
+.letter::before { content: ''; position: absolute; left: 16px; top: 0; bottom: 0; width: 1.5px; background: rgba(226, 87, 76, 0.35); }
+.hand { margin: 0; font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive; font-weight: 500; line-height: 26px; }
+.hand.date { text-align: right; font-size: 17px; color: #6a7695; }
+.hand.hello { font-size: 23px; font-weight: 700; margin: 2px 0 2px; }
+.hand.body { font-size: 22px; min-height: 104px; }
+.hand.sign { text-align: right; font-size: 21px; font-weight: 700; margin-top: 6px; opacity: 0; transform: translateY(4px); transition: opacity 0.5s, transform 0.5s; }
+.pen { display: inline-block; width: 2px; height: 20px; margin-left: 1px; vertical-align: -3px; background: #2b3a67; animation: penBlink 0.8s steps(2) infinite; }
+@keyframes penBlink { 50% { opacity: 0; } }
+.mail-stage.open .env-flap { transform: rotateX(180deg); z-index: 1; }
+.mail-stage.open .seal { opacity: 0; }
+.mail-stage.out .letter { transform: translateY(-48%) scale(0.82); }
+.mail-stage.read .letter { z-index: 6; transform: translateY(calc(var(--ew) * -0.48)) scale(1); cursor: default; }
+.mail-stage.read .env { transform: translateY(26px) scale(0.92); opacity: 0.45; }
+.mail-stage.done .pen { display: none; }
+.mail-stage.done .hand.sign { opacity: 1; transform: none; }
+.mail-foot { display: grid; gap: 10px; width: min(330px, 86vw); max-width: 100%; opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity 0.4s, transform 0.4s; }
+.mail-foot.show { opacity: 1; transform: none; pointer-events: auto; }
+.mail-gift { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--card); border: 2px dashed var(--gold); box-shadow: var(--shadow); }
+.mail-gift span { font: 700 13px var(--f-body); color: var(--ink-soft); }
+.mail-gift b { font: 800 20px var(--f-title); color: var(--good); }
+@media (prefers-reduced-motion: reduce) { .env, .letter, .env-flap, .mail-foot, .hand.sign { animation: none !important; transition: none !important; } }
 /* Calendrier de carrière (pastille sur la scène) */
 .cal-chip { position: absolute; z-index: 6; left: 12px; top: calc(var(--hud-h, 0px) + 6px); display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 5px 12px 5px 7px; border: 0; border-radius: 14px; background: var(--hud); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: var(--shadow); color: var(--ink); text-align: left; }
 .cal-chip.fest { box-shadow: var(--shadow), 0 0 0 2px var(--gold); }
@@ -760,6 +793,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   .toast:not(:last-child) { display: none; }
   .sheet { align-self: end; border-radius: 18px 18px 0 0; }
   .scrim { padding: 0; place-items: end stretch; }
+  .scrim.mail-scrim { place-items: center; padding: 12px 12px max(16px, env(safe-area-inset-bottom)); overflow-y: auto; }
 }
 /* Mobile compact: l'essentiel d'abord, les détails derrière un petit « i » */
 .info-i { display: none; flex: none; place-items: center; width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); color: var(--ink-soft); font: italic 800 13px Georgia, serif; line-height: 1; vertical-align: middle; }
@@ -1116,6 +1150,29 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
     <div class="pf"><span class="lbl">Les trois phases</span><div id="pjPhases"></div></div>
     <p class="small-note" id="pjTeamNote"></p>
     <div class="pj-foot"><div><b id="pjCost"></b><small id="pjInfo"></small></div><button class="btn sm" id="pjClose" type="button">Fermer</button><button class="btn primary" id="pjGo" type="button">Lancer le projet</button></div>
+  </div>
+</div>
+<div class="scrim mail-scrim" id="mailScrim" hidden>
+  <div class="mail-wrap" role="dialog" aria-modal="true" aria-labelledby="mailTitle" tabindex="-1" id="mailDlg">
+    <h2 class="mail-kicker" id="mailTitle">Courrier de fan</h2>
+    <div class="mail-stage" id="mailStage">
+      <div class="env" aria-hidden="true">
+        <div class="env-back"></div>
+        <div class="letter" id="mailLetter">
+          <p class="hand date" id="mailDate"></p>
+          <p class="hand hello">Salut l’équipe du studio !</p>
+          <p class="hand body"><span id="mailText"></span><i class="pen" aria-hidden="true"></i></p>
+          <p class="hand sign" id="mailFrom"></p>
+        </div>
+        <div class="env-front"></div>
+        <div class="env-flap"><span class="seal">♪</span></div>
+      </div>
+    </div>
+    <p class="sr-only" id="mailFull" aria-live="polite"></p>
+    <div class="mail-foot" id="mailFoot">
+      <div class="mail-gift"><span>Un petit cadeau de tes fans</span><b id="mailGain"></b></div>
+      <button class="pad" id="mailRead" type="button"><b>Marquer comme lu</b></button>
+    </div>
   </div>
 </div>
 <div class="scrim" id="debriefScrim" hidden>
