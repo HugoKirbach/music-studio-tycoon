@@ -639,6 +639,10 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .cal-sec { margin: 10px 0 4px; font: 800 12px var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
 .cal-list { margin: 0; padding-left: 18px; font-size: 13px; display: grid; gap: 3px; }
 .invite.pos-2, .invite.pos-3 { top: calc(var(--hud-h, 130px) + 60px); }
+@media (max-width: 999px) {
+  /* au-dessus du panneau du bas: la fiche garde toute sa hauteur sur téléphone et tablette */
+  .cal-pop { position: fixed; z-index: 40; max-height: calc(100dvh - var(--hud-h, 0px) - 70px); }
+}
 @media (max-width: 599px) {
   .cal-chip { left: 8px; top: calc(var(--hud-h, 0px) + 4px); min-height: 32px; padding: 3px 9px 3px 4px; gap: 5px; border-radius: 11px; }
   .cal-ico { width: 24px; height: 24px; border-radius: 8px; } .cal-ico svg { width: 19px; height: 19px; }
@@ -2524,7 +2528,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, fameX: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
       team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco(), label: newLabel(), world: newWorld(0), cal: newCal() };
   }
-  function newCal() { return { d: 0, mail: 0, cd: { tree: 0, cat: 0 }, sm: 0, smW: -1, fest: '' }; }
+  function newCal() { return { d: 0, mail: 0, cd: { tree: 0, cat: 0 }, sm: 0, smW: -1, fest: '', hint: 0 }; }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newLabel() { return { roster: [], albums: 0, concerts: 0, bestVenue: 0, kept: 0, ocd: T.offerFirst, gone: [], disco: [], ltours: 0, cities: {} }; }
   function newWorld(tours) { return { home: 'fr', done: {}, base: null, rec: { piano: 0, proj: 0 }, souv: {}, homes: ['fr'], picks: pickDates(tours || 0) }; }
@@ -2654,7 +2658,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
       var cl = o.cal, K = S.cal;
       K.d = Math.max(0, Math.min(3650000, num(cl.d, 0))); K.mail = Math.max(0, Math.min(1, num(cl.mail, 0)));
       K.cd = { tree: Math.max(0, num(cl.cd && cl.cd.tree, 0)), cat: Math.max(0, num(cl.cd && cl.cd.cat, 0)) };
-      K.sm = Math.max(0, Math.min(CAL.out.snowman.steps, Math.floor(num(cl.sm, 0)))); K.smW = Math.floor(num(cl.smW, -1)); K.fest = String(cl.fest || '').slice(0, 60);
+      K.sm = Math.max(0, Math.min(CAL.out.snowman.steps, Math.floor(num(cl.sm, 0)))); K.smW = Math.floor(num(cl.smW, -1)); K.fest = String(cl.fest || '').slice(0, 60); K.hint = cl.hint ? 1 : 0;
     } else if (o.charts && typeof o.charts === 'object') {
       // anciennes sauvegardes: le temps écoulé se déduit des semaines du Top 50 déjà passées
       S.cal.d = Math.max(0, (S.charts.week - 1) * 7 + (T.weekLen - S.charts.left) / CAL.day);
@@ -8535,7 +8539,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     var e = calEnv(), c = e.cal, k = wxKind(e), chip = $('calChip');
     if (!chip) return;
     var fest = e.fests.length ? G.FEST_BY[e.fests[e.fests.length - 1]] : null;
-    var key = c.day + '|' + k + '|' + e.season.id + '|' + (fest ? fest.id : '');
+    var key = c.day + '|' + k + '|' + e.season.id + '|' + (fest ? fest.id : '') + '|' + narrow();
     if (key !== cal.chipKey) {
       cal.chipKey = key;
       $('calIco').innerHTML = WX[k];
@@ -10736,6 +10740,7 @@ return{ACESFilmicToneMapping:nt,AddEquation:M,AddOperation:K,AdditiveAnimationBl
     initMenu();
     render(); renderScene(true);
     if (off) { off.trophies = G.trophyCount(S) - tc0; showOffline(off); }
+    if (scene3d && !S.cal.hint) setTimeout(function () { if (S.cal.hint) return; S.cal.hint = 1; toast('Nouveau : ton studio vit au rythme du calendrier ! Touche la date pour voir la saison, et explore le jardin : arbre, chat, boîte aux lettres…', 9000); }, 4000);
     try {
       var h = window.claude && window.claude.hot;
       if (h && h.snapshot) h.snapshot(function () { S.savedAt = Date.now(); return JSON.parse(JSON.stringify(S)); });

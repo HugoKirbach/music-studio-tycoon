@@ -950,7 +950,7 @@
     var e = calEnv(), c = e.cal, k = wxKind(e), chip = $('calChip');
     if (!chip) return;
     var fest = e.fests.length ? G.FEST_BY[e.fests[e.fests.length - 1]] : null;
-    var key = c.day + '|' + k + '|' + e.season.id + '|' + (fest ? fest.id : '');
+    var key = c.day + '|' + k + '|' + e.season.id + '|' + (fest ? fest.id : '') + '|' + narrow();
     if (key !== cal.chipKey) {
       cal.chipKey = key;
       $('calIco').innerHTML = WX[k];
@@ -3151,6 +3151,7 @@
     initMenu();
     render(); renderScene(true);
     if (off) { off.trophies = G.trophyCount(S) - tc0; showOffline(off); }
+    if (scene3d && !S.cal.hint) setTimeout(function () { if (S.cal.hint) return; S.cal.hint = 1; toast('Nouveau : ton studio vit au rythme du calendrier ! Touche la date pour voir la saison, et explore le jardin : arbre, chat, boîte aux lettres…', 9000); }, 4000);
     try {
       var h = window.claude && window.claude.hot;
       if (h && h.snapshot) h.snapshot(function () { S.savedAt = Date.now(); return JSON.parse(JSON.stringify(S)); });

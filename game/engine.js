@@ -64,7 +64,7 @@
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, fameX: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
       team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco(), label: newLabel(), world: newWorld(0), cal: newCal() };
   }
-  function newCal() { return { d: 0, mail: 0, cd: { tree: 0, cat: 0 }, sm: 0, smW: -1, fest: '' }; }
+  function newCal() { return { d: 0, mail: 0, cd: { tree: 0, cat: 0 }, sm: 0, smW: -1, fest: '', hint: 0 }; }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newLabel() { return { roster: [], albums: 0, concerts: 0, bestVenue: 0, kept: 0, ocd: T.offerFirst, gone: [], disco: [], ltours: 0, cities: {} }; }
   function newWorld(tours) { return { home: 'fr', done: {}, base: null, rec: { piano: 0, proj: 0 }, souv: {}, homes: ['fr'], picks: pickDates(tours || 0) }; }
@@ -194,7 +194,7 @@
       var cl = o.cal, K = S.cal;
       K.d = Math.max(0, Math.min(3650000, num(cl.d, 0))); K.mail = Math.max(0, Math.min(1, num(cl.mail, 0)));
       K.cd = { tree: Math.max(0, num(cl.cd && cl.cd.tree, 0)), cat: Math.max(0, num(cl.cd && cl.cd.cat, 0)) };
-      K.sm = Math.max(0, Math.min(CAL.out.snowman.steps, Math.floor(num(cl.sm, 0)))); K.smW = Math.floor(num(cl.smW, -1)); K.fest = String(cl.fest || '').slice(0, 60);
+      K.sm = Math.max(0, Math.min(CAL.out.snowman.steps, Math.floor(num(cl.sm, 0)))); K.smW = Math.floor(num(cl.smW, -1)); K.fest = String(cl.fest || '').slice(0, 60); K.hint = cl.hint ? 1 : 0;
     } else if (o.charts && typeof o.charts === 'object') {
       // anciennes sauvegardes: le temps écoulé se déduit des semaines du Top 50 déjà passées
       S.cal.d = Math.max(0, (S.charts.week - 1) * 7 + (T.weekLen - S.charts.left) / CAL.day);

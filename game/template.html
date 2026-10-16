@@ -639,6 +639,10 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .cal-sec { margin: 10px 0 4px; font: 800 12px var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
 .cal-list { margin: 0; padding-left: 18px; font-size: 13px; display: grid; gap: 3px; }
 .invite.pos-2, .invite.pos-3 { top: calc(var(--hud-h, 130px) + 60px); }
+@media (max-width: 999px) {
+  /* au-dessus du panneau du bas: la fiche garde toute sa hauteur sur téléphone et tablette */
+  .cal-pop { position: fixed; z-index: 40; max-height: calc(100dvh - var(--hud-h, 0px) - 70px); }
+}
 @media (max-width: 599px) {
   .cal-chip { left: 8px; top: calc(var(--hud-h, 0px) + 4px); min-height: 32px; padding: 3px 9px 3px 4px; gap: 5px; border-radius: 11px; }
   .cal-ico { width: 24px; height: 24px; border-radius: 8px; } .cal-ico svg { width: 19px; height: 19px; }
