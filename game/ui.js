@@ -878,6 +878,9 @@
         label: what === 'offer' ? r.offer.lab + ' veut signer ' + nm : what === 'story' ? nm + ' a quelque chose à te dire' : nm + ' veut sortir un album',
         html: HOT_MIC + '<span>' + esc(nm) + '</span><i class="bang" aria-hidden="true">' + (what === 'offer' ? '€' : what === 'story' ? '…' : '!') + '</i>' });
     });
+    var od = G.outdoorState(S, calEnv());
+    if (od.mail) list.push({ id: 'out:mail', anchor: 'out:mail', hot: true, label: 'Courrier des fans dans la boîte aux lettres', html: HOT_MAIL + '<span>Courrier</span><i class="bang" aria-hidden="true">1</i>' });
+    if (od.snowman === 'build') list.push({ id: 'out:snowman', anchor: 'out:snowman', hot: od.sm > 0, label: 'Construire un bonhomme de neige (' + od.sm + '/' + D.CAL.out.snowman.steps + ')', html: HOT_SNOW + '<span>Bonhomme</span><small>' + od.sm + '/' + D.CAL.out.snowman.steps + '</small>' });
     if (G.pianoOpen(S)) {
       var ready = S.piano.cd <= 0;
       list.push({ id: 'piano', anchor: 'piano', hot: ready, label: 'Atelier piano' + (ready ? ' : inspiration disponible' : ''),
@@ -890,11 +893,147 @@
     else if (id === 'piano') openPiano();
     else if (id === 'deco') openDeco();
     else if (id === 'globe') openGlobe();
+    else if (id.indexOf('out:') === 0) onOutdoor(id.slice(4));
     else if (id.indexOf('art:') === 0) {
       var aid = id.slice(4), r = G.artistOf(S, aid);
       if (!r) return;
       if (r.offer) openOffer(aid); else if (r.story) openStory(aid); else showArtist(aid);
     }
+  }
+  // ---------- Calendrier de carrière, météo et jardin ----------
+  var HOT_MAIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 7l8.5 6.5L20.5 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+  var HOT_SNOW = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="16" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.5 3.8h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  var WX = {
+    sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.6" fill="#f6b73c"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" stroke="#f6b73c" stroke-width="2" stroke-linecap="round"/></svg>',
+    moon: '<svg viewBox="0 0 24 24"><path d="M19.5 14.6A7.8 7.8 0 0 1 9.4 4.5a7.8 7.8 0 1 0 10.1 10.1z" fill="#c9d4f2"/></svg>',
+    part: '<svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.8" fill="#f6b73c"/><path d="M9 2.6v1.6M2.6 9h1.6M4.5 4.5l1.1 1.1M13.5 4.5l-1.1 1.1" stroke="#f6b73c" stroke-width="1.8" stroke-linecap="round"/><path d="M8 19.5h10a3.6 3.6 0 0 0 .3-7.2 5 5 0 0 0-9.6 1.2A3 3 0 0 0 8 19.5z" fill="#c4cdd8"/></svg>',
+    cloud: '<svg viewBox="0 0 24 24"><path d="M6.5 18.5h11a4 4 0 0 0 .4-8 5.6 5.6 0 0 0-10.8 1.4 3.3 3.3 0 0 0-.6 6.6z" fill="#aab4c2"/></svg>',
+    rain: '<svg viewBox="0 0 24 24"><path d="M6.5 14h11a3.8 3.8 0 0 0 .4-7.6 5.4 5.4 0 0 0-10.4 1.3 3.2 3.2 0 0 0-1 6.3z" fill="#98a4b4"/><path d="M8 16.5l-1 3M12 16.5l-1 3M16 16.5l-1 3" stroke="#4a8fd8" stroke-width="2" stroke-linecap="round"/></svg>',
+    snow: '<svg viewBox="0 0 24 24"><path d="M6.5 13.5h11a3.8 3.8 0 0 0 .4-7.6 5.4 5.4 0 0 0-10.4 1.3 3.2 3.2 0 0 0-1 6.3z" fill="#b6c0cc"/><g fill="#7fb3ff"><circle cx="8" cy="17" r="1.3"/><circle cx="12" cy="19.5" r="1.3"/><circle cx="16" cy="17" r="1.3"/></g></svg>',
+    haze: '<svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4" fill="#f0b35a" opacity=".8"/><path d="M3 14.5h18M5 18h14M7 21.2h10" stroke="#c9a46a" stroke-width="2" stroke-linecap="round"/></svg>'
+  };
+  var cal = { env: null, t: 0, open: false, opener: null, chipKey: '', annSea: null };
+  function calEnv() {
+    var now = performance.now();
+    if (!cal.env || now - cal.t > 240) { cal.env = G.env(S); cal.t = now; }
+    return cal.env;
+  }
+  function wxKind(e) {
+    if (e.precip && e.precip.k > 0.15) return e.precip.t;
+    if (e.haze > 0.35) return 'haze';
+    if (e.cloud > 0.62) return 'cloud';
+    if (e.cloud > 0.32) return 'part';
+    return document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'moon' : 'sun';
+  }
+  var WX_TXT = { sun: 'Grand soleil', moon: 'Nuit claire', part: 'Éclaircies', cloud: 'Nuageux', rain: 'Pluie', snow: 'Neige', haze: 'Brume de poussière' };
+  function natureText(e) {
+    if (e.zone === 'tropical') return e.bloom > 0.4 ? 'Les arbres sont en fleurs.' : e.dry > 0.5 ? 'L’herbe jaunit sous la saison sèche.' : 'La végétation est luxuriante.';
+    if (e.snow > 0.5) return 'Le jardin est sous la neige.';
+    if (e.snow > 0.15) return 'Une fine couche de neige recouvre le jardin.';
+    if (e.blossom > 0.4) return 'Les cerisiers sont en fleurs.';
+    if (e.leaf < 0.05) return 'Les arbres sont nus.';
+    if (e.fall > 0.5 && e.leaf < 0.95) return 'Les feuilles tombent.';
+    if (e.fall > 0.3) return 'Les feuilles prennent leurs couleurs d’automne.';
+    if (e.leaf < 0.9) return 'Les arbres bourgeonnent.';
+    if (e.flowers > 0.6) return 'Les massifs sont en fleurs.';
+    return 'Les arbres sont en pleine feuille.';
+  }
+  function nextFest(e) {
+    var home = e.country, d0 = S.cal.d;
+    for (var k = 1; k < 400; k++) {
+      var c = G.calendar(S, Math.floor(d0) + k), f = G.festsAt(home, c.m, c.dom).filter(function (x) { return e.fests.indexOf(x.id) < 0; })[0];
+      if (f) return { f: f, days: k, text: c.dom + (c.dom === 1 ? 'er' : '') + ' ' + D.CAL.months[c.m - 1] };
+    }
+    return null;
+  }
+  function renderCal() {
+    var e = calEnv(), c = e.cal, k = wxKind(e), chip = $('calChip');
+    if (!chip) return;
+    var fest = e.fests.length ? G.FEST_BY[e.fests[e.fests.length - 1]] : null;
+    var key = c.day + '|' + k + '|' + e.season.id + '|' + (fest ? fest.id : '');
+    if (key !== cal.chipKey) {
+      cal.chipKey = key;
+      $('calIco').innerHTML = WX[k];
+      setText($('calDate'), c.dom + (c.dom === 1 ? 'er' : '') + ' ' + (narrow() ? D.CAL.monthsShort : D.CAL.months)[c.m - 1] + ' ' + c.y);
+      setText($('calSub'), 'Jour ' + nf0.format(c.day) + ' · ' + (fest ? fest.name : e.season.name));
+      chip.setAttribute('aria-label', 'Calendrier : ' + c.text + ', jour ' + c.day + ' de ta carrière, ' + e.season.name.toLowerCase() + ', ' + WX_TXT[k].toLowerCase());
+      setClass(chip, 'fest', !!fest);
+    }
+    if (cal.open) renderCalPop();
+    // annonces: fêtes et changements de saison
+    var fk = e.fests.join(',');
+    if (fk !== S.cal.fest) {
+      var was = S.cal.fest ? S.cal.fest.split(',') : [];
+      S.cal.fest = fk;
+      if (!firstRender) e.fests.forEach(function (id) { if (was.indexOf(id) < 0) { var f = G.FEST_BY[id]; toast(f.name + ' : ' + f.text, 6000); } });
+    }
+    if (cal.annSea !== e.season.id) {
+      if (cal.annSea && !firstRender) toast(seasonToast(e), 5000);
+      cal.annSea = e.season.id;
+    }
+  }
+  function seasonToast(e) {
+    var t = { printemps: 'Le printemps arrive : les arbres bourgeonnent.', ete: 'C’est l’été : le jardin est en pleine forme.', automne: 'L’automne est là : les feuilles changent de couleur.',
+      hiver: 'L’hiver s’installe' + (e.zone === 'tropical' ? '.' : ' : la neige peut tomber au cœur de la saison.'), harmattan: 'L’harmattan souffle : une brume de poussière voile le ciel.', seche: 'Saison sèche : l’herbe jaunit.', pluies: 'La saison des pluies commence.' };
+    return t[e.season.id] || e.season.name;
+  }
+  function renderCalPop() {
+    var e = calEnv(), c = e.cal, k = wxKind(e), st = G.outdoorState(S, e), country = (G.COUNTRY_BY[e.country] || { name: 'France' }).name;
+    var start = G.calendar(S, 0), rows = [];
+    rows.push(['Saison', e.season.name + ' · ' + country]);
+    rows.push(['Météo', WX_TXT[k] + ', ' + Math.round(e.temp) + ' °C']);
+    rows.push(['Jardin', natureText(e)]);
+    e.fests.forEach(function (id) { var f = G.FEST_BY[id]; rows.push(['Fête', f.name + ' : ' + f.text]); });
+    var nf = nextFest(e);
+    if (nf) rows.push(['Prochaine fête', nf.f.name + ', le ' + nf.text + ' (dans ' + nf.days + ' jour' + (nf.days > 1 ? 's' : '') + ', ≈ ' + away(nf.days * D.CAL.day) + ')']);
+    var garden = [];
+    if (S.level >= D.CAL.out.mail.lvl) garden.push(st.mail ? 'du courrier t’attend dans la boîte aux lettres' : 'prochain courrier de fans dans ' + clock((1 - st.mailP) * D.CAL.out.mail.every));
+    garden.push(st.tree ? 'secoue l’arbre pour trouver l’inspiration' : 'l’arbre se repose (' + clock(st.treeCd) + ')');
+    garden.push(st.cat ? 'le chat du studio attend une caresse' : 'le chat fait la sieste (' + clock(st.catCd) + ')');
+    if (st.snowman === 'build') garden.push('assez de neige pour un bonhomme (' + st.sm + '/' + D.CAL.out.snowman.steps + ')');
+    var html = '<h3 class="cal-h">' + esc(c.wdName.charAt(0).toUpperCase() + c.wdName.slice(1) + ' ' + c.text) + '</h3>' +
+      '<p class="cal-note">Jour ' + nf0.format(c.day) + ' de ta carrière, commencée le ' + esc(start.text) + '.</p>' +
+      '<div class="cal-rows">' + rows.map(function (r) { return '<div><span>' + esc(r[0]) + '</span><b>' + esc(r[1]) + '</b></div>'; }).join('') + '</div>' +
+      '<p class="cal-sec">Au jardin</p><ul class="cal-list">' + garden.map(function (g) { return '<li>' + esc(g.charAt(0).toUpperCase() + g.slice(1)) + '</li>'; }).join('') + '</ul>' +
+      '<p class="cal-note">Une semaine du Top 50 dure 7 jours : un jour passe toutes les ' + Math.round(D.CAL.day) + ' secondes, même pendant ton absence. Les saisons, la neige et les fêtes suivent le pays de ton studio.</p>';
+    var box = $('calBody');
+    if (box._h !== html) { box._h = html; box.innerHTML = html; }
+  }
+  function openCal() {
+    cal.open = true; cal.opener = document.activeElement;
+    renderCalPop(); $('calPop').hidden = false; $('calChip').setAttribute('aria-expanded', 'true');
+    $('calClose').focus();
+  }
+  function closeCal() {
+    if (!cal.open) return;
+    cal.open = false; $('calPop').hidden = true; $('calChip').setAttribute('aria-expanded', 'false');
+    if (cal.opener && cal.opener.focus) try { cal.opener.focus(); } catch (e) { /* facultatif */ }
+  }
+  function bindCal() {
+    $('calChip').addEventListener('click', function (e) { e.stopPropagation(); if (cal.open) closeCal(); else openCal(); });
+    $('calClose').addEventListener('click', closeCal);
+    document.addEventListener('keydown', function (e) { if (cal.open && e.key === 'Escape') { e.preventDefault(); closeCal(); } });
+    document.addEventListener('pointerdown', function (e) { if (cal.open && !e.target.closest('#calPop') && !e.target.closest('#calChip')) closeCal(); });
+  }
+  // Interactions avec le décor extérieur.
+  function onOutdoor(id, x, y) {
+    var e = calEnv(), st = G.outdoorState(S, e), r = G.outdoor(S, id);
+    if (!r) {
+      var msg = id === 'mail' ? (S.level < D.CAL.out.mail.lvl ? 'Ta boîte aux lettres est encore vide : les fans écrivent dès le niveau ' + D.CAL.out.mail.lvl + '.' : 'Pas de courrier pour l’instant : prochain dans ' + clock((1 - st.mailP) * D.CAL.out.mail.every) + '.')
+        : id === 'tree' ? 'L’arbre s’est assez fait secouer : réessaie dans ' + clock(st.treeCd) + '.'
+        : id === 'cat' ? 'Le chat fait la sieste. Reviens dans ' + clock(st.catCd) + '.'
+        : st.snowman === 'done' ? 'Ton bonhomme de neige trône dans le jardin.' : 'Il n’y a pas assez de neige pour un bonhomme.';
+      if (x != null) showTip(id === 'mail' ? 'Boîte aux lettres' : id === 'tree' ? 'Arbre' : id === 'cat' ? 'Chat du studio' : 'Bonhomme de neige', msg, x, y); else toast(msg);
+      return;
+    }
+    if (S3 && S3.outFx) S3.outFx(id);
+    var rw = r.rewards.map(rewardText).filter(Boolean).join(' · ');
+    if (id === 'mail') toast('Courrier de fan : ' + r.text + ' (' + r.from + ') ' + rw, 7000);
+    else if (id === 'tree') toast('Tu secoues l’arbre et une mélodie te vient : ' + rw + '.', 4500);
+    else if (id === 'cat') toast('Le chat du studio ronronne : ' + rw + '.', 4000);
+    else if (id === 'snowman') toast(r.done ? 'Bonhomme de neige terminé ! ' + rw + '.' : 'Bonhomme de neige : ' + r.step + '/' + r.steps + '. Encore un effort !', 4500);
+    blip(r.done || id === 'mail' ? 9 : 3);
+    render(); renderScene(true); saveLocal();
   }
   function showArtist(aid) {
     if (!menuOpen) setMenu(true);
@@ -1943,6 +2082,7 @@
     renderLabel();
     if (pjv.open) pjFoot();
     renderScene();
+    renderCal();
     var hint = $('hint');
     if (hint) setHidden(hint, S.acts.beat.done >= 6);
 
@@ -2022,7 +2162,7 @@
       ghosts: visibleItems().out.slice(0, 2).map(function (i) { return i.id; }),
       cap: G.teamOpen(S) ? G.teamCap(S) : 0, edrums: G.battleOpen(S), deco: decoView(),
       staff: S.team.staff.map(function (m) { return { id: m.id, look: m.look, role: m.role, morale: m.morale, act: m.act, status: memberStatus(m) }; }),
-      souvenirs: souvenirList(), globe: globeOn(),
+      souvenirs: souvenirList(), globe: globeOn(), env: calEnv(), outdoor: G.outdoorState(S, calEnv()),
       artists: G.labelOpen(S) ? S.label.roster.filter(function (r) { return !r.tour; }).map(function (r) { return { id: r.id, look: artistLook(r.id), mood: r.mood }; }) : []
     });
     if (S3.setHotspots) hotspots();
@@ -2040,6 +2180,7 @@
   function onPick(u, x, y) {
     if (!u) { $('pickTip').hidden = true; return; }
     if (u.type === 'hot') { onHotspot(u.id); return; }
+    if (u.type === 'out') { onOutdoor(u.id, x, y); return; }
     if (u.type === 'item') {
       var it = G.ITEM_BY[u.id];
       if (!it) return;
@@ -2107,6 +2248,23 @@
       themeMode = b.getAttribute('data-theme-set');
       try { localStorage.setItem(TKEY, themeMode); } catch (x) { /* stockage indisponible */ }
       applyTheme();
+    });
+  }
+  // ---------- Qualité de la 3D (réglage propre à l'appareil) ----------
+  var QKEY = 'premier-mix:quality';
+  function initQuality() {
+    var q = 'auto';
+    try { var v = localStorage.getItem(QKEY); if (v === 'low' || v === 'high') q = v; } catch (e) { /* stockage indisponible */ }
+    function apply() {
+      if (S3 && S3.setQuality && scene3d) S3.setQuality(q);
+      $('qualSeg').querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-q') === q ? 'true' : 'false'); });
+    }
+    apply();
+    $('qualSeg').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-q]'); if (!b) return;
+      q = b.getAttribute('data-q');
+      try { localStorage.setItem(QKEY, q); } catch (x) { /* stockage indisponible */ }
+      apply(); renderScene(true);
     });
   }
   // ---------- Menu repliable ----------
@@ -2453,6 +2611,7 @@
     var rows = r.dates.map(function (id) { var d = G.WDATE_BY[id]; return [d.city, d.venue.charAt(0).toUpperCase() + d.venue.slice(1) + ' · complet']; });
     rows.push(['Renommée', '+' + r.points + ' point' + (r.points > 1 ? 's' : '') + (r.extra ? ' (dont ' + r.extra + ' grâce aux dates)' : '')]);
     if (r.dates.length) rows.push(['Souvenirs', G.souvenirs(S) + ' au total · +' + Math.round(D.WORLD.souvenir * G.souvenirs(S) * 100) + ' % de gains pour toujours']);
+    if (r.days) { cal.t = 0; rows.push(['Durée de la tournée', r.days + ' jours · retour le ' + G.calendar(S).text]); }
     rows.push(['Nouvelle base', G.COUNTRY_BY[r.home].name]);
     $('wtText').textContent = r.dates.length ? 'Ta tournée mondiale passe par ' + r.dates.length + ' grande' + (r.dates.length > 1 ? 's' : '') + ' salle' + (r.dates.length > 1 ? 's' : '') + '. Le public est en délire.' : 'Une tournée sans grande date, mais le public a répondu présent. Prépare mieux la prochaine pour décrocher plus de renommée.';
     $('wtRows').innerHTML = rows.map(function (x, k) { return '<div class="rw" style="--d:' + (0.3 + k * 0.45) + 's"><span class="rl">' + esc(x[0]) + '</span><b class="rv">' + esc(x[1]) + '</b></div>'; }).join('');
@@ -2638,6 +2797,7 @@
     if (off.levels > 0) rows.push(['Expertise', '+' + off.levels + ' niveau' + (off.levels > 1 ? 'x' : '')]);
     if (off.trophies > 0) rows.push(['Palmarès', '+' + off.trophies + ' niveau' + (off.trophies > 1 ? 'x' : '')]);
     if (lbv.back && lbv.back.length) { rows.push(['Retours de tournée', lbv.back.join(', ')]); lbv.back = []; }
+    if (off.days >= 1) { cal.t = 0; rows.push(['Calendrier', '+' + nf0.format(Math.floor(off.days)) + ' jour' + (off.days >= 2 ? 's' : '') + ' · ' + G.calendar(S).text]); }
     if (S.team.staff.length) {
       var mo1 = G.avgMorale(S), mo0 = off.mor0 != null ? off.mor0 : mo1;
       rows.push(['Moral de l’équipe', mo1 - mo0 >= 0.5 ? Math.round(mo0) + ' % → ' + Math.round(mo1) + ' % (repos)' : Math.round(mo1) + ' %']);
@@ -2986,7 +3146,7 @@
     if (raw) { quiet = true; off = G.offline(S, now); quiet = false; }
     S.savedAt = now;
     initTheme();
-    buildActs(); buildShop(); buildTrophies(); bind(); bindPerks(); bindLtour(); bindGlobe();
+    buildActs(); buildShop(); buildTrophies(); bind(); bindPerks(); bindLtour(); bindGlobe(); bindCal(); initQuality();
     initScene();
     initMenu();
     render(); renderScene(true);
@@ -2998,12 +3158,12 @@
 
     var last = Date.now(), bg = null;
     // Jeu ouvert mais caché (autre onglet, appli en arrière-plan, écran verrouillé): on mémorise le point de départ du débrief.
-    function bgStart(t) { if (!bg) bg = { t: t, life: S.lifetime, money: S.money, lvl: S.level, tc: G.trophyCount(S), tracks: G.trackCount(S), froze: false, charts: 0, mor0: G.avgMorale(S) }; }
+    function bgStart(t) { if (!bg) bg = { t: t, life: S.lifetime, money: S.money, lvl: S.level, tc: G.trophyCount(S), tracks: G.trackCount(S), froze: false, charts: 0, mor0: G.avgMorale(S), d0: S.cal.d }; }
     function bgEnd() {
       if (!bg) return;
       var b = bg, gap = (Date.now() - b.t) / 1000; bg = null;
       if (gap < 60) return;
-      showOffline({ gap: gap, gain: S.lifetime - b.life, net: S.money - b.money, levels: S.level - b.lvl, trophies: G.trophyCount(S) - b.tc, tracks: G.trackCount(S) - b.tracks, open: true, froze: b.froze, charts: b.charts, mor0: b.mor0 });
+      showOffline({ gap: gap, gain: S.lifetime - b.life, net: S.money - b.money, levels: S.level - b.lvl, trophies: G.trophyCount(S) - b.tc, tracks: G.trackCount(S) - b.tracks, open: true, froze: b.froze, charts: b.charts, mor0: b.mor0, days: S.cal.d - b.d0 });
       render();
     }
     // Au retour, on rattrape d'abord le temps écoulé (appareil en veille), puis on affiche le débrief complet.

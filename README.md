@@ -29,12 +29,13 @@
 16. [Tournée mondiale (prestige)](#tournée-mondiale-prestige)
 17. [Palmarès](#palmarès)
 18. [Décoration, souvenirs et globe](#décoration-souvenirs-et-globe)
-19. [Absence et débrief](#absence-et-débrief)
-20. [Réglages et sauvegardes](#réglages-et-sauvegardes)
-21. [Tableau des déblocages](#tableau-des-déblocages)
-22. [Historique des versions](#historique-des-versions)
-23. [Installer les applications](#installer-les-applications)
-24. [Modifier le jeu (développeurs)](#modifier-le-jeu-développeurs)
+19. [Calendrier, saisons et jardin](#calendrier-saisons-et-jardin)
+20. [Absence et débrief](#absence-et-débrief)
+21. [Réglages et sauvegardes](#réglages-et-sauvegardes)
+22. [Tableau des déblocages](#tableau-des-déblocages)
+23. [Historique des versions](#historique-des-versions)
+24. [Installer les applications](#installer-les-applications)
+25. [Modifier le jeu (développeurs)](#modifier-le-jeu-développeurs)
 
 ---
 
@@ -45,6 +46,7 @@
 - Tu **achètes du matériel**, qui débloque de nouvelles productions et fait grandir ton studio jusqu'à de nouveaux lieux.
 - Tu recrutes une **équipe**, tu signes des **artistes**, tu grimpes au **Top 50**.
 - Quand ton studio est au sommet, tu pars en **tournée mondiale** : tu recommences avec ta **renommée**, qui rend chaque nouvelle carrière plus rapide.
+- Autour du studio, un **extérieur vivant** (jardin, rue, parvis ou domaine) suit le **calendrier** de ta carrière : saisons, météo, neige et fêtes du pays où tu es installé.
 
 Le cœur du jeu reste simple : **attendre, cliquer, réinvestir**. Tout le reste (mini-jeux, label, tournées…) est un bonus qui accélère ta progression sans jamais être obligatoire.
 
@@ -90,10 +92,11 @@ flowchart LR
 ## L'écran de jeu
 
 - **En haut** : ton lieu actuel et sa progression, puis les compteurs **Budget** (avec le revenu par seconde et la renommée), **Valeur** du studio, **Expertise** (niveau) et **Catalogue** (titres produits).
-- **Au centre** : ton studio en **3D**. Tu peux tourner la caméra, zoomer et cliquer sur les éléments : matériel, membres de l'équipe, artistes, affiches. Des **bulles** au-dessus des objets ouvrent les activités : clash sur la batterie, atelier sur le piano, décoration sur l'étagère, globe, artistes qui ont quelque chose à dire.
+- **Au centre** : ton studio en **3D**, entouré de son extérieur. Tu peux tourner la caméra, zoomer (jusqu'à voir tout le jardin) et cliquer sur les éléments : matériel, membres de l'équipe, artistes, affiches, boîte aux lettres, arbre, chat. Des **bulles** au-dessus des objets ouvrent les activités : clash sur la batterie, atelier sur le piano, décoration sur l'étagère, globe, artistes qui ont quelque chose à dire, courrier des fans, bonhomme de neige.
+- **La pastille du calendrier** (sous les compteurs) : météo, date, numéro du jour, saison ou fête en cours. Touche-la pour ouvrir la fiche du jour (voir [Calendrier, saisons et jardin](#calendrier-saisons-et-jardin)).
 - **Les onglets** : Prod, Matériel, Équipe, R&D, Top 50, Palmarès, Réglages. Une **pastille** signale qu'il y a quelque chose à faire dans un onglet.
 - **Sur téléphone**, le menu est un panneau qu'on peut réduire. Les détails facultatifs (descriptions, paliers, étoiles, aides) sont rangés derrière un petit **« i »** pour gagner de la place.
-- **Mode nuit** : le studio s'éclaire de lampes et de néons.
+- **Mode nuit** : le studio s'éclaire de lampes et de néons, les réverbères et les fenêtres des voisins s'allument.
 
 ---
 
@@ -328,6 +331,7 @@ Quand ton studio a assez gagné, l'onglet **Palmarès** propose de **partir en t
 - Tu repars d'un ordinateur portable : budget, expertise, matériel, perfectionnements et catalogue sont remis à zéro.
 - Tu gagnes des **points de renommée**. Chaque point donne **+15 % de gains** et **+5 % d'expertise**, pour toujours.
 - Tu gardes ta renommée, tes contacts, tes trophées, tes recherches, ton label, ton classement et tes souvenirs.
+- La tournée dure **deux semaines, plus une semaine par date jouée** : le calendrier avance d'autant.
 
 ### Préparer la tournée
 
@@ -376,6 +380,80 @@ L'onglet **Palmarès** compte **42 familles de trophées** (production, fortune,
 
 ---
 
+## Calendrier, saisons et jardin
+
+### Le calendrier de carrière
+
+- Le **jour 1** est la date réelle de ton tout premier lancement. Ensuite, les jours suivent le temps du jeu : **une semaine du Top 50 (3 minutes) = 7 jours**, donc un jour passe toutes les **26 secondes environ**.
+- Le calendrier continue pendant ton absence, comme le Top 50 (jusqu'au plafond de 6 h quand le jeu est fermé). Le débrief indique combien de jours ont passé.
+- Les anciennes parties reprennent avec un calendrier déduit des semaines du Top 50 déjà jouées.
+- **La fiche du jour** (touche la pastille) donne la date complète, la saison, la météo et la température, l'état du jardin, la fête en cours, la prochaine fête et ce qui t'attend dehors.
+
+### Un extérieur selon ton lieu
+
+| Lieu | Ce qui entoure le studio |
+| --- | --- |
+| Ta chambre, Chambre-studio | Jardin : terrasse, massifs fleuris, potager, banc, allée vers le portail, clôture, maisons voisines |
+| Le garage | Le même jardin, plus l'allée goudronnée et la voiture devant la porte du garage |
+| Local en ville | Coin de rue : trottoirs, chaussées et passages piétons, réverbères, arbres en grille, voitures garées, immeubles mitoyens |
+| Studio professionnel, Studio de référence | Parvis pavé, jardinières, bornes lumineuses, parking, drapeaux et tours de bureaux (fontaine au studio de référence) |
+| Complexe légendaire | Domaine : allée de gravier bordée de topiaires, fontaine, piscine, haies taillées, statue, grille d'honneur |
+
+### Un décor selon le pays
+
+Le pays où ton studio est installé (choisi à chaque tournée mondiale) change les essences d'arbres, les façades, le mobilier urbain et le climat.
+
+| Pays | Végétation et décor | Climat |
+| --- | --- | --- |
+| France | Platanes, tilleuls, chênes, pins ; muret et grille ; façades crème à balcons | Neige au cœur de l'hiver (fin décembre à début février) |
+| Royaume-Uni | Chênes, hêtres, bouleaux ; haies ; briques rouges ; boîte aux lettres rouge | Pluie fréquente, neige rare |
+| États-Unis | Érables rouges, chênes, bouleaux, sapins ; palissade blanche, panier de basket, bouche d'incendie | Hivers très enneigés |
+| Japon | Cerisiers (en fleurs début avril), érables japonais, pins ; lanternes de pierre, distributeur, clôture en bambou | Saison des pluies en juin, un peu de neige |
+| Brésil | Palmiers, ipês en fleurs, manguiers ; façades colorées | Hémisphère sud : saisons inversées, jamais de neige |
+| Nigeria | Palmiers, manguiers, flamboyants en fleurs ; murs peints | Saison des pluies d'avril à octobre, harmattan (brume de poussière) de décembre à février |
+| Allemagne | Hêtres, bouleaux, chênes, sapins ; palissade en bois | Hivers longs et enneigés |
+
+### Les saisons et la météo
+
+- **Printemps** : les arbres bourgeonnent, les massifs fleurissent, les cerisiers du Japon se couvrent de rose.
+- **Été** : feuillage dense ; l'herbe jaunit un peu par temps sec.
+- **Automne** : les feuilles prennent leurs couleurs (jaune, orange, rouge selon l'essence) puis tombent en tourbillonnant.
+- **Hiver** : arbres nus ; la neige s'installe au cœur de la saison, sur la pelouse, les toits, les haies et les sapins ; les bassins gèlent.
+- **Météo du jour** : soleil, éclaircies, nuages, pluie (la pelouse s'assombrit), neige, orages avec éclairs, brume. Le vent fait onduler les feuillages et des oiseaux tournent au-dessus du jardin les beaux jours.
+- Tout évolue en douceur, d'un instant à l'autre : pas de changement brutal.
+
+### Les fêtes de l'année
+
+| Fête | Pays | Dates | Dans le décor |
+| --- | --- | --- | --- |
+| Fêtes de fin d'année | Tous | 1er décembre – 6 janvier | Guirlandes lumineuses, sapin décoré et cadeaux |
+| Nouvel An | Tous | 31 décembre – 1er janvier | Feu d'artifice au-dessus du studio |
+| Fête de la musique | Tous | 18 – 24 juin | Fanions et petite scène ; **gains ×1,5** toute la semaine |
+| 14 Juillet | France | 13 – 14 juillet | Feu d'artifice bleu, blanc, rouge |
+| Independence Day | États-Unis | 3 – 4 juillet | Feu d'artifice |
+| Bonfire Night | Royaume-Uni | 4 – 5 novembre | Feu d'artifice |
+| Halloween | États-Unis, Royaume-Uni, France, Allemagne | 24 – 31 octobre | Citrouilles éclairées |
+| Hanami | Japon | 26 mars – 8 avril | Lanternes sous les cerisiers |
+| Tanabata | Japon | 5 – 7 juillet | Rubans de vœux |
+| Carnaval | Brésil | 10 – 18 février | Fanions colorés ; **gains ×1,25** |
+| Festa Junina | Brésil | 10 – 17 juin | Fanions colorés |
+| Fête de l'indépendance | Nigeria | 30 septembre – 1er octobre | Drapeaux vert et blanc |
+| Oktoberfest | Allemagne | 20 septembre – 5 octobre | Fanions bleu et blanc |
+
+Chaque fête et chaque changement de saison sont annoncés par un message.
+
+### Le jardin interactif
+
+| Élément | Ce qu'il fait | Fréquence |
+| --- | --- | --- |
+| **Boîte aux lettres** | Le drapeau se lève quand une lettre de fan arrive (bulle « Courrier »). La lire rapporte un peu plus d'une demi-minute de revenus. | Toutes les 5 minutes, dès le niveau 2 |
+| **Arbre** | Le secouer fait voler feuilles, pétales ou neige et donne 3 % d'un niveau d'expertise. | Toutes les 2 min 30 |
+| **Chat du studio** | Il se promène, s'abrite quand il pleut et ronronne quand on le caresse : moral de l'équipe +4 (ou un petit pourboire sans équipe). | Toutes les 4 minutes |
+| **Bonhomme de neige** | Quand la neige tient, trois clics le construisent (boule, buste, tête avec chapeau et écharpe) : **gains ×1,5 pendant 1 min 30**. | Un par hiver |
+| **Feux d'artifice** | Spectacle pendant les fêtes qui en prévoient. | Selon le calendrier |
+
+---
+
 ## Absence et débrief
 
 Le jeu continue sans toi :
@@ -390,7 +468,8 @@ Le jeu continue sans toi :
 - les revenus bruts, dont la part du Top 50 et des ventes d'albums ;
 - les salaires versés et le bilan exact sur ton budget (avant → après) ;
 - les productions réalisées et les niveaux gagnés ;
-- le moral de l'équipe et les retours de tournée.
+- le moral de l'équipe et les retours de tournée ;
+- le nombre de jours écoulés au calendrier et la date du retour.
 
 ---
 
@@ -398,6 +477,7 @@ Le jeu continue sans toi :
 
 - **Sons** : deux réglages séparés, l'un pour les **sons du studio** (gains d'argent), l'autre pour les **sons des mini-jeux**.
 - **Thème** clair ou sombre, et **caméra** réinitialisable.
+- **Graphismes 3D** : Automatique (selon l'appareil), Économie (jardin allégé, moins de particules, pas de reflets) ou Détaillée.
 - **Sauvegardes** :
   - sur **claude.ai**, la partie est synchronisée avec ton compte Claude ;
   - sur **GitHub Pages** et dans les applications **.exe** et **.apk**, la partie est sauvegardée sur l'appareil ;
@@ -410,7 +490,7 @@ Le jeu continue sans toi :
 | Niveau d'expertise | Nouveauté |
 | --- | --- |
 | 1 | Composer un beat, matériel, sorties de studio |
-| 2 | Commandes clients |
+| 2 | Commandes clients, courrier des fans |
 | 3 | Équipe, clashs de beatmakers |
 | 4 | Top 50 et tendances |
 | 5 | Projets de création |
@@ -427,6 +507,7 @@ Le jeu continue sans toi :
 
 | Date | Nouveautés |
 | --- | --- |
+| 16/10/2026 | Refonte graphique : modèles 3D arrondis et détaillés (bureaux, fauteuils, canapés, lit, enceintes, micros, piano à queue, consoles…), reflets d'ambiance, vraies fenêtres ouvertes sur l'extérieur, murs enduits. Extérieur interactif selon le lieu (jardin, rue, parvis, domaine) et le pays. Calendrier de carrière : jours, saisons, météo, neige, vent, orages et fêtes datées (gains ×1,5 à la Fête de la musique). Courrier des fans, arbre à secouer, chat, bonhomme de neige. Réglage de qualité 3D. |
 | 15/10/2026 | Documentation complète du jeu (ce document). |
 | 14/10/2026 | Version mobile compacte, détails derrière un « i ». Souvenirs de tournée en 3D et globe interactif. Tournée mondiale à préparer (8 dates, choix du pays). Tournées locales des artistes avec imprévus. Paliers de maîtrise à effets variés et tubes. Débrief d'absence exact (salaires, bilan, Top 50). Top 50 actif pendant l'absence, équipe au repos. Personnages 3D articulés. Clash simplifié avec métronome, duels et atelier « piano tiles », sons séparés, menus réorganisés. Labels rivaux, discographie, artistes visibles en 3D. |
 | 13/10/2026 | Label : signature, albums, histoires et concerts. Tendances hebdomadaires. Décoration du studio. Clashs de beatmakers et atelier piano. Achat ×10/×25/Max. 36 sorties de studio. Palmarès à plusieurs niveaux. Projets de création. Recherche (R&D). Mode nuit plus lumineux. Version jouable sur GitHub Pages. |
@@ -470,9 +551,9 @@ Le code source du jeu est dans `game/` :
 
 | Fichier | Rôle |
 | --- | --- |
-| `data.js` | Toutes les données et l'équilibrage : productions, matériel, lieux, paliers, sorties, trophées, métiers, R&D, projets, clashs, piano, label, tournées, pays et carte du monde. |
+| `data.js` | Toutes les données et l'équilibrage : productions, matériel, lieux, paliers, sorties, trophées, métiers, R&D, projets, clashs, piano, label, tournées, pays, carte du monde, calendrier, climats et fêtes. |
 | `engine.js` | Le moteur de jeu : logique pure, sans affichage, testable avec Node. |
-| `scene3d.js` | La scène 3D (Three.js r160, licence MIT) : pièces, matériel, personnages, souvenirs, globe. |
+| `scene3d.js` | La scène 3D (Three.js r160, licence MIT) : pièces, matériel, personnages, souvenirs, globe, extérieur, saisons et météo. |
 | `ui.js` et `template.html` | L'interface : onglets, fenêtres, mini-jeux, styles. |
 | `build.py` | Assemble le tout dans `www/index.html`. |
 | `tests/` | Tests du moteur (un fichier par système). |

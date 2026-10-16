@@ -1098,7 +1098,74 @@
     'Lina', 'Enzo', 'Camille', 'Rayan', 'Manon', 'Idriss', 'Louise', 'Théo', 'Sofia', 'Bastien', 'Anaïs', 'Karim', 'Romane', 'Élias', 'Agathe', 'Moussa',
     'Clara', 'Nathan', 'Yasmine', 'Gabin', 'Salomé', 'Ilyes', 'Margaux', 'Adam'];
 
-  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, PIANO: PIANO, PERKS: PERKS, TUBE: TUBE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES, RIVAL_LABELS: RIVAL_LABELS, WORLD: WORLD, LTOUR: LTOUR, GEO: GEO };
+  // ---------- Calendrier de carrière, climat et décor extérieur ----------
+  // Jour 1: date du tout premier lancement. Une semaine du Top 50 (3 min) = 7 jours: un jour dure 180/7 s.
+  // Climat par pays: t = [moyenne °C, amplitude, jour le plus chaud], snow = neige au cœur de l'hiver (0 à 1), sw = seuil de froid
+  // (0 à 1) à partir duquel la neige tient, rain = probabilité de pluie par mois, ph = décalage du feuillage (jours), hemi = hémisphère.
+  var CAL = {
+    day: 180 / 7, tourDays: 14, tourPerDate: 7,
+    months: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+    monthsShort: ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'],
+    weekdays: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
+    climate: {
+      fr: { t: [12.5, 8, 200], vary: 4, snow: 0.6, sw: 0.84, ph: 0, hemi: 1, zone: 'tempere', rain: [0.35, 0.3, 0.3, 0.3, 0.32, 0.25, 0.2, 0.2, 0.25, 0.32, 0.35, 0.37], dry: 0.4,
+        trees: ['platane', 'tilleul', 'chene'], conifer: 'pin', flowers: [0x9b7fd6, 0xe85a7a, 0xf2c14e], style: 'fr' },
+      uk: { t: [11, 6.5, 200], vary: 3.5, snow: 0.5, sw: 0.86, ph: 5, hemi: 1, zone: 'tempere', rain: [0.5, 0.42, 0.42, 0.38, 0.38, 0.35, 0.35, 0.38, 0.4, 0.48, 0.5, 0.5], dry: 0,
+        trees: ['chene', 'hetre', 'bouleau'], conifer: 'sapin', flowers: [0xd83a4a, 0xf4a6c0, 0xfff3d6], style: 'uk' },
+      us: { t: [13, 12, 200], vary: 5, snow: 0.95, sw: 0.66, ph: 7, hemi: 1, zone: 'tempere', rain: [0.32, 0.3, 0.35, 0.35, 0.35, 0.32, 0.3, 0.3, 0.28, 0.28, 0.32, 0.33], dry: 0.2,
+        trees: ['erable', 'chene', 'bouleau'], conifer: 'sapin', flowers: [0xf2c14e, 0xe8743b, 0xc94bd1], style: 'us' },
+      jp: { t: [16, 10.5, 215], vary: 3.5, snow: 0.6, sw: 0.8, ph: 0, hemi: 1, zone: 'tempere', rain: [0.15, 0.2, 0.32, 0.35, 0.38, 0.5, 0.45, 0.35, 0.45, 0.38, 0.25, 0.15], dry: 0,
+        trees: ['sakura', 'momiji', 'sakura'], conifer: 'pin', flowers: [0xf4a6c0, 0xffffff, 0x9b7fd6], style: 'jp' },
+      br: { t: [24, 3.5, 30], vary: 2.5, snow: 0, sw: 1, ph: 0, hemi: -1, zone: 'tropical', rain: [0.45, 0.42, 0.4, 0.32, 0.25, 0.18, 0.15, 0.15, 0.22, 0.3, 0.38, 0.45],
+        dryM: [0, 0, 0, 0.1, 0.3, 0.5, 0.6, 0.6, 0.4, 0.2, 0, 0], bloom: [[215, 265]], trees: ['palmier', 'ipe', 'manguier'], flowers: [0xd6338a, 0xff8a3d, 0xf2c14e], style: 'br' },
+      ng: { t: [27, 1.5, 70], vary: 1.5, snow: 0, sw: 1, ph: 0, hemi: 1, zone: 'tropical', rain: [0.05, 0.1, 0.25, 0.45, 0.6, 0.75, 0.6, 0.45, 0.65, 0.55, 0.25, 0.05],
+        dryM: [0.8, 0.7, 0.4, 0.1, 0, 0, 0, 0, 0, 0, 0.4, 0.7], haze: [0.7, 0.5, 0.15, 0, 0, 0, 0, 0, 0, 0, 0.25, 0.6], bloom: [[60, 150]],
+        trees: ['palmier', 'manguier', 'flamboyant'], flowers: [0xe8743b, 0xf2c14e, 0xd6338a], style: 'ng' },
+      de: { t: [10, 9.5, 200], vary: 4.5, snow: 0.85, sw: 0.68, ph: 7, hemi: 1, zone: 'tempere', rain: [0.38, 0.33, 0.35, 0.32, 0.35, 0.38, 0.38, 0.35, 0.3, 0.33, 0.37, 0.4], dry: 0.2,
+        trees: ['hetre', 'bouleau', 'chene'], conifer: 'sapin', flowers: [0xe85a7a, 0xf2c14e, 0x7fb3ff], style: 'de' }
+    },
+    // Fêtes datées: décor extérieur (fx) et parfois un petit bonus. c: pays concernés (toutes si absent). from / to: [mois, jour].
+    fests: [
+      { id: 'noel', name: 'Fêtes de fin d’année', from: [12, 1], to: [1, 6], fx: 'lights', text: 'Guirlandes et sapin décoré illuminent le jardin.' },
+      { id: 'nouvelan', name: 'Nouvel An', from: [12, 31], to: [1, 1], fx: 'fireworks', text: 'Feu d’artifice au-dessus du studio. Bonne année !' },
+      { id: 'fdlm', name: 'Fête de la musique', from: [6, 18], to: [6, 24], fx: 'bunting', gain: 1.5, text: 'Toute la ville joue dehors : gains ×1,5 toute la semaine.' },
+      { id: 'quatorze', name: '14 Juillet', c: ['fr'], from: [7, 13], to: [7, 14], fx: 'fireworks', cols: [0x2f5bd3, 0xffffff, 0xe2364a], text: 'Feu d’artifice bleu, blanc, rouge.' },
+      { id: 'july4', name: 'Independence Day', c: ['us'], from: [7, 3], to: [7, 4], fx: 'fireworks', cols: [0x2f5bd3, 0xffffff, 0xe2364a], text: 'Feu d’artifice pour le 4 juillet.' },
+      { id: 'bonfire', name: 'Bonfire Night', c: ['uk'], from: [11, 4], to: [11, 5], fx: 'fireworks', text: 'Feux de joie et feux d’artifice partout dans le pays.' },
+      { id: 'halloween', name: 'Halloween', c: ['us', 'uk', 'fr', 'de'], from: [10, 24], to: [10, 31], fx: 'pumpkins', text: 'Des citrouilles grimaçantes gardent l’entrée.' },
+      { id: 'hanami', name: 'Hanami', c: ['jp'], from: [3, 26], to: [4, 8], fx: 'lanterns', text: 'Lanternes sous les cerisiers en fleurs.' },
+      { id: 'tanabata', name: 'Tanabata', c: ['jp'], from: [7, 5], to: [7, 7], fx: 'bunting', text: 'Rubans de vœux accrochés dans le jardin.' },
+      { id: 'carnaval', name: 'Carnaval', c: ['br'], from: [2, 10], to: [2, 18], fx: 'carnival', gain: 1.25, text: 'Confettis et fanfares : gains ×1,25 pendant le Carnaval.' },
+      { id: 'junina', name: 'Festa Junina', c: ['br'], from: [6, 10], to: [6, 17], fx: 'bunting', text: 'Fanions colorés pour la Festa Junina.' },
+      { id: 'independance', name: 'Fête de l’indépendance', c: ['ng'], from: [9, 30], to: [10, 1], fx: 'flags', cols: [0x1f8a4c, 0xffffff], text: 'Drapeaux vert et blanc dans toute la rue.' },
+      { id: 'oktober', name: 'Oktoberfest', c: ['de'], from: [9, 20], to: [10, 5], fx: 'bunting', cols: [0x2f6fd3, 0xffffff], text: 'Fanions bleu et blanc dans la cour.' }
+    ],
+    // Interactions dans le décor extérieur (temps réel en secondes; x: part des revenus de référence d'une sortie de studio)
+    out: {
+      mail: { every: 300, x: 0.6, lvl: 2 },
+      tree: { cd: 150, xp: 0.03 },
+      cat: { cd: 240, morale: 4, x: 0.15 },
+      snowman: { snow: 0.45, steps: 3, boost: 1.5, s: 90 }
+    },
+    mail: [
+      '« Ton dernier son tourne en boucle dans ma voiture. Merci ! »',
+      '« J’ai appris à mixer en regardant tes vidéos. Un jour je viendrai au studio. »',
+      '« Mon groupe a enfin trouvé son son grâce à toi. »',
+      '« On a dansé toute la nuit sur ton morceau à notre mariage. »',
+      '« Petite question : tu prends des stagiaires ? »',
+      '« Ma fille chante ton refrain du matin au soir. Au secours ! »',
+      '« Ton studio m’a donné envie de reprendre la guitare. »',
+      '« Je t’envoie une démo, sois indulgent·e ! »',
+      '« Le son de ta batterie, c’est de la magie. »',
+      '« Merci d’avoir répondu à mon message, ça m’a porté. »',
+      '« Je collectionne tous tes vinyles, il m’en manque deux. »',
+      '« Tu as sauvé ma soirée de révisions. »',
+      '« On reprend ton titre à la fête de l’école ! »',
+      '« Ce mix sonne mieux que l’original, sincèrement. »'
+    ]
+  };
+
+  var D = { TUNING: TUNING, ACTS: ACTS, ITEMS: ITEMS, TIERS: TIERS, EVENTS: EVENTS, TROPHIES: TROPHIES, ROLES: ROLES, NAMES: NAMES, CLIENTS: CLIENTS, CHART: CHART, RESEARCH: RESEARCH, PROJECTS: PROJECTS, BATTLE: BATTLE, PIANO: PIANO, PERKS: PERKS, TUBE: TUBE, TROPHY_LEVELS: TROPHY_LEVELS, DECO: DECO, ARTISTS: ARTISTS, VENUES: VENUES, GENRE_BPM: GENRE_BPM, STORIES: STORIES, RIVAL_LABELS: RIVAL_LABELS, WORLD: WORLD, LTOUR: LTOUR, GEO: GEO, CAL: CAL };
   if (typeof module !== 'undefined' && module.exports) module.exports = D;
   root.GameData = D;
 })(typeof window !== 'undefined' ? window : globalThis);

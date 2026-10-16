@@ -621,6 +621,31 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 .spec { --bc: var(--gold); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 10px 12px; border-left: 4px solid var(--gold); }
 .spec.chosen { background: color-mix(in srgb, var(--gold) 12%, var(--card)); border-color: var(--gold); }
 .spec.off { opacity: 0.45; }
+/* Calendrier de carrière (pastille sur la scène) */
+.cal-chip { position: absolute; z-index: 6; left: 12px; top: calc(var(--hud-h, 0px) + 6px); display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 5px 12px 5px 7px; border: 0; border-radius: 14px; background: var(--hud); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: var(--shadow); color: var(--ink); text-align: left; }
+.cal-chip.fest { box-shadow: var(--shadow), 0 0 0 2px var(--gold); }
+.cal-ico { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: color-mix(in srgb, var(--blue) 12%, transparent); }
+.cal-ico svg { width: 24px; height: 24px; }
+.cal-txt { display: grid; line-height: 1.15; }
+.cal-txt b { font: 800 14px var(--f-title); white-space: nowrap; }
+.cal-txt small { font: 700 11.5px var(--f-body); color: var(--ink-soft); white-space: nowrap; }
+.cal-pop { position: absolute; z-index: 9; left: 12px; top: calc(var(--hud-h, 0px) + 54px); width: min(360px, calc(100% - 24px)); max-height: calc(100% - var(--hud-h, 0px) - var(--sheet-h, 0px) - 70px); overflow: auto; padding: 14px 16px 12px; border-radius: var(--r); background: var(--card); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25); }
+.cal-x { position: absolute; right: 8px; top: 6px; width: 34px; height: 34px; border: 0; border-radius: 10px; background: transparent; font: 800 22px/1 var(--f-body); color: var(--ink-soft); }
+.cal-h { font-size: 17px; padding-right: 30px; }
+.cal-note { margin: 4px 0 8px; font-size: 12.5px; color: var(--ink-soft); }
+.cal-rows { display: grid; gap: 6px; margin: 8px 0; }
+.cal-rows > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px; font-size: 13px; }
+.cal-rows span { color: var(--ink-soft); font-weight: 700; }
+.cal-sec { margin: 10px 0 4px; font: 800 12px var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.cal-list { margin: 0; padding-left: 18px; font-size: 13px; display: grid; gap: 3px; }
+.invite.pos-2, .invite.pos-3 { top: calc(var(--hud-h, 130px) + 60px); }
+@media (max-width: 599px) {
+  .cal-chip { left: 8px; top: calc(var(--hud-h, 0px) + 4px); min-height: 32px; padding: 3px 9px 3px 4px; gap: 5px; border-radius: 11px; }
+  .cal-ico { width: 24px; height: 24px; border-radius: 8px; } .cal-ico svg { width: 19px; height: 19px; }
+  .cal-txt b { font-size: 12.5px; } .cal-txt small { font-size: 10.5px; }
+  .cal-pop { left: 8px; top: calc(var(--hud-h, 0px) + 42px); width: calc(100% - 16px); }
+  .invite.pos-2, .invite.pos-3 { top: calc(var(--hud-h, 120px) + 44px); }
+}
 /* Réglages */
 .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--panel-2); border: 1px solid var(--line); }
 .seg button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 6px 4px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-soft); font-weight: 800; font-size: 14px; }
@@ -822,6 +847,11 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   <div class="stage" id="stage">
     <div class="stage-fallback" id="stageFallback" hidden><p>La vue 3D n’est pas disponible sur cet appareil. Le jeu fonctionne normalement avec les panneaux.</p></div>
     <div class="pick-tip" id="pickTip" hidden></div>
+    <button class="cal-chip" id="calChip" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="calPop"><span class="cal-ico" id="calIco" aria-hidden="true"></span><span class="cal-txt"><b id="calDate"></b><small id="calSub"></small></span></button>
+    <div class="cal-pop" id="calPop" role="dialog" aria-label="Calendrier et jardin" hidden>
+      <button class="cal-x" id="calClose" type="button" aria-label="Fermer le calendrier">×</button>
+      <div id="calBody"></div>
+    </div>
     <button class="cam-reset" id="camReset" type="button" hidden title="Revenir à la vue d’ensemble (double-clic ou touche 0)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6M15 4h5v5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Vue d’ensemble</button>
     <button class="menu-toggle" id="menuToggle" type="button" aria-controls="panel" aria-expanded="true" title="Replier le menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="menuToggleText">Masquer</span></button>
     <div class="banner" id="cloudBanner" hidden>
@@ -1002,6 +1032,13 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
           <button type="button" data-theme-set="dark" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor"/></svg>Sombre</button>
         </div>
         <p class="small-note" id="themeNote">Automatique suit le réglage de ton appareil.</p>
+        <h3 class="sec">Graphismes 3D</h3>
+        <div class="seg" id="qualSeg" role="group" aria-label="Qualité des graphismes 3D">
+          <button type="button" data-q="auto" aria-pressed="true">Automatique</button>
+          <button type="button" data-q="low" aria-pressed="false">Économie</button>
+          <button type="button" data-q="high" aria-pressed="false">Détaillée</button>
+        </div>
+        <p class="small-note">Économie allège le jardin, la pluie et la neige pour les appareils modestes. Détaillée ajoute ombres fines et végétation.</p>
         <h3 class="sec">Son</h3>
         <div class="card set-card">
           <div class="set-row"><div><b>Sons du studio</b><p class="small-note">Petits sons quand une production rapporte, un trophée tombe ou un client appelle.</p></div>

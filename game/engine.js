@@ -44,6 +44,9 @@
   var TLV = D.TROPHY_LEVELS || ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Légende'];
   var BT = D.BATTLE || { leagues: [{ name: 'Quartier', bpm: 90, target: 0.5, dens: 0 }], lanes: [], rivals: ['Rival'] };
   PERKS = D.PERKS || MILESTONES.map(function (l) { return { lvl: l, id: 'p' + l, name: 'Palier', gain: 2, desc: 'Gains ×2' }; }); TUBE = D.TUBE || 10;
+  var CAL = D.CAL || { day: 180 / 7, tourDays: 14, tourPerDate: 7, months: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'], weekdays: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
+    climate: { fr: { t: [12.5, 8, 200], vary: 4, snow: 0.6, sw: 0.84, ph: 0, hemi: 1, zone: 'tempere', rain: [0.3, 0.3, 0.3, 0.3, 0.3, 0.25, 0.2, 0.2, 0.25, 0.3, 0.35, 0.35], trees: ['platane'], flowers: [0xe85a7a], style: 'fr' } },
+    fests: [], out: { mail: { every: 300, x: 0.6, lvl: 2 }, tree: { cd: 150, xp: 0.03 }, cat: { cd: 240, morale: 4, x: 0.15 }, snowman: { snow: 0.45, steps: 3, boost: 1.5, s: 90 } }, mail: ['« Merci ! »'] };
   var PIANO = D.PIANO || { songs: [{ id: 'gamme', name: 'Gamme', notes: [60, 62, 64, 65, 67, 69, 71, 72] }], min: 10 };
 
   var hooks = {};
@@ -59,8 +62,9 @@
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
       savedAt: now, created: now, sound: false, legend: false, epoch: 0,
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, fameX: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
-      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco(), label: newLabel(), world: newWorld(0) };
+      team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco(), label: newLabel(), world: newWorld(0), cal: newCal() };
   }
+  function newCal() { return { d: 0, mail: 0, cd: { tree: 0, cat: 0 }, sm: 0, smW: -1, fest: '' }; }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
   function newLabel() { return { roster: [], albums: 0, concerts: 0, bestVenue: 0, kept: 0, ocd: T.offerFirst, gone: [], disco: [], ltours: 0, cities: {} }; }
   function newWorld(tours) { return { home: 'fr', done: {}, base: null, rec: { piano: 0, proj: 0 }, souv: {}, homes: ['fr'], picks: pickDates(tours || 0) }; }
@@ -185,6 +189,15 @@
       var r = b.rival;
       if (r && typeof r === 'object') B.rival = { name: String(r.name || 'Rival').slice(0, 30), league: Math.max(1, Math.min(L, Math.floor(num(r.league, B.league)))),
         target: Math.max(0.3, Math.min(0.95, num(r.target, 0.5))), seed: Math.floor(num(r.seed, 1)) >>> 0, rule: RULES.indexOf(r.rule) >= 0 ? r.rule : null, kind: r.kind === 'piano' ? 'piano' : 'drums' };
+    }
+    if (o.cal && typeof o.cal === 'object') {
+      var cl = o.cal, K = S.cal;
+      K.d = Math.max(0, Math.min(3650000, num(cl.d, 0))); K.mail = Math.max(0, Math.min(1, num(cl.mail, 0)));
+      K.cd = { tree: Math.max(0, num(cl.cd && cl.cd.tree, 0)), cat: Math.max(0, num(cl.cd && cl.cd.cat, 0)) };
+      K.sm = Math.max(0, Math.min(CAL.out.snowman.steps, Math.floor(num(cl.sm, 0)))); K.smW = Math.floor(num(cl.smW, -1)); K.fest = String(cl.fest || '').slice(0, 60);
+    } else if (o.charts && typeof o.charts === 'object') {
+      // anciennes sauvegardes: le temps écoulé se déduit des semaines du Top 50 déjà passées
+      S.cal.d = Math.max(0, (S.charts.week - 1) * 7 + (T.weekLen - S.charts.left) / CAL.day);
     }
     return S;
   }
@@ -374,7 +387,7 @@
   function duration(S, act) { return act.dur / stats(S).g.speed / staffFx(S, act.id).sp / perkFx(S.acts[act.id].lvl).speed; }
   function payout(S, act) {
     var a = S.acts[act.id], st = stats(S);
-    return act.pay * (1 + T.upGain * a.lvl) * milestoneMult(a.lvl) * synergy(S) * st.g.gain * (st.g.act[act.id] || 1) * st.vm * levelMult(S) * boostMult(S) * staffFx(S, act.id).gn * trendAct(S, act.id);
+    return act.pay * (1 + T.upGain * a.lvl) * milestoneMult(a.lvl) * synergy(S) * st.g.gain * (st.g.act[act.id] || 1) * st.vm * levelMult(S) * boostMult(S) * staffFx(S, act.id).gn * trendAct(S, act.id) * festMult(S);
   }
   function xpGain(S, act) { return act.xp * stats(S).g.xp; }
   function upCost(S, act) { return Math.ceil(act.upCost * Math.pow(T.upGrowth, S.acts[act.id].lvl)); }
@@ -390,7 +403,7 @@
       var t = S.tracks[a.id] || 0;
       if (t > 0) r += Math.pow(t, T.trackExp) * a.pay * ROY * perkFx(S.acts[a.id].lvl).roy;
     });
-    return r * st.g.roy * st.vm * levelMult(S) * boostMult(S);
+    return r * st.g.roy * st.vm * levelMult(S) * boostMult(S) * festMult(S);
   }
   function activeRate(S) {
     var r = 0;
@@ -504,6 +517,7 @@
     advanceCore(S, dt);
     // tournées locales: en temps réel, même absent (S._off: secondes réelles par seconde simulée)
     tickLtours(S, dt * (S._off || 1));
+    tickCal(S, dt * (S._off || 1));
     checkWorld(S);
     checkTrophies(S);
   }
@@ -576,7 +590,7 @@
   }
   // Revenu de référence (sans boost) pour fixer les salaires et les prix.
   function incomeRef(S) {
-    var b = boostMult(S), a = bestAct(S);
+    var b = boostMult(S) * festMult(S), a = bestAct(S);
     return Math.max((royRate(S) + activeRate(S)) / b, payout(S, a) / b / duration(S, a), 0.05);
   }
   function payroll(S) { var t = 0; (S.team ? S.team.staff : []).forEach(function (m) { t += m.salary; }); return t * rdFx(S).salary; }
@@ -1525,6 +1539,143 @@
     if (!x || typeof x !== 'object') return null;
     return { n: Math.max(0, Math.floor(num(x.n, 0))), ok: Math.max(0, Math.floor(num(x.ok, 0))), cash: Math.max(0, num(x.cash, 0)), fame: num(x.fame, 0), mood: num(x.mood, 0), c: String(x.c || 'fr').slice(0, 2) };
   }
+  // ---------- Calendrier, saisons et météo ----------
+  // Jour 1 = date du premier lancement (S.created). Les jours avancent avec le temps du jeu, même pendant l'absence.
+  function tickCal(S, rdt) {
+    var K = S.cal; if (!K || rdt <= 0) return;
+    K.d += rdt / CAL.day;
+    if (S.level >= CAL.out.mail.lvl) K.mail = Math.min(1, K.mail + rdt / CAL.out.mail.every);
+    K.cd.tree = Math.max(0, K.cd.tree - rdt); K.cd.cat = Math.max(0, K.cd.cat - rdt);
+  }
+  function calStart(S) { var t = new Date(S.created || Date.now()); t.setHours(12, 0, 0, 0); return t; }
+  function dateOf(S, day) { var t = calStart(S); t.setDate(t.getDate() + Math.floor(day)); return t; }
+  function doyOf(t) { return Math.round((t - new Date(t.getFullYear(), 0, 1, 12)) / 864e5); }
+  // Jour de l'année (0 à 365) éventuellement fractionnaire, date réelle, numéro du jour de carrière.
+  function calendar(S, d) {
+    d = d == null ? (S.cal ? S.cal.d : 0) : d;
+    var t = dateOf(S, d), f = d - Math.floor(d);
+    return { day: Math.floor(d) + 1, d: d, f: f, date: t, y: t.getFullYear(), m: t.getMonth() + 1, dom: t.getDate(), wd: t.getDay(), doy: doyOf(t) + f,
+      text: t.getDate() + (t.getDate() === 1 ? 'er' : '') + ' ' + CAL.months[t.getMonth()] + ' ' + t.getFullYear(), wdName: CAL.weekdays[t.getDay()] };
+  }
+  function hash01(n) { n = n | 0; n = Math.imul(n ^ (n >>> 16), 0x45d9f3b); n = Math.imul(n ^ (n >>> 16), 0x45d9f3b); n ^= n >>> 16; return (n >>> 0) / 4294967296; }
+  function sstep(a, b, x) { var t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
+  function monthly(arr, doy) { // valeur mensuelle lissée (milieu de mois)
+    if (!arr) return 0;
+    var m = doy / 30.44 - 0.5, i = Math.floor(m), f = m - i, a = arr[(i % 12 + 12) % 12], b = arr[((i + 1) % 12 + 12) % 12];
+    return a + (b - a) * f;
+  }
+  function climateOf(k) { return CAL.climate[k] || CAL.climate.fr; }
+  function seasonTemp(cl, doy) { return cl.t[0] + cl.t[1] * Math.cos(2 * Math.PI * (doy - cl.t[2]) / 365); }
+  // Météo d'un jour entier (déterministe: même jour, même pays, même temps).
+  function weatherDay(S, k, i) {
+    var cl = climateOf(k), t = dateOf(S, i), doy = doyOf(t), seed = (k.charCodeAt(0) * 131 + k.charCodeAt(1) * 7) * 100003 + i * 7919;
+    var r1 = hash01(seed), r2 = hash01(seed + 1), r3 = hash01(seed + 2), r4 = hash01(seed + 3);
+    var temp = seasonTemp(cl, doy) + (r2 - 0.5) * 2 * (cl.vary || 3), p = monthly(cl.rain, doy);
+    var wet = r1 < p ? 0.35 + 0.65 * r3 : 0;
+    return { temp: temp, wet: wet, snow: wet > 0 && temp < 1.5, cloud: wet ? 0.8 + 0.2 * r3 : Math.max(0, Math.min(0.75, p * 1.2 + (r4 - 0.55) * 0.8)), doy: doy };
+  }
+  function seasonName(cl, n, k) {
+    if (k === 'ng') { var m = Math.floor(n / 30.44); return m >= 11 || m <= 1 ? { id: 'harmattan', name: 'Harmattan' } : m <= 2 || m === 10 ? { id: 'seche', name: 'Saison sèche' } : { id: 'pluies', name: 'Saison des pluies' }; }
+    if (n >= 79 && n < 172) return { id: 'printemps', name: 'Printemps' };
+    if (n >= 172 && n < 265) return { id: 'ete', name: 'Été' };
+    if (n >= 265 && n < 355) return { id: 'automne', name: 'Automne' };
+    return { id: 'hiver', name: 'Hiver' };
+  }
+  function festsAt(k, m, dd) {
+    var v = m * 100 + dd;
+    return (CAL.fests || []).filter(function (f) {
+      if (f.c && f.c.indexOf(k) < 0) return false;
+      var a = f.from[0] * 100 + f.from[1], b = f.to[0] * 100 + f.to[1];
+      return a <= b ? v >= a && v <= b : v >= a || v <= b;
+    });
+  }
+  // Environnement extérieur à l'instant présent: saison, végétation, neige, météo, fêtes (valeurs de 0 à 1 qui varient en douceur).
+  function env(S, d) {
+    var K = S.cal || newCal(), k = (S.world && S.world.home) || 'fr', cl = climateOf(k);
+    d = d == null ? K.d : d;
+    var c = calendar(S, d), i = Math.floor(d), f = d - i, doy = c.doy;
+    var n = cl.hemi < 0 ? (doy + 182.5) % 365 : doy, ph = cl.ph || 0; // jour « nord » équivalent
+    var w0 = weatherDay(S, k, i), w1 = weatherDay(S, k, i + 1), bl = sstep(0.55, 1, f);
+    var cloud = w0.cloud + (w1.cloud - w0.cloud) * bl, temp = w0.temp + (w1.temp - w0.temp) * f;
+    // la pluie ou la neige commencent et cessent progressivement
+    var wet = w0.wet * (1 - bl) + w1.wet * bl, snowing = (bl < 0.5 ? w0.snow : w1.snow);
+    var o = { day: c.day, cal: c, country: k, zone: cl.zone, style: cl.style || k, temp: temp, cloud: cloud, precip: wet > 0.02 ? { t: snowing ? 'snow' : 'rain', k: wet } : null };
+    if (cl.zone === 'tropical') {
+      o.leaf = 1; o.fall = 0; o.fresh = 0.5; o.blossom = 0; o.flowers = 1;
+      o.dry = monthly(cl.dryM, doy); o.dormant = 0; o.snow = 0;
+      o.bloom = 0; (cl.bloom || []).forEach(function (b) { o.bloom = Math.max(o.bloom, sstep(b[0], b[0] + 15, doy) * (1 - sstep(b[1] - 15, b[1], doy))); });
+      o.haze = monthly(cl.haze, doy);
+      if (o.precip && o.precip.t === 'snow') o.precip.t = 'rain';
+    } else {
+      o.leaf = Math.min(sstep(80 + ph, 132 + ph, n), 1 - sstep(288 + ph, 332 + ph, n));
+      o.fall = sstep(252 + ph, 300 + ph, n) * (1 - sstep(340, 360, n));
+      o.fresh = 1 - sstep(130 + ph, 185 + ph, n);
+      o.blossom = sstep(80 + ph, 90 + ph, n) * (1 - sstep(100 + ph, 110 + ph, n)); // cerisiers en fleurs
+      o.flowers = sstep(85 + ph, 125 + ph, n) * (1 - sstep(262 + ph, 300 + ph, n));
+      o.dry = (cl.dry || 0) * sstep(190, 215, n) * (1 - sstep(245, 275, n));
+      o.dormant = Math.max(1 - sstep(65 + ph, 110 + ph, n), sstep(300 + ph, 345, n));
+      o.bloom = 0; o.haze = 0;
+      // neige: au cœur de l'hiver selon le pays, renforcée par les jours de neige récents
+      var cold = -Math.cos(2 * Math.PI * (doy - cl.t[2]) / 365), base = (cl.snow || 0) * sstep(cl.sw, Math.min(1, cl.sw + 0.12), cold), fresh = 0;
+      // neige fraîche: monte pendant la journée de neige puis fond en deux ou trois jours (continu dans le temps)
+      if (cl.snow) for (var j = 0; j < 4; j++) { var wj = j ? weatherDay(S, k, i - j) : w0, age = j + f; if (wj.snow) fresh += wj.wet * sstep(0, 0.6, age) * (1 - sstep(1.5, 3.5, age)); }
+      var warm = sstep(4, 9, temp);
+      o.snow = Math.max(0, Math.min(1, base * (0.7 + 0.3 * Math.min(1, fresh)) + fresh * 0.35 * (cl.snow || 0) - warm * 0.5));
+    }
+    o.season = seasonName(cl, n, k);
+    o.fests = festsAt(k, c.m, c.dom).map(function (x) { return x.id; });
+    o.wind = 0.3 + 0.7 * hash01(i * 31 + 7);
+    return o;
+  }
+  var FEST_BY = {}; (CAL.fests || []).forEach(function (f) { FEST_BY[f.id] = f; });
+  var fmCache = { k: '', v: 1 };
+  function festMult(S) {
+    if (!S.cal) return 1;
+    var k = Math.floor(S.cal.d) + '|' + ((S.world && S.world.home) || 'fr') + '|' + (S.created || 0);
+    if (fmCache.k !== k) {
+      var c = calendar(S), v = 1;
+      festsAt((S.world && S.world.home) || 'fr', c.m, c.dom).forEach(function (f) { if (f.gain) v *= f.gain; });
+      fmCache.k = k; fmCache.v = v;
+    }
+    return fmCache.v;
+  }
+  // Ce qui attend dans le jardin: courrier des fans, arbre à secouer, chat à caresser, bonhomme de neige à finir.
+  function winterOf(S) { var c = calendar(S); return c.y - (c.m < 7 ? 1 : 0); }
+  function outdoorState(S, e) {
+    var K = S.cal, O = CAL.out, sn = e ? e.snow : env(S).snow, win = winterOf(S), sm = K.smW === win ? K.sm : 0;
+    // un bonhomme de neige par hiver; il fond quand la neige disparaît
+    return { mail: K.mail >= 1 && S.level >= O.mail.lvl, mailP: K.mail, tree: K.cd.tree <= 0, treeCd: K.cd.tree, cat: K.cd.cat <= 0, catCd: K.cd.cat,
+      snowman: sn >= O.snowman.snow ? (sm >= O.snowman.steps ? 'done' : 'build') : null, sm: sn >= 0.12 ? sm : 0, snow: sn };
+  }
+  function outdoor(S, id, rnd) {
+    var K = S.cal, O = CAL.out, st = outdoorState(S), ref = eventRef(S), r = rnd || rand, out = null;
+    if (id === 'mail') {
+      if (!st.mail) return null;
+      K.mail = 0;
+      var m = ref * O.mail.x; S.money += m; S.lifetime += m;
+      var city = homeCountry(S).cities, who = NAMES[Math.floor(r() * NAMES.length)] + ', ' + city[Math.floor(r() * city.length)];
+      out = { id: id, text: CAL.mail[Math.floor(r() * CAL.mail.length)], from: who, rewards: [{ k: 'cash', v: m }] };
+    } else if (id === 'tree') {
+      if (!st.tree) return null;
+      K.cd.tree = O.tree.cd;
+      var x = xpNeeded(S.level) * O.tree.xp; addXp(S, x);
+      out = { id: id, rewards: [{ k: 'xp', v: x }] };
+    } else if (id === 'cat') {
+      if (!st.cat) return null;
+      K.cd.cat = O.cat.cd;
+      if (S.team.staff.length) { S.team.staff.forEach(function (s) { s.morale = Math.min(100, s.morale + O.cat.morale); }); out = { id: id, rewards: [{ k: 'morale', v: O.cat.morale }] }; }
+      else { var c = ref * O.cat.x; S.money += c; S.lifetime += c; out = { id: id, rewards: [{ k: 'cash', v: c }] }; }
+    } else if (id === 'snowman') {
+      if (st.snowman !== 'build') return null;
+      var win = winterOf(S);
+      if (K.smW !== win) { K.smW = win; K.sm = 0; }
+      K.sm++;
+      out = { id: id, step: K.sm, steps: O.snowman.steps, rewards: [] };
+      if (K.sm >= O.snowman.steps) { grantBoost(S, O.snowman.boost, O.snowman.s); out.rewards.push({ k: 'boost', m: S.boost.m, s: S.boost.left }); out.done = true; }
+    }
+    if (out) touch(S);
+    return out;
+  }
   function homeCountry(S) { return COUNTRY_BY[(S.world && S.world.home) || 'fr'] || WORLD.countries[0]; }
   function legTime(t) { return LT_SIZE[t.size].leg * LT_TR[t.tr].speed; }
   function ltourReady(S, r) { return labelOpen(S) && !!r && !r.tour && r.tcd <= 0 && !r.offer && !(S.proj.cur && S.proj.cur.artist === r.id); }
@@ -1667,9 +1818,11 @@
     if (homes.indexOf(nh) < 0) homes.push(nh);
     S.world = newWorld(S.tours); S.world.home = nh; S.world.souv = souv; S.world.homes = homes;
     S.savedAt = now; S.epoch = now;
+    var tdays = CAL.tourDays + CAL.tourPerDate * played.length;
+    if (S.cal) { S.cal.d += tdays; S.cal.sm = 0; }
     touch(S);
     S.world.base = worldSnap(S);
-    return { points: n + extra, base: n, extra: extra, fame: S.fame, tours: S.tours, dates: played.map(function (d) { return d.id; }), home: nh };
+    return { points: n + extra, base: n, extra: extra, fame: S.fame, tours: S.tours, dates: played.map(function (d) { return d.id; }), home: nh, days: tdays };
   }
 
   // ---------- Palmarès ----------
@@ -1910,13 +2063,13 @@
     var gap = Math.max(0, (now - S.savedAt) / 1000);
     if (gap < 30) return null;
     var eff = Math.min(gap, OFFLINE_CAP) * OFFLINE_EFF;
-    var m0 = S.money, l0 = S.lifetime, x0 = S.level, tr0 = trackCount(S), mo0 = avgMorale(S), ch = 0;
+    var m0 = S.money, l0 = S.lifetime, x0 = S.level, tr0 = trackCount(S), mo0 = avgMorale(S), ch = 0, d0 = S.cal ? S.cal.d : 0;
     S._off = Math.min(gap, OFFLINE_CAP) / Math.max(1, eff);
     try { advance(S, eff); ch = chartsAway(S, Math.min(gap, OFFLINE_CAP), OFFLINE_EFF); } finally { delete S._off; }
     // gain: revenus bruts; net: variation réelle du budget (salaires déduits)
     var gain = S.lifetime - l0, net = S.money - m0;
     if (gain <= 0) return null;
-    return { gap: gap, capped: gap > OFFLINE_CAP, gain: gain, net: net, wages: Math.max(0, gain - net), levels: S.level - x0, tracks: trackCount(S) - tr0, charts: ch, mor0: mo0, mor1: avgMorale(S) };
+    return { gap: gap, capped: gap > OFFLINE_CAP, gain: gain, net: net, wages: Math.max(0, gain - net), levels: S.level - x0, tracks: trackCount(S) - tr0, charts: ch, mor0: mo0, mor1: avgMorale(S), days: S.cal ? S.cal.d - d0 : 0 };
   }
   function avgMorale(S) {
     var st = S.team ? S.team.staff : [];
@@ -1959,6 +2112,7 @@
     RIVAL_LABELS: RIVAL_LABELS, goneOf: goneOf, keepChance: keepChance, retainCost: retainCost, transferFee: transferFee, resolveOffer: resolveOffer, discography: discography,
     VENUES: VENUES, STORIES: STORIES, STORY_BY: STORY_BY, venueIndex: venueIndex, concertReady: concertReady, startConcert: startConcert, finishConcert: finishConcert,
     makeStory: makeStory, storyText: storyText, storyCost: storyCost, resolveStory: resolveStory,
+    CAL: CAL, FEST_BY: FEST_BY, calendar: calendar, env: env, weatherDay: weatherDay, festsAt: festsAt, festMult: festMult, outdoorState: outdoorState, outdoor: outdoor, tickCal: tickCal,
     trendFor: trendFor, trendAct: trendAct, makeTrend: makeTrend, RULES: RULES, pianoOpen: pianoOpen, pianoReward: pianoReward, finishPiano: finishPiano, battleOpen: battleOpen, tickBattle: tickBattle, declineBattle: declineBattle, battlePattern: battlePattern, tilesPattern: tilesPattern, startBattle: startBattle, finishBattle: finishBattle
   };
 
