@@ -1,6 +1,9 @@
-// Premier Mix: application de bureau (Electron). Le jeu entier tient dans www/index.html.
+// Music Studio Tycoon: application de bureau (Electron). Le jeu entier tient dans www/index.html.
 const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
+
+// Le jeu s'appelait « Premier Mix » : on garde son dossier de données pour conserver les sauvegardes existantes.
+app.setPath('userData', path.join(app.getPath('appData'), 'Premier Mix'));
 
 if (!app.requestSingleInstanceLock()) app.quit();
 
@@ -11,7 +14,7 @@ function createWindow() {
     height: 820,
     minWidth: 960,
     minHeight: 620,
-    title: 'Premier Mix',
+    title: 'Music Studio Tycoon',
     backgroundColor: '#e6edf1',
     icon: path.join(__dirname, '..', 'build', 'icon.png'),
     autoHideMenuBar: true,

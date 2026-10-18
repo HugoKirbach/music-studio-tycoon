@@ -25,7 +25,7 @@ jobs:
         run: npx electron-builder --win nsis portable --publish never
       - uses: actions/upload-artifact@v4
         with:
-          name: PremierMix-Windows
+          name: MusicStudioTycoon-Windows
           path: release/*.exe
           if-no-files-found: error
 
@@ -58,11 +58,11 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
       - name: Renommer l'APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk PremierMix.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk MusicStudioTycoon.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: PremierMix-Android
-          path: PremierMix.apk
+          name: MusicStudioTycoon-Android
+          path: MusicStudioTycoon.apk
           if-no-files-found: error
 
   release:
@@ -78,9 +78,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
-          name: Premier Mix 1.0.${{ github.run_number }}
+          name: Music Studio Tycoon 1.0.${{ github.run_number }}
           body: |
-            - **Windows** : `PremierMix-Installation-*.exe` (installe le jeu) ou `PremierMix-Portable-*.exe` (se lance directement, sans installation).
-            - **Android** : `PremierMix.apk` (autorise l'installation d'applications inconnues pour ton navigateur ou ton gestionnaire de fichiers).
+            - **Windows** : `MusicStudioTycoon-Installation-*.exe` (installe le jeu) ou `MusicStudioTycoon-Portable-*.exe` (se lance directement, sans installation).
+            - **Android** : `MusicStudioTycoon.apk` (autorise l'installation d'applications inconnues pour ton navigateur ou ton gestionnaire de fichiers).
           files: out/*
           make_latest: true

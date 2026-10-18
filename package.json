@@ -1,6 +1,6 @@
 {
-  "name": "premier-mix",
-  "productName": "Premier Mix",
+  "name": "music-studio-tycoon",
+  "productName": "Music Studio Tycoon",
   "version": "1.0.0",
   "description": "Jeu de gestion en 3D : monte ton studio de musique, de ta chambre au complexe légendaire.",
   "author": "Hugo",
@@ -23,8 +23,8 @@
   },
   "build": {
     "appId": "fr.premiermix.game",
-    "productName": "Premier Mix",
-    "copyright": "Premier Mix",
+    "productName": "Music Studio Tycoon",
+    "copyright": "Music Studio Tycoon",
     "directories": { "output": "release", "buildResources": "build" },
     "files": ["electron/**", "www/**", "package.json"],
     "win": { "target": ["nsis", "portable"], "icon": "build/icon.png" },
@@ -33,9 +33,9 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "Premier Mix",
-      "artifactName": "PremierMix-Installation-${version}.exe"
+      "shortcutName": "Music Studio Tycoon",
+      "artifactName": "MusicStudioTycoon-Installation-${version}.exe"
     },
-    "portable": { "artifactName": "PremierMix-Portable-${version}.exe" }
+    "portable": { "artifactName": "MusicStudioTycoon-Portable-${version}.exe" }
   }
 }

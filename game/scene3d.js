@@ -1,4 +1,4 @@
-/* Premier Mix 3D: la scène du studio en Three.js (pièce, équipements, équipe animée).
+/* Music Studio Tycoon 3D: la scène du studio en Three.js (pièce, équipements, équipe animée).
    API: Scene3D.init(host) · update(view) · pop(text, anchor) · setTheme(dark) · onPick(fn) · resize() */
 (function (root) {
   'use strict';
@@ -734,14 +734,18 @@
     cur.shelf = g;
   }
   // Néon mural dessiné sur une toile (texte ou pictogramme lumineux).
-  function neonDraw(kind, col) {
+  function neonDraw(kind, col, txt) {
     return function (c, w, h) {
       c.clearRect(0, 0, w, h); c.lineJoin = 'round'; c.lineCap = 'round';
       function glow(fn) { c.save(); c.strokeStyle = col; c.shadowColor = col; c.shadowBlur = 22; c.lineWidth = 9; fn(); c.stroke(); c.restore(); c.save(); c.strokeStyle = '#fff'; c.lineWidth = 3.5; fn(); c.stroke(); c.restore(); }
       if (kind === 'text') {
-        c.font = '800 70px "Trebuchet MS", system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-        c.save(); c.shadowColor = col; c.shadowBlur = 24; c.strokeStyle = col; c.lineWidth = 8; c.strokeText('PREMIER MIX', w / 2, h / 2); c.restore();
-        c.save(); c.strokeStyle = '#fff'; c.lineWidth = 2.5; c.strokeText('PREMIER MIX', w / 2, h / 2); c.restore();
+        // le nom du studio, réduit pour tenir dans le néon
+        var label = String(txt || 'MUSIC STUDIO'), fs = 70;
+        c.font = '800 ' + fs + 'px "Trebuchet MS", system-ui, sans-serif';
+        var tw = c.measureText(label).width; if (tw > w * 0.9) { fs = Math.max(26, Math.floor(fs * w * 0.9 / tw)); c.font = '800 ' + fs + 'px "Trebuchet MS", system-ui, sans-serif'; }
+        c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.save(); c.shadowColor = col; c.shadowBlur = 24; c.strokeStyle = col; c.lineWidth = Math.max(4, fs * 0.115); c.strokeText(label, w / 2, h / 2); c.restore();
+        c.save(); c.strokeStyle = '#fff'; c.lineWidth = Math.max(1.5, fs * 0.036); c.strokeText(label, w / 2, h / 2); c.restore();
         return;
       }
       var cx = w / 2, cy = h / 2, r = h * 0.36;
@@ -761,7 +765,7 @@
   }
   function buildNeon(g0, def, n) {
     var sp = def.neon, text = n.k === 'text', w = text ? 1.5 : 0.75, h = text ? 0.32 : 0.6;
-    var key = 'neon-' + n.k + n.c, t = canvasTex(key, text ? 512 : 256, text ? 110 : 205, neonDraw(n.k, n.c));
+    var key = 'neon-' + n.k + n.c + (text ? '-' + (n.t || '') : ''), t = canvasTex(key, text ? 512 : 256, text ? 110 : 205, neonDraw(n.k, n.c, n.t));
     var mat = MATS[key] || (MATS[key] = new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false }));
     var m = mesh(g0, new THREE.PlaneGeometry(1, 1), mat, sp[0], sp[1] + h / 2, -def.D / 2 + 0.02, w, h, 1, false);
     m.name = 'néon'; m.castShadow = false;

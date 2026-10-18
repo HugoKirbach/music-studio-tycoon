@@ -1,6 +1,6 @@
-# Premier Mix
+# Music Studio Tycoon
 
-**Premier Mix** est un jeu de gestion « idle » en 3D : tu montes ton studio de musique, d'un ordinateur portable dans ta chambre jusqu'au complexe légendaire, avec ton équipe, ton label, tes artistes et tes tournées à travers le monde.
+**Music Studio Tycoon** est un jeu de gestion « idle » en 3D : tu montes ton studio de musique, d'un ordinateur portable dans ta chambre jusqu'au complexe légendaire, avec ton équipe, ton label, tes artistes et tes tournées à travers le monde.
 
 > **Jouer tout de suite** : <https://hugokirbach.github.io/music-studio-tycoon/>
 > Le jeu tient dans un seul fichier (`www/index.html`) et fonctionne sur ordinateur comme sur téléphone.
@@ -91,7 +91,7 @@ flowchart LR
 
 ## L'écran de jeu
 
-- **En haut** : ton lieu actuel et sa progression, puis les compteurs **Budget** (avec le revenu par seconde et la renommée), **Valeur** du studio, **Expertise** (niveau) et **Catalogue** (titres produits).
+- **En haut** : le nom de ton studio (touche-le pour le renommer), ton palier et sa progression, puis les compteurs **Budget** (avec le revenu par seconde et la renommée), **Valeur** du studio, **Expertise** (niveau) et **Catalogue** (titres produits).
 - **Au centre** : ton studio en **3D**, entouré de son extérieur. Tu peux tourner la caméra, zoomer (jusqu'à voir tout le jardin) et cliquer sur les éléments : matériel, membres de l'équipe, artistes, affiches, boîte aux lettres, arbre, chat. Des **bulles** au-dessus des objets ouvrent les activités : clash sur la batterie, atelier sur le piano, décoration sur l'étagère, globe, artistes qui ont quelque chose à dire, courrier des fans, bonhomme de neige.
 - **La pastille du calendrier** (sous les compteurs) : météo, date, numéro du jour, saison ou fête en cours. Touche-la pour ouvrir la fiche du jour (voir [Calendrier, saisons et jardin](#calendrier-saisons-et-jardin)).
 - **Les onglets** : Prod, Matériel, Équipe, R&D, Top 50, Palmarès, Réglages. Une **pastille** signale qu'il y a quelque chose à faire dans un onglet.
@@ -214,11 +214,20 @@ Dès le niveau 2, des clients t'appellent (onglet **Prod**) :
 
 ## Sorties de studio
 
-Régulièrement, une **rencontre** t'attend hors du studio : il y en a **36 différentes** (rappeur du café, micro ouvert, panne en pleine nuit, pianiste du métro…).
+Régulièrement, une **rencontre** t'attend hors du studio : il y en a **38 différentes** (rappeur du café, micro ouvert, panne en pleine nuit, pianiste du métro…).
 
 - Chaque rencontre propose **2 ou 3 choix**. Certains coûtent de l'argent, demandent un équipement, un membre de l'équipe ou un niveau, ou sont **risqués**.
 - Les bons choix rapportent de l'argent, de la réputation, des points de recherche, un titre mixé… et parfois un **contact**.
 - Chaque contact donne **+2 % de gains pour toujours**. Certains contacts ouvrent des **histoires en plusieurs épisodes** ou des **artistes à signer**.
+
+### Les légendes
+
+Deux figures légendaires se rencontrent en fin de partie, chacune dans une histoire en deux épisodes :
+
+| Légende | Où la croiser | La suite |
+| --- | --- | --- |
+| **KYRB.**, star de la production électronique et DJ | Dès le studio professionnel : dans les coulisses d'un festival, la clé qui contient son set refuse de s'ouvrir à vingt minutes de son passage. Aide-le (ton matériel, ta clé de secours ou ton ingé mastering) et il entre dans tes contacts. | **Un back-to-back avec KYRB.** : il t'invite à clôturer avec lui le plus grand festival électro d'Europe et à sortir le morceau ensemble. |
+| **Jean-Paul Sorel**, producteur légendaire | Au studio de référence : il cherche un studio pour un dernier album. | **Le dernier album de Jean-Paul Sorel** : il revient avec des bandes inachevées. |
 
 ---
 
@@ -371,7 +380,7 @@ L'onglet **Palmarès** compte **42 familles de trophées** (production, fortune,
 
 ## Décoration, souvenirs et globe
 
-- **Décoration** (bulle sur l'étagère) : peinture des murs, sol, tapis, ambiance lumineuse et néon mural. Certaines options se débloquent avec le palmarès. La décoration est purement esthétique et reste après une tournée.
+- **Décoration** (bulle sur l'étagère) : peinture des murs, sol, tapis, ambiance lumineuse et néon mural (le néon « Nom du studio » affiche le nom que tu as choisi). Certaines options se débloquent avec le palmarès. La décoration est purement esthétique et reste après une tournée.
 - **Affiches de tournée** : une affiche encadrée par date de la tournée mondiale jouée, et une par pays parcouru en tournée locale. Elles se placent automatiquement sur les murs libres.
 - **Globe** : un globe sur pied apparaît dans le studio. Il ouvre un **globe interactif** que tu fais tourner et zoomer :
   - le pays de ton studio en jaune, les pays parcourus en orange ;
@@ -480,6 +489,7 @@ Le jeu continue sans toi :
 
 ## Réglages et sauvegardes
 
+- **Ton studio** : donne-lui le nom que tu veux (28 caractères au plus). Il s'affiche en haut de l'écran, sur le néon mural et dans le courrier des fans, et il reste après une tournée mondiale. Laisse le champ vide pour reprendre le nom du palier (Ta chambre, Le garage…).
 - **Sons** : deux réglages séparés, l'un pour les **sons du studio** (gains d'argent), l'autre pour les **sons des mini-jeux**.
 - **Thème** clair ou sombre, et **caméra** réinitialisable.
 - **Graphismes 3D** : Automatique (selon l'appareil), Économie (jardin allégé, moins de particules, pas de reflets) ou Détaillée.
@@ -512,6 +522,7 @@ Le jeu continue sans toi :
 
 | Date | Nouveautés |
 | --- | --- |
+| 18/10/2026 | Le jeu s'appelle désormais **Music Studio Tycoon** (anciennement Premier Mix ; sauvegardes conservées). Ton studio peut porter le nom que tu veux : en haut de l'écran, sur le néon et dans le courrier des fans. Nouvelle légende à rencontrer : **KYRB.**, star de l'électro et DJ, en deux épisodes (coulisses d'un festival, puis back-to-back). |
 | 18/10/2026 | Version web installable avec sa propre identité : Chrome ne la confond plus avec une autre application de `hugokirbach.github.io` (plus de faux « déjà installée »). Icônes dédiées, plein écran, jeu jouable hors connexion. |
 | 16/10/2026 | Décors extérieurs revus et vérifiés objet par objet : le coin de rue devient un vrai carrefour (plus de route à travers les maisons), sols étagés sans scintillement, pavés à taille constante, objets posés sur leur sol, passants sur leurs trottoirs et aux passages piétons, sapin, scène et citrouilles à des emplacements réservés, arbres loin des murs et des immeubles, angles de clôture propres, allée du garage qui sort du terrain. Intérieur : plus de scintillement sur les enceintes ni sur la boîte aux lettres, précision de profondeur accrue. |
 | 16/10/2026 | Courrier des fans : enveloppe qui s'ouvre, lettre manuscrite qui s'écrit, cadeau encaissé avec « Marquer comme lu ». Clashs : le métronome, la musique et les notes suivent désormais l'horloge du son (fini les décalages au démarrage ou avec un casque sans fil). |
@@ -534,9 +545,9 @@ Le jeu est aussi emballé en applications :
 
 | Fichier | Pour quoi faire |
 | --- | --- |
-| `PremierMix-Installation-1.0.0.exe` | Installe le jeu sur Windows, avec un raccourci sur le bureau. |
-| `PremierMix-Portable-1.0.0.exe` | Lance le jeu directement, sans installation. |
-| `PremierMix.apk` | Installe le jeu sur un téléphone ou une tablette Android. |
+| `MusicStudioTycoon-Installation-1.0.0.exe` | Installe le jeu sur Windows, avec un raccourci sur le bureau. |
+| `MusicStudioTycoon-Portable-1.0.0.exe` | Lance le jeu directement, sans installation. |
+| `MusicStudioTycoon.apk` | Installe le jeu sur un téléphone ou une tablette Android. |
 
 La version web sur GitHub Pages est republiée automatiquement à chaque envoi sur `main`.
 
@@ -544,7 +555,7 @@ La version web sur GitHub Pages est republiée automatiquement à chaque envoi s
 
 Sans passer par l'APK, la version GitHub Pages s'installe comme une application : ouvre la page dans Chrome (ou Edge), menu **⋮**, puis **Installer l'application** (ou **Ajouter à l'écran d'accueil**). Le jeu s'ouvre alors en plein écran, avec son icône, et reste jouable hors connexion.
 
-Premier Mix a sa propre identité d'application (`id` et portée `/music-studio-tycoon/`). Il cohabite donc avec les autres applications installées depuis `hugokirbach.github.io` : chacune s'installe séparément.
+Music Studio Tycoon a sa propre identité d'application (`id` et portée `/music-studio-tycoon/`). Il cohabite donc avec les autres applications installées depuis `hugokirbach.github.io` : chacune s'installe séparément.
 
 ### Windows : avertissement SmartScreen
 
@@ -552,9 +563,9 @@ L'application n'est pas signée avec un certificat payant, donc Windows peut aff
 
 ### Android : installer l'APK
 
-1. Télécharge `PremierMix.apk` depuis la page Releases, directement sur le téléphone.
+1. Télécharge `MusicStudioTycoon.apk` depuis la page Releases, directement sur le téléphone.
 2. Ouvre le fichier. Android te demande d'autoriser l'installation d'applications inconnues pour ton navigateur (ou ton gestionnaire de fichiers) : accepte.
-3. Lance **Premier Mix**.
+3. Lance **Music Studio Tycoon**.
 
 L'APK est signé avec une clé de développement. Il s'installe sans problème, mais il n'est pas destiné au Play Store. Pour une publication sur le Play Store, il faudra une clé de signature à toi.
 

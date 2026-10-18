@@ -1,4 +1,4 @@
-/* Premier Mix: moteur de jeu (données + logique pure, sans DOM). */
+/* Music Studio Tycoon: moteur de jeu (données + logique pure, sans DOM). */
 (function (root) {
   'use strict';
 
@@ -60,7 +60,7 @@
     var acts = {};
     ACTS.forEach(function (a) { acts[a.id] = { lvl: 0, auto: false, prog: 0, run: false, done: 0, hold: false, mix: null }; });
     return { v: 1, money: 0, xp: 0, level: 1, lifetime: 0, owned: { laptop: 1 }, acts: acts, tracks: {},
-      savedAt: now, created: now, sound: false, legend: false, epoch: 0,
+      savedAt: now, created: now, sound: false, legend: false, epoch: 0, studio: '',
       boost: { m: 1, left: 0, t: 0 }, contacts: {}, trophies: {}, fame: 0, fameX: 0, tours: 0, ev: { cd: T.eventFirst, seen: {}, pending: null, hold: false, won: 0 },
       team: newTeam(), masters: [], mixes: 0, perfect: 0, orders: newOrders(), charts: newCharts(), rd: newRd(), proj: newProj(), battle: newBattle(), piano: { best: 0, cd: 0, plays: 0 }, deco: newDeco(), label: newLabel(), world: newWorld(0), cal: newCal() };
   }
@@ -90,6 +90,7 @@
     S.created = num(o.created, S.created);
     S.sound = !!o.sound;
     S.legend = !!o.legend;
+    S.studio = studioClean(o.studio);
     S.epoch = Math.max(0, num(o.epoch, 0));
     S.fame = Math.max(0, Math.floor(num(o.fame, 0)));
     S.tours = Math.max(0, Math.floor(num(o.tours, 0)));
@@ -427,6 +428,11 @@
     return out;
   }
 
+  // Nom du studio choisi par le joueur (vide = nom du palier). Texte nettoyé, 28 caractères au plus.
+  var STUDIO_MAX = 28;
+  function studioClean(v) { return typeof v === 'string' ? v.replace(/[\u0000-\u001f\u007f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, STUDIO_MAX).trim() : ''; }
+  function setStudioName(S, v) { S.studio = studioClean(v); return S.studio; }
+  function studioName(S) { return S.studio || TIERS[tierIndex(S)].name; }
   function tierIndex(S) {
     var v = studioValue(S), t = 0;
     for (var i = 0; i < TIERS.length; i++) if (v >= TIERS[i].min) t = i;
@@ -2104,7 +2110,7 @@
     newState: newState, hydrate: hydrate, xpNeeded: xpNeeded, studioValue: studioValue, valueMult: valueMult,
     levelMult: levelMult, duration: duration, payout: payout, xpGain: xpGain, upCost: upCost, royRate: royRate,
     activeRate: activeRate, trackCount: trackCount, isUnlocked: isUnlocked, lockReason: lockReason,
-    tierIndex: tierIndex, milestoneMult: milestoneMult, nextMilestone: nextMilestone, PERKS: PERKS, perkFx: perkFx, nextPerk: nextPerk, perksBetween: perksBetween, synergy: synergy, tubeChance: tubeChance, startAct: startAct,
+    tierIndex: tierIndex, studioName: studioName, setStudioName: setStudioName, STUDIO_MAX: STUDIO_MAX, milestoneMult: milestoneMult, nextMilestone: nextMilestone, PERKS: PERKS, perkFx: perkFx, nextPerk: nextPerk, perksBetween: perksBetween, synergy: synergy, tubeChance: tubeChance, startAct: startAct,
     tapAct: tapAct, advanceAway: advanceAway, chartsAway: chartsAway, avgMorale: avgMorale, buy: buy, upgradeAct: upgradeAct, upgradeActN: upgradeActN, upPlan: upPlan, buyAuto: buyAuto, advance: advance, offline: offline, touch: touch,
     boostMult: boostMult, contactCount: contactCount, eventRef: eventRef, tickEvents: tickEvents, dismissEvent: dismissEvent,
     resolveEvent: resolveEvent, pickEvent: pickEvent, trophyCount: trophyCount, trophyProgress: trophyProgress,

@@ -1,4 +1,4 @@
-/* Premier Mix: données et réglages d'équilibrage. */
+/* Music Studio Tycoon: données et réglages d'équilibrage. */
 (function (root) {
   'use strict';
 
@@ -630,6 +630,35 @@
         { text: 'Lui conseiller de les publier telles quelles',
           outcome: 'Les bandes brutes ont leur charme. Il te remercie de ta franchise.',
           rw: [{ k: 'rep', n: 4 }] }
+      ] },
+    // ---- Légende de l'électro : KYRB., producteur star et DJ ----
+    { id: 'kyrb', tiers: [4, 6], title: 'KYRB. en coulisses', contact: 'KYRB., star de l’électro et DJ',
+      intro: 'Festival d’été, scène principale. KYRB., légende de la musique électronique, doit jouer dans vingt minutes, mais la clé qui contient tout son set refuse de s’ouvrir. Son régisseur cherche quelqu’un qui s’y connaît.',
+      choices: [
+        { text: 'Rebâtir son set avec lui sur ton matériel, en coulisses',
+          outcome: 'Vous retrouvez ses boucles dans tes archives de remix et vous montez un set neuf à quatre mains. Pour le dernier morceau, il t’appelle sur scène. Quinze mille personnes crient vos deux noms.',
+          rw: [{ k: 'contact' }, { k: 'boost', m: 3, s: 120 }] },
+        { text: 'Lui tendre ta clé de secours, pleine de tes propres morceaux', risk: { p: 0.5,
+          outcome: 'Il passe deux de tes titres, mais ils cassent l’élan de son set. Il te remercie d’un signe de tête, sans plus.', rw: [{ k: 'xp', x: 0.2 }] },
+          outcome: 'Il ouvre son set avec ton morceau. La foule lève les bras dès la première mesure, et KYRB. enregistre ton numéro avant même de quitter la scène.',
+          rw: [{ k: 'contact' }, { k: 'tracks', n: 3 }, { k: 'cash', x: 3 }] },
+        { text: 'Sauver les fichiers de la clé avec ton ingé mastering', need: { role: 'master' },
+          outcome: 'Ton ingé mastering récupère chaque piste en un quart d’heure. KYRB. joue son set intact et te dédie le rappel.',
+          rw: [{ k: 'contact' }, { k: 'rep', n: 8 }, { k: 'xp', x: 0.25 }] }
+      ] },
+    { id: 'kyrb2', tiers: [4, 6], need: { contact: 'kyrb' }, title: 'Un back-to-back avec KYRB.', contact: 'L’équipe de tournée de KYRB.',
+      intro: 'KYRB. t’appelle à minuit. Il clôture le plus grand festival électro d’Europe et veut finir en back-to-back avec toi, puis sortir le morceau que vous jouerez ensemble.',
+      choices: [
+        { text: 'Composer avec lui un inédit dans ton studio avant le festival', need: { item: 'mastering' },
+          outcome: 'Trois nuits de travail et un drop que personne n’a vu venir. Le morceau sort le lendemain du festival et grimpe dans toutes les playlists.',
+          rw: [{ k: 'contact' }, { k: 'master', q: 5 }, { k: 'boost', m: 3, s: 150 }] },
+        { text: 'Monter sur scène sans rien préparer et suivre son énergie', risk: { p: 0.6,
+          outcome: 'Deux transitions ratées, puis vous retrouvez le fil. Le public pardonne, mais la vidéo circule.', rw: [{ k: 'xp', x: 0.3 }] },
+          outcome: 'Une heure de complicité totale au lever du soleil. Le set fait le tour du monde.',
+          rw: [{ k: 'contact' }, { k: 'tracks', n: 4 }, { k: 'rep', n: 10 }] },
+        { text: 'Lui confier tes pistes séparées pour qu’il les remixe',
+          outcome: 'Son remix de ton morceau devient l’hymne de l’été. Il te reverse une belle part des écoutes.',
+          rw: [{ k: 'cash', x: 4 }] }
       ] }
   ];
 
@@ -855,7 +884,7 @@
       ] },
       { id: 'neon', name: 'Néon mural', options: [
         { id: 'aucun', name: 'Aucun' },
-        { id: 'nom', name: 'Premier Mix', v: { k: 'text', c: '#ff8a3d' } },
+        { id: 'nom', name: 'Nom du studio', v: { k: 'text', c: '#ff8a3d' } },
         { id: 'note', name: 'Double croche', v: { k: 'note', c: '#66ccff' }, need: { m: 'battles', n: 1, t: 'Remporte un clash' } },
         { id: 'coeur', name: 'Cœur', v: { k: 'heart', c: '#ff5c8a' }, need: { m: 'contacts', n: 12, t: 'Rencontre 12 contacts' } },
         { id: 'eclair', name: 'Éclair', v: { k: 'bolt', c: '#ffd166' }, need: { m: 'league', n: 4, t: 'Monte en ligue Internationale' } },

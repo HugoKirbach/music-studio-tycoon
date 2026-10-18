@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Premier Mix</title>
+<title>Music Studio Tycoon</title>
 <!-- Application installable : identité propre (manifest), distincte des autres applis hébergées sur hugokirbach.github.io -->
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#e6edf1" media="(prefers-color-scheme: light)">
@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Premier Mix">
+<meta name="apple-mobile-web-app-title" content="Studio Tycoon">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Caveat:wght@500;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -99,9 +99,22 @@ select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
 .hcard { background: var(--hud); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-radius: var(--r); box-shadow: var(--shadow); padding: 8px 12px; min-width: 0; }
 .brand { display: flex; flex-direction: column; justify-content: center; }
 .brand h1 { font-size: 20px; letter-spacing: 0.01em; color: var(--accent); }
-.place { min-width: 190px; }
-.place-name { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font: 800 15px var(--f-title); }
+.place { min-width: 190px; flex: 1 1 250px; max-width: max-content; }
+.place-name { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 10px; font: 800 15px var(--f-title); }
+@media (min-width: 1000px) and (max-width: 1299px) { .brand h1 { font-size: 16px; line-height: 1.05; } .brand h1 span { display: block; } }
 .place-name small { font: 600 12px var(--f-body); color: var(--ink-soft); }
+.studio-btn { display: inline-flex; align-items: center; gap: 5px; min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: 6px; }
+.studio-btn .pen-ico { width: 13px; height: 13px; flex: none; opacity: 0.45; transition: opacity 0.15s; }
+.studio-btn:hover .pen-ico, .studio-btn:focus-visible .pen-ico { opacity: 0.9; }
+.studio-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.studio-form { gap: 8px; }
+.studio-row { display: flex; gap: 8px; }
+.studio-row input { flex: 1; min-width: 0; min-height: 44px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); font: 700 15px var(--f-body); }
+.studio-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; background: var(--card); }
+.studio-row .btn { flex: none; justify-self: auto; }
+.studio-form.flash { animation: studioFlash 0.9s ease-out; }
+@keyframes studioFlash { 0% { box-shadow: 0 0 0 3px var(--accent); } 100% { box-shadow: var(--shadow-s); } }
+@media (prefers-reduced-motion: reduce) { .studio-form.flash { animation: none; } }
 .thin { height: 6px; border-radius: 6px; background: var(--panel-2); overflow: hidden; margin-top: 5px; }
 .thin i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 6px; transition: width 0.4s; }
 .stats { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -784,6 +797,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   .stat:not(.money) .sub { display: none; }
   .place-name small { display: none; }
   .place-name span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .studio-btn { max-width: 100%; }
   .boost { font-size: 10.5px; padding: 0 5px 3px; }
   .menu-toggle { display: none; }
   .panel, .game.collapsed > .panel { display: contents; }
@@ -918,9 +932,9 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   </div>
 
   <header class="hud" id="hud">
-    <div class="hcard brand"><h1>Premier Mix</h1></div>
+    <div class="hcard brand"><h1><span>Music Studio</span> <span>Tycoon</span></h1></div>
     <div class="hcard place">
-      <div class="place-name"><span id="tierName">Ta chambre</span><small id="tierNext"></small></div>
+      <div class="place-name"><button class="studio-btn" id="studioBtn" type="button" title="Renommer le studio"><span id="tierName">Ta chambre</span><svg class="pen-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></button><small id="tierNext"></small></div>
       <div class="thin" aria-hidden="true"><i id="tierFill"></i></div>
     </div>
     <div class="ctrls">
@@ -1072,7 +1086,13 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 
       <section class="pane" id="account" aria-labelledby="accTitle">
         <h2>Réglages</h2>
-        <h3 class="sec" style="margin-top:4px">Apparence</h3>
+        <h3 class="sec" style="margin-top:4px">Ton studio</h3>
+        <form class="card set-card studio-form" id="studioForm" autocomplete="off">
+          <label class="pf" for="studioIn"><span class="lbl">Nom du studio</span></label>
+          <div class="studio-row"><input type="text" id="studioIn" maxlength="28" enterkeyhint="done" spellcheck="false" placeholder="Ta chambre"><button class="btn sm primary" id="studioSave" type="submit">Renommer</button></div>
+          <p class="small-note" id="studioNote">Laisse vide pour reprendre le nom de ton palier. Le nom s’affiche en haut de l’écran, sur le néon du studio et dans le courrier des fans.</p>
+        </form>
+        <h3 class="sec">Apparence</h3>
         <div class="seg" id="themeSeg" role="group" aria-label="Thème">
           <button type="button" data-theme-set="auto" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>Automatique</button>
           <button type="button" data-theme-set="light" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Clair</button>
@@ -1169,7 +1189,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
         <div class="env-back"></div>
         <div class="letter" id="mailLetter">
           <p class="hand date" id="mailDate"></p>
-          <p class="hand hello">Salut l’équipe du studio !</p>
+          <p class="hand hello" id="mailHello">Salut l’équipe du studio !</p>
           <p class="hand body"><span id="mailText"></span><i class="pen" aria-hidden="true"></i></p>
           <p class="hand sign" id="mailFrom"></p>
         </div>

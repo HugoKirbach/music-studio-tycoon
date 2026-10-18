@@ -1,4 +1,4 @@
-/* Premier Mix 3D: interface, sauvegarde, sons, équipe et pilotage de la scène 3D. */
+/* Music Studio Tycoon 3D: interface, sauvegarde, sons, équipe et pilotage de la scène 3D. */
 (function () {
   'use strict';
   var G = window.Game, D = window.GameData;
@@ -502,6 +502,8 @@
   function decoView() {
     var o = {};
     G.DECO.slots.forEach(function (s) { var x = G.decoOpt(s.id, S.deco[s.id]); if (x && x.v !== undefined) o[s.id] = x.v; });
+    // le néon « Nom du studio » affiche le nom choisi par le joueur
+    if (o.neon && o.neon.k === 'text') o.neon = { k: 'text', c: o.neon.c, t: (S.studio || 'Music Studio').toUpperCase() };
     o.cups = Math.min(8, decoCups());
     return o;
   }
@@ -515,7 +517,7 @@
     if (slot === 'neon') return '#1b1d22';
     return '';
   }
-  var NEON_GLYPH = { text: 'PM', note: '♫', heart: '♥', bolt: 'ϟ', star: '★' };
+  var NEON_GLYPH = { text: 'Aa', note: '♫', heart: '♥', bolt: 'ϟ', star: '★' };
   function renderDeco() {
     var box = $('decoSlots'), fresh = {};
     G.decoNew(S).forEach(function (k) { fresh[k] = 1; });
@@ -1051,6 +1053,7 @@
     $('mailDate').textContent = 'le ' + c.text;
     $('mailText').textContent = '';
     $('mailFrom').textContent = '— ' + L.f;
+    $('mailHello').textContent = S.studio ? 'Salut l’équipe de ' + S.studio + ' !' : 'Salut l’équipe du studio !';
     $('mailFull').textContent = 'Lettre de ' + L.f + ' : ' + body + ' Cadeau : +' + eur(L.v) + '.';
     setText($('mailGain'), '+' + eur(L.v));
     var st = $('mailStage'); st.className = 'mail-stage'; $('mailFoot').classList.remove('show');
@@ -2078,8 +2081,13 @@
     setText($('royText'), passive > 0 ? '+' + eur(passive) + '/s de royalties' : 'Pas encore de royalties');
 
     var ti = G.tierIndex(S), tier = D.TIERS[ti], next = D.TIERS[ti + 1];
-    setText($('tierName'), tier.name);
-    setText($('tierNext'), next ? 'palier suivant : ' + eur(next.min) : 'palier maximal');
+    var snm = G.studioName(S), sown = !!S.studio;
+    setText($('tierName'), snm);
+    setText($('tierNext'), (sown ? tier.name + ' · ' : '') + (next ? 'palier suivant : ' + eur(next.min) : 'palier maximal'));
+    var stt = sown ? 'Renommer « ' + snm + ' » (' + tier.name + ')' : 'Renommer le studio';
+    if ($('studioBtn').title !== stt) { $('studioBtn').title = stt; $('studioBtn').setAttribute('aria-label', stt); }
+    var sin = $('studioIn');
+    if (document.activeElement !== sin) { if (sin.value !== (S.studio || '')) sin.value = S.studio || ''; if (sin.placeholder !== tier.name) sin.placeholder = tier.name; }
     setWidth($('tierFill'), next ? Math.min(100, (V - tier.min) / (next.min - tier.min) * 100) : 100);
 
     var anyUnlockedNow = false;
@@ -2708,7 +2716,7 @@
       var b = document.createElement('button'), info = G.choiceInfo(S, c), tags = [];
       b.type = 'button'; b.className = 'btn choice'; b.id = 'choice-' + i; b.setAttribute('data-i', i);
       b.innerHTML = '<span class="k"></span><span class="cw"><span class="ct"></span><span class="tags"></span></span>';
-      b.querySelector('.k').textContent = 'ABC'.charAt(i);
+      b.querySelector('.k').textContent = 'ABCD'.charAt(i);
       b.querySelector('.ct').textContent = c.text;
       if (info.need) tags.push(['need' + (info.needOk ? ' ok' : ''), (info.needOk ? 'Grâce à ' : 'Requiert ') + info.need]);
       if (info.cost) tags.push(['cost' + (S.money >= info.cost ? '' : ' short'), 'Coûte ' + eur(info.cost)]);
@@ -2992,6 +3000,22 @@
     $('tabRd').addEventListener('click', function () { tab('rd'); });
     bindFeatures();
     $('tabMore').addEventListener('click', function () { tab('account'); });
+    // Nom du studio: le nom en haut de l'écran ouvre le réglage; vide = nom du palier.
+    $('studioBtn').addEventListener('click', function () {
+      if (!menuOpen) setMenu(true);
+      view('account');
+      var f = $('studioForm'), inp = $('studioIn');
+      try { f.scrollIntoView({ block: 'nearest' }); } catch (e) { /* facultatif */ }
+      f.classList.remove('flash'); void f.offsetWidth; f.classList.add('flash');
+      setTimeout(function () { try { inp.focus({ preventScroll: true }); inp.select(); } catch (e) { /* facultatif */ } }, 60);
+    });
+    $('studioForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var inp = $('studioIn'), before = S.studio || '', v = G.setStudioName(S, inp.value);
+      inp.value = v; inp.blur();
+      saveLocal(); markCloud(); render();
+      if (v !== before) { toast(v ? 'Ton studio s’appelle désormais « ' + v + ' ».' : 'Ton studio reprend le nom de son palier : ' + G.studioName(S) + '.'); blip(3); }
+    });
     $('goal').addEventListener('click', function () { view('trophies'); });
 
     // Équipe

@@ -1,6 +1,6 @@
-// Premier Mix : service worker limité à /music-studio-tycoon/ (il ne touche pas aux autres applis du domaine).
+// Music Studio Tycoon : service worker limité à /music-studio-tycoon/ (il ne touche pas aux autres applis du domaine).
 // Réseau d'abord (les mises à jour arrivent tout de suite), copie locale si le téléphone est hors ligne.
-var CACHE = 'premier-mix-v1';
+var CACHE = 'music-studio-tycoon-v2';
 var CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 self.addEventListener('install', function (e) {
   self.skipWaiting();
@@ -8,7 +8,7 @@ self.addEventListener('install', function (e) {
 });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (ks) {
-    return Promise.all(ks.filter(function (k) { return k.indexOf('premier-mix-') === 0 && k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+    return Promise.all(ks.filter(function (k) { return (k.indexOf('premier-mix-') === 0 || k.indexOf('music-studio-tycoon-') === 0) && k !== CACHE; }).map(function (k) { return caches.delete(k); }));
   }).then(function () { return self.clients.claim(); }));
 });
 self.addEventListener('fetch', function (e) {
