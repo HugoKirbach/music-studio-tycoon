@@ -1,0 +1,19 @@
+{
+  "id": "/music-studio-tycoon/",
+  "name": "Premier Mix",
+  "short_name": "Premier Mix",
+  "description": "Tycoon de studio de musique : du portable dans ta chambre au complexe légendaire.",
+  "lang": "fr",
+  "start_url": "/music-studio-tycoon/",
+  "scope": "/music-studio-tycoon/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#e6edf1",
+  "theme_color": "#e6edf1",
+  "categories": ["games", "music", "entertainment"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

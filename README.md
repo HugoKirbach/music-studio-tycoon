@@ -512,6 +512,7 @@ Le jeu continue sans toi :
 
 | Date | Nouveautés |
 | --- | --- |
+| 18/10/2026 | Version web installable avec sa propre identité : Chrome ne la confond plus avec une autre application de `hugokirbach.github.io` (plus de faux « déjà installée »). Icônes dédiées, plein écran, jeu jouable hors connexion. |
 | 16/10/2026 | Décors extérieurs revus et vérifiés objet par objet : le coin de rue devient un vrai carrefour (plus de route à travers les maisons), sols étagés sans scintillement, pavés à taille constante, objets posés sur leur sol, passants sur leurs trottoirs et aux passages piétons, sapin, scène et citrouilles à des emplacements réservés, arbres loin des murs et des immeubles, angles de clôture propres, allée du garage qui sort du terrain. Intérieur : plus de scintillement sur les enceintes ni sur la boîte aux lettres, précision de profondeur accrue. |
 | 16/10/2026 | Courrier des fans : enveloppe qui s'ouvre, lettre manuscrite qui s'écrit, cadeau encaissé avec « Marquer comme lu ». Clashs : le métronome, la musique et les notes suivent désormais l'horloge du son (fini les décalages au démarrage ou avec un casque sans fil). |
 | 16/10/2026 | Absence : tout se cumule comme avant, mais le calendrier n'avance plus que de 3 jours au plus (les parties en cours sont ramenées à une date proche du réel). |
@@ -539,6 +540,12 @@ Le jeu est aussi emballé en applications :
 
 La version web sur GitHub Pages est republiée automatiquement à chaque envoi sur `main`.
 
+### Installer la version web sur un téléphone ou un ordinateur
+
+Sans passer par l'APK, la version GitHub Pages s'installe comme une application : ouvre la page dans Chrome (ou Edge), menu **⋮**, puis **Installer l'application** (ou **Ajouter à l'écran d'accueil**). Le jeu s'ouvre alors en plein écran, avec son icône, et reste jouable hors connexion.
+
+Premier Mix a sa propre identité d'application (`id` et portée `/music-studio-tycoon/`). Il cohabite donc avec les autres applications installées depuis `hugokirbach.github.io` : chacune s'installe séparément.
+
 ### Windows : avertissement SmartScreen
 
 L'application n'est pas signée avec un certificat payant, donc Windows peut afficher « Windows a protégé votre ordinateur ». Clique sur **Informations complémentaires**, puis sur **Exécuter quand même**.
@@ -564,6 +571,7 @@ Le code source du jeu est dans `game/` :
 | `scene3d.js` | La scène 3D (Three.js r160, licence MIT) : pièces, matériel, personnages, souvenirs, globe, extérieur, saisons et météo. |
 | `ui.js` et `template.html` | L'interface : onglets, fenêtres, mini-jeux, styles. |
 | `build.py` | Assemble le tout dans `www/index.html`. |
+| `www/manifest.webmanifest`, `www/sw.js`, `www/icons/` | Identité de l'application web installable (nom, icônes, portée limitée à `/music-studio-tycoon/`) et copie hors connexion. |
 | `tests/` | Tests du moteur (un fichier par système). |
 
 Après une modification :
