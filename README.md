@@ -279,6 +279,7 @@ Dès le niveau 6, tu crées ton **label** (onglet **Équipe → Label**). **14 a
 - Chaque artiste a un **genre** et **deux ambiances préférées**.
 - Quand il **veut sortir un album** (petite note ♪ au-dessus de lui dans le studio), prépare-le avec l'outil de projet de création.
 - Respecter ses goûts fait grimper sa **notoriété** et son **humeur**. La notoriété de tes artistes augmente **tous tes gains**.
+- Chaque artiste vit **à son propre rythme** : ses envies d'album et ses prises de parole arrivent à des moments différents de celles des autres, y compris au retour d'une tournée mondiale.
 
 ### Histoires d'artistes
 
@@ -405,8 +406,8 @@ L'onglet **Palmarès** compte **42 familles de trophées** (production, fortune,
 | Ta chambre, Chambre-studio | Jardin : terrasse, massifs fleuris, potager, banc, allée vers le portail, clôture, maisons voisines |
 | Le garage | Le même jardin, plus l'allée goudronnée qui sort du terrain par une ouverture de la clôture, et la voiture devant la porte du garage |
 | Local en ville | Coin de rue au carrefour de deux rues : trottoirs bordés de granit, chaussées, passages piétons, réverbères, arbres en grille, voitures garées le long des trottoirs, ruelle pavée vers l'immeuble voisin, immeubles du même pâté de maisons, abribus et squares de l'autre côté |
-| Studio professionnel, Studio de référence | Parvis pavé, jardinières, bornes lumineuses, parking, drapeaux et tours de bureaux tout autour (fontaine au studio de référence) |
-| Complexe légendaire | Domaine : allée de gravier bordée de topiaires, fontaine, piscine, haies taillées, statue, grille d'honneur |
+| Studio professionnel, Studio de référence | Quartier créatif : cour pavée entre d'anciens entrepôts de briques (la « Manufacture des sons » et son toit en sheds, une haute cheminée d'usine, un château d'eau), grande fresque murale, guinguette avec food truck, tables, parasols, clients attablés et guirlandes d'ampoules, vélos et scooter, vieux rails, van du groupe et flight cases. Au studio de référence : bus de tournée, tapis rouge entre cordons dorés et projecteurs qui balaient le ciel la nuit |
+| Complexe légendaire | Domaine de légende : piscine en forme de guitare (rosace, cordes, chevalet) éclairée la nuit, transats et palmiers en pot, allée des étoiles dorées, disque d'or géant, étang avec ponton, barque, nénuphars, canards et jet d'eau, kiosque où traîne une guitare, feu de camp et bancs de rondins, grange en pierre, serre, vigne, héliport et son hélicoptère, montgolfière au loin |
 
 ### Un décor selon le pays
 
@@ -427,7 +428,7 @@ Le pays où ton studio est installé (choisi à chaque tournée mondiale) change
 - **Printemps** : les arbres bourgeonnent, les massifs fleurissent, les cerisiers du Japon se couvrent de rose.
 - **Été** : feuillage dense ; l'herbe jaunit un peu par temps sec.
 - **Automne** : les feuilles prennent leurs couleurs (jaune, orange, rouge selon l'essence) puis tombent en tourbillonnant.
-- **Hiver** : arbres nus ; la neige s'installe au cœur de la saison, sur la pelouse, les toits, les haies et les sapins ; les bassins gèlent.
+- **Hiver** : arbres nus ; la neige s'installe au cœur de la saison, sur la pelouse, les toits, les haies et les sapins ; les bassins et l'étang gèlent. Le manteau neigeux n'a plus de motif répété : congères, plaques et bords fondus se dessinent naturellement sur tout le terrain, la neige fine prend une teinte bleutée.
 - **Météo du jour** : soleil, éclaircies, nuages, pluie (la pelouse s'assombrit), neige, orages avec éclairs, brume. Le vent fait onduler les feuillages et balance la balançoire du jardin, des oiseaux tournent au-dessus des arbres les beaux jours.
 - **Passants** : en ville et sur le parvis, des passants se promènent sur les trottoirs, parapluie ouvert quand il pleut.
 - Tout évolue en douceur, d'un instant à l'autre : pas de changement brutal.
@@ -522,6 +523,7 @@ Le jeu continue sans toi :
 
 | Date | Nouveautés |
 | --- | --- |
+| 18/10/2026 | Extérieurs refaits pour le studio professionnel, le studio de référence (quartier créatif d'anciens entrepôts, guinguette, fresque, bus de tournée, tapis rouge et projecteurs) et le complexe légendaire (piscine guitare, étang, kiosque, feu de camp, grange, héliport…). Neige sans motif répété. Au retour d'une tournée, les artistes ne parlent plus tous en même temps : chacun a ses propres délais. |
 | 18/10/2026 | Le jeu s'appelle désormais **Music Studio Tycoon** (anciennement Premier Mix ; sauvegardes conservées). Ton studio peut porter le nom que tu veux : en haut de l'écran, sur le néon et dans le courrier des fans. Nouvelle légende à rencontrer : **KYRB.**, star de l'électro et DJ, en deux épisodes (coulisses d'un festival, puis back-to-back). |
 | 18/10/2026 | Version web installable avec sa propre identité : Chrome ne la confond plus avec une autre application de `hugokirbach.github.io` (plus de faux « déjà installée »). Icônes dédiées, plein écran, jeu jouable hors connexion. |
 | 16/10/2026 | Décors extérieurs revus et vérifiés objet par objet : le coin de rue devient un vrai carrefour (plus de route à travers les maisons), sols étagés sans scintillement, pavés à taille constante, objets posés sur leur sol, passants sur leurs trottoirs et aux passages piétons, sapin, scène et citrouilles à des emplacements réservés, arbres loin des murs et des immeubles, angles de clôture propres, allée du garage qui sort du terrain. Intérieur : plus de scintillement sur les enceintes ni sur la boîte aux lettres, précision de profondeur accrue. |

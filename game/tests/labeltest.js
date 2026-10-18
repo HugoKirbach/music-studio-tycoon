@@ -51,7 +51,7 @@ const free = album(S, { genre: 'rap', mood: 'rue', pub: 'ados', fmt: 'single' })
 // 6. tournée: les artistes restent; sauvegarde
 S.lifetime = 1e15; r.ask = { left: 10 };
 assert(G.tour(S, 5));
-assert(S.label.roster.length === 1 && !r.ask && r.cd === T.askEvery && r.fame > 0, 'artistes conservés');
+assert(S.label.roster.length === 1 && !r.ask && r.cd >= T.askEvery * 0.4 && r.cd <= T.askEvery * 1.6 && r.fame > 0, 'artistes conservés, délai propre');
 const R = G.hydrate(JSON.parse(JSON.stringify(S)), 0);
 assert.deepStrictEqual(R.label, S.label);
 const H = G.hydrate({ label: { roster: [{ id: 'kais', fame: 500, mood: -3 }, { id: 'kais' }, { id: 'pirate-x' }], albums: 'x' } }, 0);
@@ -93,4 +93,19 @@ console.log('OK: tournée, sauvegarde, trophées');
   k.story = { id: 'tele', left: 5 }; G.tickLabel(S2, 6); assert(!k.story, 'histoire oubliée');
   const R2 = G.hydrate(JSON.parse(JSON.stringify(S2)), 0); assert.deepStrictEqual(R2.label, S2.label);
   console.log('OK: histoires (style, duo, pari, coût, oubli), sauvegarde');
+}
+
+// 7. Après une tournée, les artistes ne parlent pas tous en même temps (demandes et histoires étalées)
+{
+  const S2 = G.newState(0); S2.level = 30; S2.lifetime = 1e15; S2.money = 1e15;
+  G.ARTISTS.slice(0, 6).forEach(a => S2.label.roster.push({ id: a.id, fame: 20, mood: 60, albums: 0, cd: 10, ask: null, disco: [], ccd: 0, scd: 10, story: null, style: null, duo: null, offer: null, tour: null, tcd: 0, tours: 0, tourLast: null }));
+  assert(G.tour(S2, 5), 'tournée possible');
+  const R2 = S2.label.roster, cds = R2.map(r => r.cd).sort((a, b) => a - b), scds = R2.map(r => r.scd).sort((a, b) => a - b);
+  for (let i = 1; i < cds.length; i++) { assert(cds[i] - cds[i - 1] >= 50, 'demandes étalées ' + cds.map(Math.round)); assert(scds[i] - scds[i - 1] >= 70, 'histoires étalées ' + scds.map(Math.round)); }
+  assert(new Set(cds.map(Math.round)).size === cds.length);
+  // une partie déjà synchronisée se répare au chargement
+  R2.forEach(r => { r.cd = 100; r.scd = 300; });
+  const H2 = G.hydrate(JSON.parse(JSON.stringify(S2)), 0), c2 = H2.label.roster.map(r => r.cd).sort((a, b) => a - b);
+  for (let i = 1; i < c2.length; i++) assert(c2[i] - c2[i - 1] >= 50, 'sauvegarde synchronisée réparée');
+  console.log('artistes désynchronisés après tournée: ok', cds.map(Math.round).join(' / '));
 }

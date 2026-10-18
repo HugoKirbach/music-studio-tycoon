@@ -66,6 +66,16 @@
   }
   function newCal() { return { v: 2, d: 0, ad: 0, mail: 0, cd: { tree: 0, cat: 0 }, sm: 0, smW: -1, fest: '', hint: 0 }; }
   function newProj() { return { cur: null, book: { c: {}, p: {}, h: {} }, hist: [], done: 0, best: 0, last: null }; }
+  // Délai propre à chaque artiste: base ±k (35 % par défaut).
+  function jit(base, k) { k = k == null ? 0.35 : k; return base * (1 - k + rand() * 2 * k); }
+  // Écarte les demandes et les histoires des artistes qui tomberaient en même temps (au moins un écart minimal entre deux).
+  function desyncArtists(S, all) {
+    var R = (S.label && S.label.roster) || [];
+    [['cd', 'ask', 50], ['scd', 'story', 70]].forEach(function (q) {
+      var key = q[0], busy = q[1], gap = q[2], L = R.filter(function (r) { return !r[busy] && !r.tour; }).sort(function (a, b) { return a[key] - b[key]; });
+      for (var i = 1; i < L.length; i++) if (L[i][key] - L[i - 1][key] < gap) L[i][key] = L[i - 1][key] + gap + rand() * gap * (all ? 1.5 : 1);
+    });
+  }
   function newLabel() { return { roster: [], albums: 0, concerts: 0, bestVenue: 0, kept: 0, ocd: T.offerFirst, gone: [], disco: [], ltours: 0, cities: {} }; }
   function newWorld(tours) { return { home: 'fr', done: {}, base: null, rec: { piano: 0, proj: 0 }, souv: {}, homes: ['fr'], picks: pickDates(tours || 0) }; }
   function cleanDisc(x) { return { a: ART_BY[x && x.a] ? x.a : null, t: String((x && x.t) || 'Album').slice(0, 40), avg: Math.max(0, Math.min(10, num(x && x.avg, 0))), pos: Math.max(0, Math.floor(num(x && x.pos, 0))), g: PJ_G[x && x.g] ? x.g : null, w: Math.max(0, Math.floor(num(x && x.w, 0))) }; }
@@ -159,6 +169,7 @@
           tour: cleanLtour(r.tour), tcd: Math.max(0, Math.min(LTOUR.rest, num(r.tcd, 0))), tours: Math.max(0, Math.floor(num(r.tours, 0))), tourLast: cleanLast(r.tourLast) });
       });
       S.label.gone = S.label.gone.filter(function (g) { return !artistOf(S, g.id); });
+      desyncArtists(S); // anciennes parties: artistes synchronisés après une tournée
       // anciennes sauvegardes: la discographie se reconstruit à partir des derniers albums de chaque artiste
       if (!hadDisc) S.label.roster.forEach(function (r) { r.disco.forEach(function (x) { S.label.disco.push(cleanDisc({ a: r.id, t: x.t, avg: x.avg, pos: x.pos })); }); });
     }
@@ -1186,12 +1197,12 @@
       var a = ART_BY[r.id];
       if (r.ccd > 0) r.ccd = Math.max(0, r.ccd - dt);
       if (r.tour) return; // en tournée: pas de demande ni d'histoire
-      if (r.story) { r.story.left -= dt; if (r.story.left <= 0) { r.story = null; r.scd = T.storyEvery; r.mood = Math.max(0, r.mood - 3); } }
-      else if (!r.ask) { r.scd -= dt; if (r.scd <= 0) { r.story = makeStory(S, r); r.scd = T.storyEvery; if (r.story && hooks.artistStory) hooks.artistStory(a, r); } }
+      if (r.story) { r.story.left -= dt; if (r.story.left <= 0) { r.story = null; r.scd = jit(T.storyEvery); r.mood = Math.max(0, r.mood - 3); } }
+      else if (!r.ask) { r.scd -= dt; if (r.scd <= 0) { r.story = makeStory(S, r); r.scd = jit(T.storyEvery); if (r.story && hooks.artistStory) hooks.artistStory(a, r); } }
       if (r.ask) {
         if (S.proj.cur && S.proj.cur.artist === r.id) return; // l'album est en cours: la demande attend
         r.ask.left -= dt;
-        if (r.ask.left <= 0) { r.ask = null; r.cd = T.askEvery; r.mood = Math.max(0, r.mood - 8); if (hooks.artistIgnored) hooks.artistIgnored(a, r); }
+        if (r.ask.left <= 0) { r.ask = null; r.cd = jit(T.askEvery); r.mood = Math.max(0, r.mood - 8); if (hooks.artistIgnored) hooks.artistIgnored(a, r); }
         return;
       }
       r.cd -= dt;
@@ -1221,7 +1232,7 @@
     else {
       out.fee = transferFee(S, r); S.money += out.fee; S.lifetime += out.fee;
       S.label.roster = S.label.roster.filter(function (x) { return x !== r; });
-      S.label.roster.forEach(function (x) { if (x.duo === id) x.duo = null; if (x.story && x.story.other === id) { x.story = null; x.scd = T.storyEvery; } });
+      S.label.roster.forEach(function (x) { if (x.duo === id) x.duo = null; if (x.story && x.story.other === id) { x.story = null; x.scd = jit(T.storyEvery); } });
       S.label.gone.push({ id: id, lab: of.lab, left: T.goneFor });
     }
     touch(S); checkTrophies(S);
@@ -1254,7 +1265,7 @@
     r.albums++; S.label.albums++;
     r.disco.unshift({ t: c.title, avg: avg, pos: pos }); r.disco = r.disco.slice(0, 10);
     S.label.disco.unshift({ a: r.id, t: c.title, avg: avg, pos: pos, g: c.genre, w: S.charts ? S.charts.week : 0 }); S.label.disco = S.label.disco.slice(0, 80);
-    if (asked) { r.ask = null; r.cd = T.askEvery; }
+    if (asked) { r.ask = null; r.cd = jit(T.askEvery); }
     touch(S);
     return { id: r.id, fame: r.fame, dFame: r.fame - f0, mood: r.mood, dMood: r.mood - m0, ask: asked, match: match, likes: likes, duo: duo ? duo.id : null, style: style };
   }
@@ -1320,7 +1331,7 @@
     if (fx.rep) { S.orders.rep = Math.min(T.repMax, S.orders.rep + fx.rep); out.push({ k: 'rep', v: fx.rep }); }
     if (fx.style && st.genre) { r.style = st.genre; out.push({ k: 'style', g: st.genre }); }
     if (fx.duo && st.other && artistOf(S, st.other)) { r.duo = st.other; out.push({ k: 'duo', other: st.other }); }
-    r.story = null; r.scd = T.storyEvery;
+    r.story = null; r.scd = jit(T.storyEvery);
     touch(S);
     return { title: storyText(S, { id: r.id, story: st }, s.title), text: text, win: win, rewards: out };
   }
@@ -1831,8 +1842,10 @@
     });
     S.ev.cd = T.eventFirst; S.ev.pending = null; S.ev.hold = false;
     if (S.proj) { S.proj.cur = null; S.proj.last = null; } // un projet en cours est abandonné, le carnet reste
-    S.label.roster.forEach(function (a) { a.ask = null; a.cd = T.askEvery; a.story = null; a.scd = T.storyFirst; a.ccd = 0; a.offer = null; a.tour = null; a.tcd = 0; });
-    S.label.ocd = T.offerFirst;
+    // au retour, chaque artiste reprend à son rythme: demandes et histoires étalées, jamais toutes au même moment
+    S.label.roster.forEach(function (a) { a.ask = null; a.cd = jit(T.askEvery, 0.6); a.story = null; a.scd = jit(T.storyFirst * 1.5, 0.6); a.ccd = 0; a.offer = null; a.tour = null; a.tcd = 0; });
+    desyncArtists(S, true);
+    S.label.ocd = jit(T.offerFirst);
     S.rd.spec = {}; // les recherches restent, les spécialisations se choisissent à nouveau
     // L'équipe part aussi en tournée: ses membres pourront revenir sans prime d'embauche.
     var tm = S.team || newTeam(), al = tm.staff.map(function (m) { return { id: m.id, name: m.name, role: m.role, stars: m.stars, lvl: m.lvl, xp: 0, salary: m.salary, look: m.look }; });
