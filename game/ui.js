@@ -3000,6 +3000,8 @@
     $('tabRd').addEventListener('click', function () { tab('rd'); });
     bindFeatures();
     $('tabMore').addEventListener('click', function () { tab('account'); });
+    // Version web (hugokirbach.github.io) : lien vers le menu qui regroupe les applis. Absent sur PC, Android et claude.ai.
+    if (/\.github\.io$/.test(location.hostname)) $('hubBack').hidden = false;
     // Nom du studio: le nom en haut de l'écran ouvre le réglage; vide = nom du palier.
     $('studioBtn').addEventListener('click', function () {
       if (!menuOpen) setMenu(true);

@@ -706,6 +706,8 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
   .invite.pos-2, .invite.pos-3 { top: calc(var(--hud-h, 120px) + 44px); }
 }
 /* Réglages */
+.hub-back { gap: 6px; margin: 4px 0 8px; color: inherit; text-decoration: none; }
+.hub-back svg { width: 18px; height: 18px; flex: none; }
 .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--panel-2); border: 1px solid var(--line); }
 .seg button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 6px 4px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-soft); font-weight: 800; font-size: 14px; }
 .seg button svg { width: 18px; height: 18px; flex: none; }
@@ -1086,6 +1088,7 @@ details.owned-list summary { cursor: pointer; font-weight: 800; padding: 6px 0; 
 
       <section class="pane" id="account" aria-labelledby="accTitle">
         <h2>Réglages</h2>
+        <a class="btn sm hub-back" id="hubBack" href="/" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Retour au menu des applis</a>
         <h3 class="sec" style="margin-top:4px">Ton studio</h3>
         <form class="card set-card studio-form" id="studioForm" autocomplete="off">
           <label class="pf" for="studioIn"><span class="lbl">Nom du studio</span></label>
